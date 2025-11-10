@@ -1,0 +1,15 @@
+.next/
+node_modules/
+.env.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+**/bin/
+**/obj/
+.vs/
+*.user
+*.suo
+
+.env
+**/appsettings.Development.json
