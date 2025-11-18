@@ -3,8 +3,12 @@ version: '3.8'
 services:
   backend:
     build: ./backend
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+    depends_on:
+      - postgres
     ports:
-      - "8080:8080"
+      - "5249:5249"
   
   frontend:
     build: ./frontend
@@ -12,10 +16,17 @@ services:
       - "3000:3000"
 
   postgres:
-    image: postgres:16-alpine
+    image: postgres:17
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
+      - POSTGRES_PASSWORD=mysecretpassword
       - POSTGRES_DB=talentverse_db
+    command: >
+      postgres 
+      -c listen_addresses='*'
+      -c max_connections=100
+    volumes: 
+      - postgres_data:/var/lib/postgresql/data
+volumes:
+  postgres_data:
