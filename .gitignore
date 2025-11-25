@@ -14,6 +14,8 @@ docs/
 *.suo
 
 .env
+.env.*.local
+**/appsettings.json
 **/appsettings.Development.json
 **/appsettings.Docker.json
 

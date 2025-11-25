@@ -3,20 +3,32 @@ version: '3.8'
 services:
   backend:
     build: ./backend
+    container_name: talentverse-backend
     environment:
       - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_URLS=http://+:5249
     depends_on:
       - postgres
     ports:
       - "5249:5249"
+    networks:
+      - talentverse-network
   
   frontend:
     build: ./frontend
+    container_name: talentverse-frontend
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:5249
+    depends_on:
+      - backend
     ports:
       - "3000:3000"
+    networks:
+      - talentverse-network
 
   postgres:
     image: postgres:17
+    container_name: talentverse-postgres
     ports:
       - "5432:5432"
     environment:
@@ -28,5 +40,12 @@ services:
       -c max_connections=100
     volumes: 
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - talentverse-network
+
+networks:
+  talentverse-network:
+    driver: bridge
+
 volumes:
   postgres_data:
