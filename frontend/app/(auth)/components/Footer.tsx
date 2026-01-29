@@ -13,7 +13,7 @@ export const Footer: React.FC = () => {
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-white">
               <div className="bg-emerald-600 p-1.5 rounded-lg">
-                <Sparkles size={20} />
+                {/* <Sparkles size={20} /> */}
               </div>
               <span className="font-heading font-bold text-xl">TalentVerse</span>
             </div>

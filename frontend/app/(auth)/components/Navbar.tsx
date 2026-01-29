@@ -29,7 +29,7 @@ export const Navbar: React.FC = () => {
         {/* Logo */}
         <div className="flex items-center gap-2 cursor-pointer group">
           <div className="bg-emerald-600 p-1.5 rounded-lg text-white group-hover:rotate-12 transition-transform duration-300">
-            <Sparkles size={20} />
+            {/* <Sparkles size={20} /> */}
           </div>
           <span className={`font-heading font-bold text-xl tracking-tight ${isScrolled || mobileMenuOpen ? 'text-emerald-950' : 'text-white'}`}>
             TalentVerse

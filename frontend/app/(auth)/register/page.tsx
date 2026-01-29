@@ -51,13 +51,22 @@ export default function RegisterPage() {
 
       console.log("Registration payload:", payload);
 
-      const response = await axiosInstance.post("/api/account/register", payload);
+      const response = await axiosInstance.post("/account/register", payload);
 
       console.log("Registration response:", response.data);
 
       if (response.data.success && response.data.data?.token) {
         localStorage.setItem("token", response.data.data.token);
-        router.push("/setup-2fa");
+        
+        // Check if profile is complete
+        const userData = response.data.data;
+        if (userData.isProfileComplete === false) {
+          // New user needs to complete onboarding
+          router.push("/onboarding");
+        } else {
+          // Profile already complete (shouldn't happen for new users, but handle it)
+          router.push("/setup-2fa");
+        }
       } else {
         setApiError(response.data.message || "Registration failed");
       }

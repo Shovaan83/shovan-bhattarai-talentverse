@@ -20,7 +20,7 @@ app/(auth)/
 - **Backend Integration**: Axios calls to .NET 9 backend API
 - **Error Handling**: Displays validation errors and API errors inline
 - **Token Management**: Stores JWT token in localStorage on successful auth
-- **Auto-redirect**: Redirects to `/dashboard` after successful login/registration
+- **Auto-redirect**: Redirects to `/profile` after successful login/registration
 
 ## Design System
 - **Background**: Deep Jungle Green (`bg-emerald-900`)

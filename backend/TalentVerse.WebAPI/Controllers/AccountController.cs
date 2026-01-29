@@ -1,382 +1,354 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.RateLimiting;
 using TalentVerse.WebAPI.Common;
-using TalentVerse.WebAPI.Data.Entities;
 using TalentVerse.WebAPI.DTO.Account;
 using TalentVerse.WebAPI.Interfaces;
-using TalentVerse.WebAPI.Services;
 
 namespace TalentVerse.WebAPI.Controllers;
 
-[Route("api/[controller]")] // URL = api/account
+[Route("api/[controller]")]
 [ApiController]
-
 public class AccountController : ControllerBase
 {
-    private readonly UserManager<AppUser> _userManager;
-    private readonly ITokenService _tokenService;
+    private readonly IAuthService _authService;
+    private readonly ICloudinaryService _cloudinaryService;
     private readonly ILogger<AccountController> _logger;
 
-    public AccountController(UserManager<AppUser> userManager, ITokenService tokenService, ILogger<AccountController> logger)
+    public AccountController(
+        IAuthService authService, 
+        ICloudinaryService cloudinaryService,
+        ILogger<AccountController> logger)
     {
-        _userManager = userManager;
-        _tokenService = tokenService;
+        _authService = authService;
+        _cloudinaryService = cloudinaryService;
         _logger = logger;
     }
 
+    /// <summary>
+    /// Registers a new user account
+    /// </summary>
+    /// <param name="registerDto">User registration details</param>
+    /// <returns>Newly created user with authentication token</returns>
+    /// <response code="200">User successfully registered</response>
+    /// <response code="400">Validation failed or username/email already exists</response>
     [HttpPost("register")]
+    [EnableRateLimiting("fixed")]
+    [ProducesResponseType(typeof(ServiceResponse<UserDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ServiceResponse<UserDto>), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ServiceResponse<UserDto>>> Register([FromBody] RegisterDto registerDto)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ServiceResponse<UserDto>.FailureResponse("Validation Failed"));
-            }
+        if (registerDto == null)
+            return BadRequest(ServiceResponse<UserDto>.FailureResponse("Request body is required"));
 
-            if (await _userManager.Users.AnyAsync(x => x.Email == registerDto.Email.ToLower()))
-            {
-                return BadRequest(ServiceResponse<UserDto>.FailureResponse(AppConstant.ErrorMessages.UserExists));
-            }
+        if (!ModelState.IsValid)
+            return BadRequest(ServiceResponse<UserDto>.FailureResponse(
+                "Validation failed",
+                ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
 
-            var appUser = new AppUser
-            {
-                UserName = registerDto.Username,
-                Email = registerDto.Email,
-                Bio = registerDto.Bio
-            };
+        var result = await _authService.RegisterAsync(registerDto);
 
-            var createdUser = await _userManager.CreateAsync(appUser, registerDto.Password);
+        if (!result.Success)
+            return BadRequest(result);
 
-            if (!createdUser.Succeeded)
-            {
-                var errors = createdUser.Errors.Select(e => e.Description).ToList();
-                return BadRequest(ServiceResponse<UserDto>.FailureResponse("User creation failed", errors));
-            }
-
-            var roleResult = await _userManager.AddToRoleAsync(appUser, AppConstant.Roles.Member);
-
-            if (!roleResult.Succeeded)
-            {
-                return BadRequest(ServiceResponse<UserDto>.FailureResponse(AppConstant.ErrorMessages.RoleAssignmentFailed));
-            }
-
-            var userDto = new UserDto
-            {
-                Username = appUser.UserName,
-                Email = appUser.Email,
-                Bio = appUser.Bio,
-                Token = await _tokenService.CreateToken(appUser)
-            };
-
-            return Ok(ServiceResponse<UserDto>.SuccessResponse(userDto, AppConstant.SuccessMessages.RegistrationSuccessful));
-        }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Registration Error");
-                return StatusCode(500, ServiceResponse<UserDto>.FailureResponse(AppConstant.ErrorMessages.GenerricError));
-            }
+        return Ok(result);
     }
 
+    /// <summary>
+    /// Authenticates a user and returns a JWT token
+    /// </summary>
+    /// <param name="loginDto">User login credentials</param>
+    /// <returns>User details with JWT token or 2FA challenge</returns>
+    /// <response code="200">Login successful or 2FA required</response>
+    /// <response code="400">Validation failed</response>
+    /// <response code="401">Invalid credentials</response>
+    /// <response code="403">Email not confirmed</response>
+    /// <response code="423">Account locked</response>
     [HttpPost("login")]
-    public async Task<ActionResult<ServiceResponse<UserDto>>> Login(LoginDto loginDto)
+    [EnableRateLimiting("fixed")]
+    [ProducesResponseType(typeof(ServiceResponse<UserDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ServiceResponse<UserDto>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ServiceResponse<UserDto>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ServiceResponse<UserDto>), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ServiceResponse<UserDto>), 423)]
+    public async Task<ActionResult<ServiceResponse<UserDto>>> Login([FromBody] LoginDto loginDto)
     {
-        try
+        if (loginDto == null)
+            return BadRequest(ServiceResponse<UserDto>.FailureResponse("Request body is required"));
+
+        if (!ModelState.IsValid)
+            return BadRequest(ServiceResponse<UserDto>.FailureResponse("Validation failed"));
+
+        var result = await _authService.LoginAsync(loginDto);
+
+        if (!result.Success)
         {
-            if (!ModelState.IsValid)
+            // Return appropriate status code based on error type
+            if (result.Message?.Contains("Invalid", StringComparison.OrdinalIgnoreCase) == true ||
+                result.Message?.Contains("password", StringComparison.OrdinalIgnoreCase) == true)
             {
-                return BadRequest(ServiceResponse<UserDto>.FailureResponse("Validation Failed"));
+                return Unauthorized(result);
             }
 
-            var user = await _userManager.Users.FirstOrDefaultAsync(x => x.Email == loginDto.Email.ToLower());
-
-            if (user == null)
+            if (result.Message?.Contains("locked", StringComparison.OrdinalIgnoreCase) == true)
             {
-                return Unauthorized(ServiceResponse<UserDto>.FailureResponse(AppConstant.ErrorMessages.InvalidLogin));
+                return StatusCode(423, result); // 423 Locked
             }
 
-            var result = await _userManager.CheckPasswordAsync(user, loginDto.Password);
-
-            if (!result)
+            if (result.Message?.Contains("confirm", StringComparison.OrdinalIgnoreCase) == true)
             {
-                return Unauthorized(ServiceResponse<UserDto>.FailureResponse(AppConstant.ErrorMessages.InvalidLogin));
+                return StatusCode(403, result); // 403 Forbidden
             }
 
-            if (user.TwoFactorEnabled)
-            {
-                // Generate and send 2FA code
-                var twoFactorService = HttpContext.RequestServices.GetRequiredService<ITwoFactorService>();
-                var emailService = HttpContext.RequestServices.GetRequiredService<IEmailService>();
-                
-                var code = twoFactorService.GenerateCode();
-                await twoFactorService.StoreCodeAsync(user.Id, code);
-
-                var emailBody = $@"Hello {user.UserName},
-
-Your Two-Factor Authentication code for login is: {code}
-
-This code will expire in 10 minutes.
-
-If you didn't request this code, please secure your account immediately.
-
-Best regards,
-TalentVerse Team";
-
-                await emailService.SendEmailAsync(user.Email, "Your TalentVerse Login Code", emailBody);
-                
-                _logger.LogInformation($"2FA code sent to {user.Email} for login");
-                
-                return Ok(ServiceResponse<UserDto>.SuccessResponse(new UserDto
-                {
-                    Email = user.Email,
-                    IsTwoFactorRequired = true
-                }, $"2FA code sent to {user.Email}. Please check your email."));
-            }
-
-            var userDto = new UserDto
-            {
-                Username = user.UserName,
-                Email = user.Email,
-                Bio = user.Bio,
-                ProfilePictureUrl = user.ProfilePictureURL,
-                Token = await _tokenService.CreateToken(user)
-            };
-
-            return Ok(ServiceResponse<UserDto>.SuccessResponse(userDto, AppConstant.SuccessMessages.LoginSuccessful));
+            return BadRequest(result);
         }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Login Error");
-            return StatusCode(500, ServiceResponse<UserDto>.FailureResponse(AppConstant.ErrorMessages.GenerricError));
-        }
+
+        return Ok(result);
     }
 
+    /// <summary>
+    /// Gets the current authenticated user's profile
+    /// </summary>
+    /// <returns>Current user profile details</returns>
+    /// <response code="200">User profile retrieved successfully</response>
+    /// <response code="401">User not authenticated</response>
+    /// <response code="404">User not found in database</response>
     [Authorize]
     [HttpGet("me")]
+    [ProducesResponseType(typeof(ServiceResponse<CurrentUserDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ServiceResponse<CurrentUserDto>), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ServiceResponse<CurrentUserDto>>> GetCurrentUser()
     {
-        try
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-                return Unauthorized(ServiceResponse<CurrentUserDto>.FailureResponse("User not found."));
+        var result = await _authService.GetCurrentUserAsync(User);
 
-            var dto = new CurrentUserDto
-            {
-                Username = user.UserName,
-                Email = user.Email,
-                Bio = user.Bio,
-                ProfilePictureUrl = user.ProfilePictureURL
-            };
-
-            return Ok(ServiceResponse<CurrentUserDto>.SuccessResponse(dto));
-        }
-        catch (Exception e)
+        if (!result.Success)
         {
-            _logger.LogError(e, "Get current user error");
-            return StatusCode(500, ServiceResponse<CurrentUserDto>.FailureResponse(AppConstant.ErrorMessages.GenerricError));
+            // User authenticated but not found in DB - data integrity issue
+            _logger.LogWarning("Authenticated user not found in database");
+            return NotFound(result);
         }
+
+        return Ok(result);
     }
 
+    /// <summary>
+    /// Updates the current authenticated user's profile
+    /// </summary>
+    /// <param name="updateDto">Profile update details</param>
+    /// <returns>Updated user profile</returns>
+    /// <response code="200">Profile updated successfully</response>
+    /// <response code="400">Validation failed or username already taken</response>
+    /// <response code="401">User not authenticated</response>
+    [Authorize]
+    [HttpPut("me")]
+    [ProducesResponseType(typeof(ServiceResponse<CurrentUserDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ServiceResponse<CurrentUserDto>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<ServiceResponse<CurrentUserDto>>> UpdateCurrentUser([FromBody] UpdateProfileDto updateDto)
+    {
+        if (updateDto == null)
+            return BadRequest(ServiceResponse<CurrentUserDto>.FailureResponse("Request body is required"));
+
+        if (!ModelState.IsValid)
+            return BadRequest(ServiceResponse<CurrentUserDto>.FailureResponse("Validation failed"));
+
+        var result = await _authService.UpdateCurrentUserAsync(User, updateDto);
+
+        if (!result.Success)
+            return BadRequest(result);
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Requests a 2FA verification code to enable two-factor authentication
+    /// </summary>
+    /// <returns>Success message indicating code was sent</returns>
+    /// <response code="200">Verification code sent successfully</response>
+    /// <response code="400">2FA already enabled or request failed</response>
+    /// <response code="401">User not authenticated</response>
     [Authorize]
     [HttpPost("request-2fa-code")]
-    public async Task<ActionResult<ServiceResponse<string>>> RequestTwoFactorCode([FromServices] ITwoFactorService twoFactorService, [FromServices] IEmailService emailService)
+    [EnableRateLimiting("fixed")]
+    [ProducesResponseType(typeof(ServiceResponse<string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ServiceResponse<string>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<ServiceResponse<string>>> RequestTwoFactorCode()
     {
-        try
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Unauthorized(ServiceResponse<string>.FailureResponse("User not found."));
+        var result = await _authService.RequestTwoFactorCodeAsync(User);
 
-            var code = twoFactorService.GenerateCode();
-            await twoFactorService.StoreCodeAsync(user.Id, code);
+        if (!result.Success)
+            return BadRequest(result);
 
-            var emailBody = $@"Hello {user.UserName},
-
-Your Two-Factor Authentication code is: {code}
-
-This code will expire in 10 minutes.
-
-If you didn't request this code, please ignore this email.
-
-Best regards,
-TalentVerse Team";
-
-            await emailService.SendEmailAsync(user.Email, "Your TalentVerse 2FA Code", emailBody);
-
-            _logger.LogInformation($"2FA code sent to {user.Email}");
-
-            return Ok(ServiceResponse<string>.SuccessResponse("Code sent", $"A verification code has been sent to {user.Email}"));
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Request 2FA Code Error");
-            return StatusCode(500, ServiceResponse<string>.FailureResponse(AppConstant.ErrorMessages.GenerricError));
-        }
+        return Ok(result);
     }
 
+    /// <summary>
+    /// Enables two-factor authentication for the current user
+    /// </summary>
+    /// <param name="verifyDto">2FA verification code</param>
+    /// <returns>Success status</returns>
+    /// <response code="200">2FA enabled successfully</response>
+    /// <response code="400">Invalid code or 2FA already enabled</response>
+    /// <response code="401">User not authenticated</response>
     [Authorize]
     [HttpPost("enable-2fa")]
-    public async Task<ActionResult<ServiceResponse<bool>>> EnableTwoFactor([FromBody] VerifyCodeDto verifyDto, [FromServices] ITwoFactorService twoFactorService)
+    [ProducesResponseType(typeof(ServiceResponse<bool>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ServiceResponse<bool>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<ServiceResponse<bool>>> EnableTwoFactor([FromBody] VerifyCodeDto verifyDto)
     {
-        try
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Unauthorized(ServiceResponse<bool>.FailureResponse("User not found."));
+        if (verifyDto == null)
+            return BadRequest(ServiceResponse<bool>.FailureResponse("Request body is required"));
 
-            var code = verifyDto.Code.Trim();
-            
-            if (code.Length != 6 || !code.All(char.IsDigit))
-            {
-                _logger.LogWarning($"Invalid code format for user {user.Email}");
-                return BadRequest(ServiceResponse<bool>.FailureResponse("Code must be exactly 6 digits."));
-            }
+        if (!ModelState.IsValid)
+            return BadRequest(ServiceResponse<bool>.FailureResponse("Validation failed"));
 
-            var isValid = await twoFactorService.ValidateCodeAsync(user.Id, code);
+        var result = await _authService.EnableTwoFactorAsync(User, verifyDto);
 
-            if (!isValid)
-            {
-                _logger.LogWarning($"2FA verification failed for user {user.Email}");
-                return BadRequest(ServiceResponse<bool>.FailureResponse("Invalid or expired code. Please request a new code."));
-            }
+        if (!result.Success)
+            return BadRequest(result);
 
-            await _userManager.SetTwoFactorEnabledAsync(user, true);
-            _logger.LogInformation($"2FA enabled successfully for user {user.Email}");
-
-            return Ok(ServiceResponse<bool>.SuccessResponse(true, "Two-Factor Authentication has been enabled successfully."));
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Enable 2FA Error");
-            return StatusCode(500, ServiceResponse<bool>.FailureResponse(AppConstant.ErrorMessages.GenerricError));
-        }
+        return Ok(result);
     }
 
+    /// <summary>
+    /// Completes login with two-factor authentication code
+    /// </summary>
+    /// <param name="verifyDto">Email and 2FA code</param>
+    /// <returns>User details with JWT token</returns>
+    /// <response code="200">Login successful</response>
+    /// <response code="400">Validation failed</response>
+    /// <response code="401">Invalid code or 2FA not enabled</response>
     [HttpPost("login-2fa")]
-    public async Task<ActionResult<ServiceResponse<UserDto>>> LoginWith2FA(VerifyTwoFactorDto verifyDto, [FromServices] ITwoFactorService twoFactorService)
+    [EnableRateLimiting("fixed")]
+    [ProducesResponseType(typeof(ServiceResponse<UserDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ServiceResponse<UserDto>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ServiceResponse<UserDto>), StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<ServiceResponse<UserDto>>> LoginWith2FA([FromBody] VerifyTwoFactorDto verifyDto)
     {
-        var user = await _userManager.Users.FirstOrDefaultAsync(x => x.Email == verifyDto.Email.ToLower());
+        if (verifyDto == null)
+            return BadRequest(ServiceResponse<UserDto>.FailureResponse("Request body is required"));
 
-        if (user == null || !user.TwoFactorEnabled)
-            return Unauthorized(ServiceResponse<UserDto>.FailureResponse("Invalid request"));
+        if (!ModelState.IsValid)
+            return BadRequest(ServiceResponse<UserDto>.FailureResponse("Validation failed"));
 
-        var code = verifyDto.Code.Trim();
+        var result = await _authService.LoginWith2faAsync(verifyDto);
 
-        if (code.Length != 6 || !code.All(char.IsDigit))
-            return BadRequest(ServiceResponse<UserDto>.FailureResponse("Code must be exactly 6 digits"));
+        if (!result.Success)
+            return Unauthorized(result);
 
-        var isValid = await twoFactorService.ValidateCodeAsync(user.Id, code);
-
-        if (!isValid)
-            return Unauthorized(ServiceResponse<UserDto>.FailureResponse("Invalid or expired code"));
-
-        var userDto = new UserDto
-        {
-            Username = user.UserName,
-            Email = user.Email,
-            Bio = user.Bio,
-            ProfilePictureUrl = user.ProfilePictureURL,
-            Token = await _tokenService.CreateToken(user)
-        };
-
-        return Ok(ServiceResponse<UserDto>.SuccessResponse(userDto, "Login Successful via 2FA"));
+        return Ok(result);
     }
 
+    /// <summary>
+    /// Initiates password reset process by sending a reset code to the user's email
+    /// </summary>
+    /// <param name="dto">User's email address</param>
+    /// <returns>Success message (always returns 200 for security)</returns>
+    /// <response code="200">Request processed (code sent if email exists)</response>
+    /// <response code="400">Validation failed</response>
     [HttpPost("forgot-password")]
-    public async Task<ActionResult<ServiceResponse<string>>> ForgotPassword([FromBody] ForgotPasswordDto forgotPasswordDto, [FromServices] ITwoFactorService twoFactorService, [FromServices] IEmailService emailService)
+    [EnableRateLimiting("fixed")]
+    [ProducesResponseType(typeof(ServiceResponse<string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ServiceResponse<string>), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ServiceResponse<string>>> ForgotPassword([FromBody] ForgotPasswordDto dto)
     {
-        try
-        {
-            var user = await _userManager.Users.FirstOrDefaultAsync(x => x.Email == forgotPasswordDto.Email.ToLower());
+        if (dto == null)
+            return BadRequest(ServiceResponse<string>.FailureResponse("Request body is required"));
 
-            if (user == null)
-            {
+        if (!ModelState.IsValid)
+            return BadRequest(ServiceResponse<string>.FailureResponse("Validation failed"));
 
-                return Ok(ServiceResponse<string>.SuccessResponse("", "If the email exists, a password reset code has been sent."));
-            }
+        var result = await _authService.ForgotPasswordAsync(dto);
 
-            // Generate reset code
-            var code = twoFactorService.GenerateCode();
-            await twoFactorService.StoreCodeAsync(user.Id, code);
-
-            var emailBody = $@"Hello {user.UserName},
-
-You requested to reset your password for TalentVerse.
-
-Your password reset code is: {code}
-
-This code will expire in 10 minutes.
-
-If you didn't request this, please ignore this email and secure your account.
-
-Best regards,
-TalentVerse Team";
-
-            await emailService.SendEmailAsync(user.Email, "Password Reset Code - TalentVerse", emailBody);
-
-            _logger.LogInformation($"Password reset code sent to {user.Email}");
-
-            return Ok(ServiceResponse<string>.SuccessResponse("", "If the email exists, a password reset code has been sent."));
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Forgot Password Error");
-            return StatusCode(500, ServiceResponse<string>.FailureResponse("An error occurred. Please try again later."));
-        }
+        // Always return 200 OK to prevent email enumeration
+        // Service handles security internally
+        return Ok(result);
     }
 
+    /// <summary>
+    /// Resets user password using the verification code sent to their email
+    /// </summary>
+    /// <param name="dto">Email, reset code, and new password</param>
+    /// <returns>Success or failure status</returns>
+    /// <response code="200">Password reset successfully</response>
+    /// <response code="400">Validation failed or invalid reset code</response>
     [HttpPost("reset-password")]
-    public async Task<ActionResult<ServiceResponse<string>>> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto, [FromServices] ITwoFactorService twoFactorService)
+    [EnableRateLimiting("fixed")]
+    [ProducesResponseType(typeof(ServiceResponse<string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ServiceResponse<string>), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ServiceResponse<string>>> ResetPassword([FromBody] ResetPasswordDto dto)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ServiceResponse<string>.FailureResponse("Validation Failed"));
-            }
+        if (dto == null)
+            return BadRequest(ServiceResponse<string>.FailureResponse("Request body is required"));
 
-            var user = await _userManager.Users.FirstOrDefaultAsync(x => x.Email == resetPasswordDto.Email.ToLower());
+        if (!ModelState.IsValid)
+            return BadRequest(ServiceResponse<string>.FailureResponse("Validation failed"));
 
-            if (user == null)
-            {
-                return BadRequest(ServiceResponse<string>.FailureResponse("Invalid request"));
-            }
+        var result = await _authService.ResetPasswordAsync(dto);
 
-            var code = resetPasswordDto.Code.Trim();
+        if (!result.Success)
+            return BadRequest(result);
 
-            if (code.Length != 6 || !code.All(char.IsDigit))
-            {
-                return BadRequest(ServiceResponse<string>.FailureResponse("Code must be exactly 6 digits"));
-            }
-
-            // Validate the code
-            var isValid = await twoFactorService.ValidateCodeAsync(user.Id, code);
-
-            if (!isValid)
-            {
-                _logger.LogWarning($"Invalid password reset code for user {user.Email}");
-                return BadRequest(ServiceResponse<string>.FailureResponse("Invalid or expired code"));
-            }
-
-            // Remove current password and set new one
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var result = await _userManager.ResetPasswordAsync(user, token, resetPasswordDto.NewPassword);
-
-            if (!result.Succeeded)
-            {
-                var errors = result.Errors.Select(e => e.Description).ToList();
-                return BadRequest(ServiceResponse<string>.FailureResponse("Password reset failed", errors));
-            }
-
-            _logger.LogInformation($"Password reset successful for user {user.Email}");
-
-            return Ok(ServiceResponse<string>.SuccessResponse("", "Password has been reset successfully. You can now login with your new password."));
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Reset Password Error");
-            return StatusCode(500, ServiceResponse<string>.FailureResponse("An error occurred. Please try again later."));
-        }
+        return Ok(result);
     }
-}
+
+    /// <summary>
+    /// Uploads profile picture to Cloudinary with validation (max 5MB, JPEG/PNG/WebP only)
+    /// </summary>
+    /// <param name="file">Image file to upload</param>
+    /// <returns>Image URL and metadata</returns>
+    /// <response code="200">Image uploaded successfully</response>
+    /// <response code="400">Validation failed or invalid image format</response>
+    /// <response code="401">User not authenticated</response>
+    [HttpPost("upload-profile-picture")]
+    [Authorize]
+    [EnableRateLimiting("fixed")]
+    [ProducesResponseType(typeof(ServiceResponse<ImageUploadResultDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ServiceResponse<ImageUploadResultDto>), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ServiceResponse<ImageUploadResultDto>>> UploadProfilePicture(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest(ServiceResponse<ImageUploadResultDto>.FailureResponse(
+                AppConstant.ErrorMessages.NoImageProvided));
+
+        var result = await _cloudinaryService.UploadImageAsync(file);
+
+        if (!result.Success)
+            return BadRequest(result);
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Completes user onboarding by setting profile picture, bio, location, and social links
+    /// </summary>
+    /// <param name="dto">Onboarding data including profile picture URL, bio, location, and social links</param>
+    /// <returns>Success message</returns>
+    /// <response code="200">Profile completed successfully</response>
+    /// <response code="400">Validation failed</response>
+    /// <response code="401">User not authenticated</response>
+    [HttpPost("complete-onboarding")]
+    [Authorize]
+    [EnableRateLimiting("fixed")]
+    [ProducesResponseType(typeof(ServiceResponse<UserDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ServiceResponse<UserDto>), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ServiceResponse<UserDto>>> CompleteOnboarding([FromBody] CompleteOnboardingDto dto)
+    {
+        if (dto == null)
+            return BadRequest(ServiceResponse<UserDto>.FailureResponse("Request body is required"));
+
+        if (!ModelState.IsValid)
+            return BadRequest(ServiceResponse<UserDto>.FailureResponse(
+                "Validation failed",
+                ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
+
+        var result = await _authService.CompleteOnboardingAsync(User, dto);
+
+        if (!result.Success)
+            return BadRequest(result);
+
+        return Ok(result);
+    }}

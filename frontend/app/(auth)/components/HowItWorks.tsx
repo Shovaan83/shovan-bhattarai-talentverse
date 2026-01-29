@@ -47,7 +47,7 @@ export const HowItWorks: React.FC = () => {
               <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mb-6 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">
                 <step.icon size={32} />
               </div>
-              <div className="absolute top-6 right-6 font-heading font-bold text-6xl text-gray-100 -z-10 group-hover:text-gray-50 transition-colors">
+              <div className="absolute top-6 right-6 font-heading font-bold text-6xl text-gray-100 -z-10 group-hover:text-emerald-600 transition-colors">
                 {index + 1}
               </div>
               <h3 className="font-heading text-xl font-bold text-gray-900 mb-3">{step.title}</h3>

@@ -11,11 +11,28 @@ namespace TalentVerse.WebAPI.Data.Entities
         [MaxLength(2048)] 
         public string? ProfilePictureURL { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public bool IsProfileComplete { get; set; } = false;
 
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    [MaxLength(200)]
+    public string? Location { get; set; }
 
-        public DateTime? DeletedAt { get; set; }
+    [MaxLength(2048)]
+    public string? GitHubUrl { get; set; }
+
+    [MaxLength(2048)]
+    public string? LinkedInUrl { get; set; }
+
+    [MaxLength(2048)]
+    public string? TwitterUrl { get; set; }
+
+    [MaxLength(2048)]
+    public string? WebsiteUrl { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime? DeletedAt { get; set; }
 
         public virtual ICollection<UserSkill> UserSkills { get; set; } = new List<UserSkill>();
 

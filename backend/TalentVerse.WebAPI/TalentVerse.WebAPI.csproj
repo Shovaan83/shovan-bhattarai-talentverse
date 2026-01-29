@@ -4,9 +4,11 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>7b1eb6d6-f49e-4c74-8ec3-3ed77cfd18ff</UserSecretsId>
   </PropertyGroup>
 
  <ItemGroup>
+  <PackageReference Include="CloudinaryDotNet" Version="1.28.0" />
   <PackageReference Include="Dapper" Version="2.1.66" />
   <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.5" />
   <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.5" />

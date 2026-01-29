@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using System.Threading.RateLimiting;
+using TalentVerse.WebAPI.Configuration;
 using TalentVerse.WebAPI.Data;
 using TalentVerse.WebAPI.Data.Entities;
 using TalentVerse.WebAPI.Interfaces;
+using TalentVerse.WebAPI.Repositories;
 using TalentVerse.WebAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,22 +41,73 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
+
+// Add memory cache for 2FA code storage
+builder.Services.AddMemoryCache();
+
 builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddSingleton<IEmailService, EmailService>();
-builder.Services.AddSingleton<ITwoFactorService, TwoFactorService>();
+builder.Services.AddSingleton<DapperContext>();
+builder.Services.AddScoped<ISkillRepository, SkillRepository>();
+builder.Services.AddScoped<IProposalRepository, ProposalRepository>();
+builder.Services.AddScoped<IMarketplaceRepository, MarketplaceRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ISkillService, SkillService>(); 
+builder.Services.AddScoped<IProposalService, ProposalService>();
+builder.Services.AddScoped<IMarketplaceService, MarketplaceService>();
+builder.Services.AddScoped<IEmailService, EmailService>(); 
+builder.Services.AddScoped<ITwoFactorService, TwoFactorService>();
+builder.Services.AddScoped<ICloudinaryService, CloudinaryService>(); 
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:3000")
+        // Allow local frontend dev servers on any port.
+        // NOTE: With credentials you cannot use AllowAnyOrigin, so we explicitly allow localhost/127.0.0.1.
+        policy.SetIsOriginAllowed(origin =>
+              {
+                  if (string.IsNullOrWhiteSpace(origin)) return false;
+                  if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri)) return false;
+                  return uri.Host is "localhost" or "127.0.0.1";
+              })
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
     });
 });
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
+
+// Configure options from appsettings
+builder.Services.Configure<AppConfigOptions>(
+    builder.Configuration.GetSection("AppConfig"));
+builder.Services.Configure<RateLimitingOptions>(
+    builder.Configuration.GetSection("RateLimiting"));
+
+// Add rate limiting configuration using settings
+var rateLimitConfig = builder.Configuration.GetSection("RateLimiting").Get<RateLimitingOptions>() 
+    ?? new RateLimitingOptions();
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddPolicy("fixed", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.User.Identity?.Name ?? httpContext.Request.Headers.Host.ToString(),
+            factory: partition => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = rateLimitConfig.PermitLimit,
+                Window = TimeSpan.FromMinutes(rateLimitConfig.WindowMinutes),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            }));
+    
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -124,9 +178,12 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Docke
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// Disable HTTPS redirection for local development to avoid CORS preflight issues
+// app.UseHttpsRedirection();
 
 app.UseCors("AllowFrontend");
+
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();

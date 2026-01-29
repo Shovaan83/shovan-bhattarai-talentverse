@@ -30,7 +30,7 @@ export default function AuthLayout({ children, title, subtitle }: AuthLayoutProp
           <div className="relative z-10">
             <Link href="/" className="flex items-center gap-2 w-fit group">
               <div className="bg-emerald-500/20 p-2 rounded-lg backdrop-blur-sm border border-emerald-500/30 group-hover:bg-emerald-500/30 transition-colors">
-                <Sparkles size={24} className="text-emerald-400" />
+                {/* <Sparkles size={24} className="text-emerald-400" /> */}
               </div>
               <span className="font-heading font-bold text-2xl tracking-tight text-white">
                 TalentVerse

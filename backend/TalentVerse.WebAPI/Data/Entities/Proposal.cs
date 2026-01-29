@@ -32,6 +32,10 @@ namespace TalentVerse.WebAPI.Data.Entities
         [Required]
         public ProposalStatus Status { get; set; } = ProposalStatus.Pending;
 
+        // Dual completion confirmation flags
+        public bool ProposerConfirmed { get; set; } = false;
+        public bool RecipientConfirmed { get; set; } = false;
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
