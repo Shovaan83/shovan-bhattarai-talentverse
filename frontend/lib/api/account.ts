@@ -12,14 +12,14 @@ interface ServiceResponse<T> {
 export const accountApi = {
   getMe: async (): Promise<CurrentUser> => {
     const response = await axiosInstance.get<ServiceResponse<CurrentUser>>(
-      "/api/account/me"
+      "/account/me"
     );
     return response.data.data;
   },
 
   updateMe: async (payload: UpdateProfilePayload): Promise<CurrentUser> => {
     const response = await axiosInstance.put<ServiceResponse<CurrentUser>>(
-      "/api/account/me",
+      "/account/me",
       payload
     );
     return response.data.data;

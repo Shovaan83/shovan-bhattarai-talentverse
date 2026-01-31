@@ -1,0 +1,440 @@
+'use client';
+
+import { useState, use, useMemo } from 'react';
+import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
+import { 
+  ArrowLeft, 
+  Star, 
+  ArrowRightLeft, 
+  Calendar, 
+  User,
+  MessageSquare,
+  Send,
+  X,
+  AlertCircle,
+  Clock,
+  CheckCircle
+} from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useUserProfile } from '@/lib/hooks/useMarketplace';
+import { useCreateProposal, useProposals } from '@/lib/hooks/useProposals';
+import { useSkills } from '@/lib/hooks/useSkills';
+
+interface CreateProposalModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  targetUser: {
+    id: string;
+    displayName: string;
+    offeredSkills: Array<{ id: number; skillName: string }>;
+    wantedSkills: Array<{ id: number; skillName: string }>;
+  };
+  currentUserSkills: Array<{ id: number; skillName: string; skillType: string }>;
+}
+
+function CreateProposalModal({ isOpen, onClose, targetUser, currentUserSkills }: CreateProposalModalProps) {
+  const [selectedMySkill, setSelectedMySkill] = useState<number | null>(null);
+  const [selectedTheirSkill, setSelectedTheirSkill] = useState<number | null>(null);
+  const [message, setMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const createProposal = useCreateProposal();
+
+  const myOfferedSkills = currentUserSkills.filter(s => s.skillType === 'Offered');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedMySkill || !selectedTheirSkill) return;
+
+    setErrorMessage(null); // Clear previous errors
+
+    try {
+      await createProposal.mutateAsync({
+        proposerUserSkillId: selectedMySkill,
+        recipientUserSkillId: selectedTheirSkill,
+        message: message || undefined,
+      });
+      toast.success('Proposal sent successfully! Check your proposals page to track the status.');
+      onClose();
+    } catch (error: any) {
+      console.error('Failed to create proposal:', error);
+      // Extract error message from backend response
+      const backendMessage = error.response?.data?.message || 
+                           error.response?.data?.errors?.[0] ||
+                           'Failed to create proposal. Please try again.';
+      setErrorMessage(backendMessage);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="relative bg-emerald-900 rounded-3xl p-6 w-full max-w-lg border border-emerald-700"
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 rounded-xl hover:bg-emerald-800 transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <h2 className="text-xl font-bold mb-6">Propose a Skill Swap</h2>
+        <p className="text-emerald-400 mb-6">
+          Create a swap proposal with <span className="text-white font-medium">{targetUser.displayName}</span>
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Error Message Display */}
+          {errorMessage && (
+            <div className="p-4 rounded-xl bg-red-900/50 border border-red-700/50 text-red-200 text-sm flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <p>{errorMessage}</p>
+            </div>
+          )}
+
+          {/* My Skill Selection */}
+          <div>
+            <label className="block text-sm font-medium text-emerald-400 mb-2">
+              I will teach (my skill)
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {myOfferedSkills.map((skill) => (
+                <button
+                  key={skill.id}
+                  type="button"
+                  onClick={() => setSelectedMySkill(skill.id)}
+                  className={`p-3 rounded-xl text-sm text-left transition-colors ${
+                    selectedMySkill === skill.id
+                      ? 'bg-emerald-600 text-white border-emerald-500'
+                      : 'bg-emerald-800/50 text-emerald-200 border-emerald-700/50 hover:bg-emerald-800'
+                  } border`}
+                >
+                  {skill.skillName}
+                </button>
+              ))}
+            </div>
+            {myOfferedSkills.length === 0 && (
+              <p className="text-orange-400 text-sm">
+                You need to add offered skills to your profile first.
+              </p>
+            )}
+          </div>
+
+          {/* Their Skill Selection */}
+          <div>
+            <label className="block text-sm font-medium text-orange-400 mb-2">
+              I want to learn (their skill)
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {targetUser.offeredSkills.map((skill) => (
+                <button
+                  key={skill.id}
+                  type="button"
+                  onClick={() => setSelectedTheirSkill(skill.id)}
+                  className={`p-3 rounded-xl text-sm text-left transition-colors ${
+                    selectedTheirSkill === skill.id
+                      ? 'bg-orange-600 text-white border-orange-500'
+                      : 'bg-orange-900/50 text-orange-200 border-orange-700/50 hover:bg-orange-800'
+                  } border`}
+                >
+                  {skill.skillName}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Message */}
+          <div>
+            <label className="block text-sm font-medium text-emerald-400 mb-2">
+              Message (optional)
+            </label>
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Introduce yourself and explain what you'd like to learn..."
+              rows={3}
+              className="w-full px-4 py-3 rounded-xl bg-emerald-800/50 border border-emerald-700/50 text-white placeholder-emerald-600 focus:outline-none focus:border-emerald-600 resize-none"
+            />
+          </div>
+
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={!selectedMySkill || !selectedTheirSkill || createProposal.isPending}
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {createProposal.isPending ? (
+              'Sending...'
+            ) : (
+              <>
+                <Send className="w-4 h-4" />
+                Send Proposal
+              </>
+            )}
+          </button>
+        </form>
+      </motion.div>
+    </div>
+  );
+}
+
+export default function UserProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
+  const router = useRouter();
+  const { data: user, isLoading, error } = useUserProfile(resolvedParams.id);
+  const { data: mySkills, isLoading: isLoadingMySkills } = useSkills();
+  const { data: proposalsData } = useProposals();
+  const [showProposalModal, setShowProposalModal] = useState(false);
+
+  // Map current user skills to the format expected by the modal
+  const currentUserSkills = (mySkills || []).map(skill => ({
+    id: skill.userSkillId,
+    skillName: skill.skillName,
+    skillType: skill.type === 'Offer' ? 'Offered' : 'Wanted',
+  }));
+
+  // Check if there's an active proposal with this user
+  const activeProposal = useMemo(() => {
+    if (!proposalsData?.proposals || !user) return null;
+    return proposalsData.proposals.find(
+      (p) => p.otherUserId === resolvedParams.id && p.status === 'Pending'
+    );
+  }, [proposalsData, user, resolvedParams.id]);
+
+  if (isLoading || isLoadingMySkills) {
+    return (
+      <div className="min-h-screen bg-emerald-950 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-400"></div>
+      </div>
+    );
+  }
+
+  if (error || !user) {
+    return (
+      <div className="min-h-screen bg-emerald-950 flex items-center justify-center text-white">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">User not found</h2>
+          <p className="text-emerald-400 mb-4">The user you're looking for doesn't exist.</p>
+          <Link
+            href="/marketplace"
+            className="text-emerald-400 hover:text-emerald-300 transition-colors"
+          >
+            ← Back to Marketplace
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-emerald-950 text-white">
+      {/* Header */}
+      <div className="border-b border-emerald-900/50 bg-emerald-950/80 backdrop-blur-sm sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto px-6 py-4">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => router.back()}
+              className="p-2 rounded-xl bg-emerald-900/50 hover:bg-emerald-900 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-xl font-bold">{user.displayName}</h1>
+              <p className="text-emerald-400 text-sm">@{user.userName}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-6 py-8">
+        {/* Profile Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-br from-emerald-900/40 to-emerald-900/20 rounded-3xl p-8 border border-emerald-800/50 mb-8"
+        >
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* Avatar */}
+            <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-emerald-600 to-emerald-800 flex items-center justify-center flex-shrink-0">
+              {user.profilePictureUrl ? (
+                <img
+                  src={user.profilePictureUrl}
+                  alt={user.displayName}
+                  className="w-full h-full rounded-3xl object-cover"
+                />
+              ) : (
+                <User className="w-12 h-12 text-emerald-200" />
+              )}
+            </div>
+
+            {/* Info */}
+            <div className="flex-1">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h2 className="text-2xl font-bold">{user.displayName}</h2>
+                  <p className="text-emerald-400">@{user.userName}</p>
+                </div>
+                {user.averageRating && (
+                  <div className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-yellow-900/30 border border-yellow-800/50">
+                    <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                    <span className="text-yellow-300 font-medium">
+                      {user.averageRating.toFixed(1)}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {user.bio && (
+                <p className="text-emerald-300/80 mb-4">{user.bio}</p>
+              )}
+
+              <div className="flex flex-wrap gap-4 text-sm">
+                <div className="flex items-center gap-2 text-emerald-400">
+                  <ArrowRightLeft className="w-4 h-4" />
+                  <span>{user.completedSwaps} swaps completed</span>
+                </div>
+                <div className="flex items-center gap-2 text-emerald-400">
+                  <Calendar className="w-4 h-4" />
+                  <span>Joined {new Date(user.joinedAt).toLocaleDateString()}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* CTA Button */}
+          <div className="mt-6 pt-6 border-t border-emerald-800/50">
+            {activeProposal ? (
+              <div className="flex items-center gap-3 px-6 py-4 rounded-xl bg-blue-900/30 border border-blue-700/50">
+                <Clock className="w-5 h-5 text-blue-400 flex-shrink-0" />
+                <div>
+                  <p className="text-blue-200 font-medium">Proposal Pending</p>
+                  <p className="text-blue-400 text-sm">
+                    You have an active proposal with this user. Check your proposals page for updates.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowProposalModal(true)}
+                className="w-full md:w-auto px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 transition-all font-medium flex items-center justify-center gap-2"
+              >
+                <MessageSquare className="w-5 h-5" />
+                Propose a Skill Swap
+              </button>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Skills Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Offered Skills */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-emerald-900/30 rounded-3xl p-6 border border-emerald-800/50"
+          >
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+              Skills Offered
+            </h3>
+            {user.offeredSkills.length > 0 ? (
+              <div className="space-y-3">
+                {user.offeredSkills.map((skill) => (
+                  <div
+                    key={skill.id}
+                    className="p-4 rounded-2xl bg-emerald-800/30 border border-emerald-700/50"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium">{skill.skillName}</span>
+                      <div className="flex gap-0.5">
+                        {[...Array(5)].map((_, i) => (
+                          <div
+                            key={i}
+                            className={`w-2 h-2 rounded-full ${
+                              i < skill.proficiencyLevel
+                                ? 'bg-emerald-400'
+                                : 'bg-emerald-800'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    {skill.description && (
+                      <p className="text-emerald-400 text-sm">{skill.description}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-emerald-500 text-sm">No skills offered yet</p>
+            )}
+          </motion.div>
+
+          {/* Wanted Skills */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-orange-900/30 rounded-3xl p-6 border border-orange-800/50"
+          >
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-orange-400"></span>
+              Skills Wanted
+            </h3>
+            {user.wantedSkills.length > 0 ? (
+              <div className="space-y-3">
+                {user.wantedSkills.map((skill) => (
+                  <div
+                    key={skill.id}
+                    className="p-4 rounded-2xl bg-orange-800/30 border border-orange-700/50"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium">{skill.skillName}</span>
+                      <div className="flex gap-0.5">
+                        {[...Array(5)].map((_, i) => (
+                          <div
+                            key={i}
+                            className={`w-2 h-2 rounded-full ${
+                              i < skill.proficiencyLevel
+                                ? 'bg-orange-400'
+                                : 'bg-orange-800'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    {skill.description && (
+                      <p className="text-orange-400 text-sm">{skill.description}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-orange-500 text-sm">No skills wanted yet</p>
+            )}
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Proposal Modal */}
+      <CreateProposalModal
+        isOpen={showProposalModal}
+        onClose={() => setShowProposalModal(false)}
+        targetUser={{
+          id: user.id,
+          displayName: user.displayName,
+          offeredSkills: user.offeredSkills,
+          wantedSkills: user.wantedSkills,
+        }}
+        currentUserSkills={currentUserSkills}
+      />
+    </div>
+  );
+}

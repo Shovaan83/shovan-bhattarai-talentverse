@@ -47,7 +47,7 @@ export default function ForgotPasswordPage() {
     setApiError(null);
 
     try {
-      const response = await axiosInstance.post("/api/account/forgot-password", {
+      const response = await axiosInstance.post("/account/forgot-password", {
         email: data.email,
       });
 
@@ -71,7 +71,7 @@ export default function ForgotPasswordPage() {
     setApiError(null);
 
     try {
-      const response = await axiosInstance.post("/api/account/reset-password", {
+      const response = await axiosInstance.post("/account/reset-password", {
         email: userEmail,
         code: data.code,
         newPassword: data.newPassword,

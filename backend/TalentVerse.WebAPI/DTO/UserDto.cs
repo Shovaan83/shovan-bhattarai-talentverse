@@ -10,5 +10,11 @@ namespace TalentVerse.WebAPI.DTO.Account
         public string Token { get; set; }
         public string? ProfilePictureUrl { get; set; }
         public bool IsTwoFactorRequired { get; set; } = false;
+        public bool IsProfileComplete { get; set; } = false;
+        public string? Location { get; set; }
+        public string? GitHubUrl { get; set; }
+        public string? LinkedInUrl { get; set; }
+        public string? TwitterUrl { get; set; }
+        public string? WebsiteUrl { get; set; }
     }
 }

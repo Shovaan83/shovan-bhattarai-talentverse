@@ -75,7 +75,7 @@ export default function TwoFactorVerification({ email, onBack, emailSent = true 
     setError(null);
 
     try {
-      const response = await axiosInstance.post("/api/account/login-2fa", {
+      const response = await axiosInstance.post("/account/login-2fa", {
         email,
         code: verificationCode,
       });

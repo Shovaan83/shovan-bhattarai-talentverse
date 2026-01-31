@@ -22,3 +22,11 @@ docs/
 # Ignore all .md files in root directory except README.md
 /*.md
 !README.md
+project_structure.txt
+.context/API_CONTRACT.md
+.context/ARCHITECTURE.md
+.context/CONVENTIONS.md
+.context/DB_SCHEMA.md
+.context/FEATURES.md
+.gitignore
+.github/copilot-instructions.md

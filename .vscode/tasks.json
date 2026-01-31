@@ -1,0 +1,31 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "build-backend",
+			"type": "shell",
+			"command": "dotnet",
+			"args": [
+				"build",
+				"backend/TalentVerse.WebAPI/TalentVerse.WebAPI.csproj",
+				"-v",
+				"minimal"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "build-frontend",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"build",
+				"--prefix",
+				"frontend"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}

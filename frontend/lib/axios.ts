@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5249/api",
   headers: {
     "Content-Type": "application/json",
   },
@@ -12,7 +12,7 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config) => {
     // Don't add auth header for public endpoints
-    const publicEndpoints = ['/login', '/register', '/forgot-password', '/reset-password', '/login-2fa'];
+    const publicEndpoints = ['/account/login', '/account/register', '/account/forgot-password', '/account/reset-password', '/account/login-2fa'];
     const isPublicEndpoint = publicEndpoints.some(endpoint => config.url?.includes(endpoint));
     
     if (!isPublicEndpoint) {

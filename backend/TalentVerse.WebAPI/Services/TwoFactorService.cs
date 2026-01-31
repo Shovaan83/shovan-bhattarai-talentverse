@@ -1,46 +1,46 @@
-namespace TalentVerse.WebAPI.Services
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
+using TalentVerse.WebAPI.Configuration;
+using TalentVerse.WebAPI.Interfaces;
+
+namespace TalentVerse.WebAPI.Services;
+
+public class TwoFactorService : ITwoFactorService
 {
-    public interface ITwoFactorService
+    private readonly IMemoryCache _cache;
+    private readonly AppConfigOptions _config;
+
+    public TwoFactorService(IMemoryCache cache, IOptions<AppConfigOptions> config)
     {
-        string GenerateCode();
-        Task<bool> StoreCodeAsync(string userId, string code);
-        Task<bool> ValidateCodeAsync(string userId, string code);
+        _cache = cache;
+        _config = config?.Value ?? throw new ArgumentNullException(nameof(config));
     }
 
-    public class TwoFactorService : ITwoFactorService
+    public string GenerateCode()
     {
-        private static readonly Dictionary<string, (string Code, DateTime Expiry)> _codes = new();
-        private const int CodeExpiryMinutes = 10;
+        // Generate code with configured length (e.g., 6 digits = 100000 to 999999)
+        var min = (int)Math.Pow(10, _config.OtpLength - 1);
+        var max = (int)Math.Pow(10, _config.OtpLength) - 1;
+        return Random.Shared.Next(min, max).ToString();
+    }
 
-        public string GenerateCode()
-        {
-            return Random.Shared.Next(100000, 999999).ToString();
-        }
+    public Task StoreCodeAsync(string userId, string code)
+    {
+        // Store code in memory with configured expiry time
+        _cache.Set($"2FA_{userId}", code, TimeSpan.FromMinutes(_config.OtpExpiryMinutes));
+        return Task.CompletedTask;
+    }
 
-        public Task<bool> StoreCodeAsync(string userId, string code)
+    public Task<bool> ValidateCodeAsync(string userId, string code)
+    {
+        if (_cache.TryGetValue($"2FA_{userId}", out string? storedCode))
         {
-            _codes[userId] = (code, DateTime.UtcNow.AddMinutes(CodeExpiryMinutes));
-            return Task.FromResult(true);
-        }
-
-        public Task<bool> ValidateCodeAsync(string userId, string code)
-        {
-            if (_codes.TryGetValue(userId, out var stored))
+            if (storedCode == code)
             {
-                if (stored.Expiry > DateTime.UtcNow && stored.Code == code)
-                {
-                    _codes.Remove(userId); // Remove after successful validation
-                    return Task.FromResult(true);
-                }
-                
-                // Remove expired codes
-                if (stored.Expiry <= DateTime.UtcNow)
-                {
-                    _codes.Remove(userId);
-                }
+                _cache.Remove($"2FA_{userId}"); // Invalidate after use
+                return Task.FromResult(true);
             }
-
-            return Task.FromResult(false);
         }
+        return Task.FromResult(false);
     }
 }

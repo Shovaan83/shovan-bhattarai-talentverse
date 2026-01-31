@@ -29,7 +29,7 @@ export default function Enable2FA({ onSuccess, onSkip }: Enable2FAProps) {
     try {
       const token = localStorage.getItem("token");
       const response = await axiosInstance.post(
-        "/api/account/request-2fa-code",
+        "/account/request-2fa-code",
         {},
         {
           headers: {
@@ -115,7 +115,7 @@ export default function Enable2FA({ onSuccess, onSkip }: Enable2FAProps) {
     try {
       const token = localStorage.getItem("token");
       const response = await axiosInstance.post(
-        "/api/account/enable-2fa",
+        "/account/enable-2fa",
         { code: verificationCode },
         {
           headers: {
