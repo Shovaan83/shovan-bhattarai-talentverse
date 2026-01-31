@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, type Variants } from "framer-motion";
 import axios from "axios";
+import Link from "next/link";
 import {
   Plus,
   MapPin,
@@ -312,6 +313,24 @@ export default function ProfilePage() {
                 </p>
               </div>
             </div>
+
+            {/* View Proposals Button */}
+            <Link
+              href="/proposals"
+              className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white hover:from-violet-600 hover:to-purple-700 transition-all shadow-lg shadow-violet-500/30 hover:shadow-xl hover:shadow-violet-500/40 hover:scale-[1.02]"
+            >
+              <ArrowRightLeft size={20} />
+              <span className="font-semibold">View Proposals</span>
+            </Link>
+
+            {/* Browse Marketplace Button */}
+            <Link
+              href="/marketplace"
+              className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white hover:from-emerald-600 hover:to-teal-700 transition-all shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 hover:scale-[1.02]"
+            >
+              <TrendingUp size={20} />
+              <span className="font-semibold">Marketplace</span>
+            </Link>
           </motion.div>
 
           <motion.div
