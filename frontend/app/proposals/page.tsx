@@ -35,12 +35,18 @@ export default function ProposalsPage() {
   const [statusFilter, setStatusFilter] = useState<ProposalStatus | "all">(
     "all"
   );
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<"UpdatedAt" | "CreatedAt" | "Status">("UpdatedAt");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
 
   // Fetch proposals
   const { data, isLoading, isError, refetch, isFetching } = useProposals({
     direction: direction === "all" ? undefined : direction,
     status: statusFilter === "all" ? undefined : statusFilter,
+    searchQuery: searchQuery || undefined,
+    sortBy,
+    sortOrder,
     page: 1,
     pageSize: 50,
   });
@@ -157,8 +163,16 @@ export default function ProposalsPage() {
         <ProposalFilters
           direction={direction}
           status={statusFilter}
+          searchQuery={searchQuery}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
           onDirectionChange={setDirection}
           onStatusChange={setStatusFilter}
+          onSearchChange={setSearchQuery}
+          onSortChange={(newSortBy, newSortOrder) => {
+            setSortBy(newSortBy);
+            setSortOrder(newSortOrder);
+          }}
         />
 
         {/* Content */}
