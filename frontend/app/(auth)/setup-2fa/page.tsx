@@ -9,42 +9,24 @@ import api from "@/lib/axios";
 export default function Setup2FAPage() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isCheckingProfile, setIsCheckingProfile] = useState(true);
 
   useEffect(() => {
-    const checkAuthAndProfile = async () => {
+    const checkAuth = async () => {
       const token = localStorage.getItem("token");
       if (!token) {
         router.push("/login");
         return;
       }
-
-      try {
-        // Check if profile is complete
-        const response = await api.get("/account/me");
-        if (response.data.success && response.data.data) {
-          const user = response.data.data;
-          
-          // If profile is not complete, redirect to onboarding
-          if (user.isProfileComplete === false) {
-            router.push("/onboarding");
-            return;
-          }
-        }
-        
-        setIsAuthenticated(true);
-      } catch (error) {
-        console.error("Error checking profile:", error);
-        setIsAuthenticated(true); // Continue to 2FA setup anyway
-      } finally {
-        setIsCheckingProfile(false);
-      }
+      
+      // Simply verify token exists, don't check profile status
+      // Let the flow complete: setup-2fa → onboarding → dashboard
+      setIsAuthenticated(true);
     };
 
-    checkAuthAndProfile();
+    checkAuth();
   }, [router]);
 
-  if (isCheckingProfile || !isAuthenticated) {
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-gray-600">Loading...</div>
@@ -53,28 +35,31 @@ export default function Setup2FAPage() {
   }
 
   const handleSuccess = async () => {
-    // After 2FA is enabled, check profile completeness again
+    // ⭐ After 2FA is enabled, mark setup as complete and go to onboarding
     try {
       const response = await api.get("/account/me");
       if (response.data.success && response.data.data) {
         const user = response.data.data;
         
+        // After 2FA setup, go to onboarding (if not complete) or dashboard
         if (user.isProfileComplete === false) {
           router.push("/onboarding");
         } else {
           router.push("/dashboard");
         }
       } else {
-        router.push("/dashboard");
+        router.push("/onboarding");
       }
     } catch (error) {
       console.error("Error checking profile after 2FA:", error);
-      router.push("/dashboard");
+      router.push("/onboarding");
     }
   };
 
   const handleSkip = async () => {
-    // Same logic when skipping 2FA
+    // ⚠️ SECURITY WARNING: User chose to skip 2FA setup
+    // Redirect to onboarding but IsTwoFactorSetupComplete remains false
+    // Middleware will enforce 2FA setup on subsequent logins
     try {
       const response = await api.get("/account/me");
       if (response.data.success && response.data.data) {
@@ -86,11 +71,11 @@ export default function Setup2FAPage() {
           router.push("/dashboard");
         }
       } else {
-        router.push("/dashboard");
+        router.push("/onboarding");
       }
     } catch (error) {
       console.error("Error checking profile after skip:", error);
-      router.push("/dashboard");
+      router.push("/onboarding");
     }
   };
 

@@ -1,6 +1,10 @@
+using Microsoft.AspNetCore.Authentication.OAuth.Claims;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using System.Security.Claims;
+using System.Text;
 using System.Threading.RateLimiting;
 using TalentVerse.WebAPI.Configuration;
 using TalentVerse.WebAPI.Data;
@@ -10,6 +14,21 @@ using TalentVerse.WebAPI.Repositories;
 using TalentVerse.WebAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ⭐ Configure Data Protection for OAuth state cookies with persistent keys
+var keysDirectory = Path.Combine(builder.Environment.ContentRootPath, "keys");
+Directory.CreateDirectory(keysDirectory); // Ensure directory exists
+
+builder.Services.AddDataProtection()
+    .SetApplicationName("TalentVerse")
+    .PersistKeysToFileSystem(new DirectoryInfo(keysDirectory));
+
+// ⭐ Environment-aware cookie configuration for OAuth
+// Development: SameSite=Lax + SameAsRequest (works on HTTP)
+// Production: SameSite=None + Always (requires HTTPS)
+var isDevelopment = builder.Environment.IsDevelopment();
+var cookieSameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.None;
+var cookieSecurePolicy = isDevelopment ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -57,6 +76,12 @@ builder.Services.AddScoped<IMarketplaceService, MarketplaceService>();
 builder.Services.AddScoped<IEmailService, EmailService>(); 
 builder.Services.AddScoped<ITwoFactorService, TwoFactorService>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>(); 
+
+// Register background email queue service
+builder.Services.AddSingleton<IEmailQueueService, BackgroundEmailQueueService>();
+builder.Services.AddHostedService<BackgroundEmailQueueService>(provider =>
+    provider.GetRequiredService<IEmailQueueService>() as BackgroundEmailQueueService
+    ?? throw new InvalidOperationException("IEmailQueueService must be BackgroundEmailQueueService"));
 
 builder.Services.AddCors(options =>
 {
@@ -121,18 +146,18 @@ builder.Services.AddIdentityCore<AppUser>(options =>
     options.Tokens.AuthenticatorTokenProvider = TokenOptions.DefaultAuthenticatorProvider;
 })
     .AddRoles<IdentityRole>()
+    .AddSignInManager<SignInManager<AppUser>>() // ⭐ Add SignInManager for external authentication
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
-builder.Services.AddAuthentication(options =>
+// ⭐ Add authentication with JWT as default, and Identity cookie schemes for OAuth
+var authBuilder = builder.Services.AddAuthentication(options =>
 {
-    options.DefaultAuthenticateScheme =
-    options.DefaultChallengeScheme =
-    options.DefaultForbidScheme =
-    options.DefaultScheme =
-    options.DefaultSignInScheme =
-    options.DefaultSignOutScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(options =>
+    options.DefaultAuthenticateScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
 {
     var tokenKey = builder.Configuration["JWT:TokenKey"]
                    ?? throw new Exception("JWT:TokenKey is missing from appsettings.json");
@@ -142,11 +167,78 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuer = false, //It is set to false for development purpose, can be enabled later
         ValidateAudience = false,
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
-            System.Text.Encoding.UTF8.GetBytes(tokenKey)
-        )
+        IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenKey))
     };
+})
+// ⭐ Add Identity cookie schemes for OAuth external authentication
+.AddCookie(IdentityConstants.ApplicationScheme, options =>
+{
+    options.Cookie.Name = ".AspNetCore.Identity.Application";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = cookieSecurePolicy;
+    options.Cookie.SameSite = cookieSameSite;
+    options.Cookie.IsEssential = true;
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+    options.SlidingExpiration = true;
+})
+// ⭐ Add Identity.External cookie scheme (required by SignInManager.GetExternalLoginInfoAsync)
+.AddCookie(IdentityConstants.ExternalScheme, options =>
+{
+    options.Cookie.Name = ".AspNetCore.Identity.External";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = cookieSecurePolicy;
+    options.Cookie.SameSite = cookieSameSite;
+    options.Cookie.IsEssential = true;
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(10); // Short-lived for OAuth flow
+    options.SlidingExpiration = false;
 });
+
+// ⭐ Configure OAuth providers - only register if credentials exist
+
+// Google OAuth
+var googleClientId = builder.Configuration["Authentication:Google:ClientId"];
+var googleClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+if (!string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(googleClientSecret))
+{
+    authBuilder.AddGoogle(options =>
+    {
+        options.ClientId = googleClientId;
+        options.ClientSecret = googleClientSecret;
+        options.CallbackPath = "/signin-google";
+        options.SaveTokens = true;
+        options.SignInScheme = IdentityConstants.ExternalScheme;
+        
+        // ⭐ Environment-aware cookie configuration for OAuth state
+        options.CorrelationCookie.SameSite = cookieSameSite;
+        options.CorrelationCookie.SecurePolicy = cookieSecurePolicy;
+        options.CorrelationCookie.HttpOnly = true;
+        options.CorrelationCookie.IsEssential = true;
+        options.CorrelationCookie.Path = "/";
+    });
+}
+
+// GitHub OAuth
+var githubClientId = builder.Configuration["Authentication:GitHub:ClientId"];
+var githubClientSecret = builder.Configuration["Authentication:GitHub:ClientSecret"];
+if (!string.IsNullOrWhiteSpace(githubClientId) && !string.IsNullOrWhiteSpace(githubClientSecret))
+{
+    authBuilder.AddGitHub(options =>
+    {
+        options.ClientId = githubClientId;
+        options.ClientSecret = githubClientSecret;
+        options.CallbackPath = "/signin-github";
+        options.SaveTokens = true;
+        options.SignInScheme = IdentityConstants.ExternalScheme;
+        options.Scope.Add("user:email");
+        
+        // ⭐ Environment-aware cookie configuration for OAuth state
+        options.CorrelationCookie.SameSite = cookieSameSite;
+        options.CorrelationCookie.SecurePolicy = cookieSecurePolicy;
+        options.CorrelationCookie.HttpOnly = true;
+        options.CorrelationCookie.IsEssential = true;
+        options.CorrelationCookie.Path = "/";
+    });
+}
 
 builder.Services.AddAuthorization();
 
@@ -178,8 +270,18 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Docke
     app.UseSwaggerUI();
 }
 
-// Disable HTTPS redirection for local development to avoid CORS preflight issues
-// app.UseHttpsRedirection();
+// ⭐ Enable HTTPS redirection only in production
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
+// ⭐ Environment-aware cookie policy for OAuth
+app.UseCookiePolicy(new CookiePolicyOptions
+{
+    MinimumSameSitePolicy = app.Environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None,
+    Secure = app.Environment.IsDevelopment() ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always
+});
 
 app.UseCors("AllowFrontend");
 

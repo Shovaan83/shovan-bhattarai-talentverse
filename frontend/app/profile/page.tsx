@@ -17,6 +17,7 @@ import {
   Target,
   Trash2,
   ArrowRightLeft,
+  Settings,
 } from "lucide-react";
 import { accountApi } from "@/lib/api/account";
 import { skillsApi } from "@/lib/api/skills";
@@ -24,6 +25,7 @@ import type { AddSkillPayload } from "@/lib/types/skills";
 import type { UserSkill } from "@/lib/types/skills";
 import SkillModal, { SkillType } from "./components/SkillModal";
 import EditProfileModal from "./components/EditProfileModal";
+import LinkedAccountsSettings from "./components/LinkedAccountsSettings";
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -51,6 +53,7 @@ export default function ProfilePage() {
     SkillType.Offer
   );
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'overview' | 'settings'>('overview');
 
   const {
     data: user,
@@ -182,6 +185,34 @@ export default function ProfilePage() {
             Manage your identity and skill portfolio
           </p>
         </header>
+
+        {/* Tabs */}
+        <div className="flex gap-4 mb-8">
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`px-6 py-3 rounded-xl font-bold transition-all ${
+              activeTab === 'overview'
+                ? 'bg-emerald-600 text-white shadow-lg'
+                : 'bg-emerald-900/50 text-emerald-200 hover:bg-emerald-800/50'
+            }`}
+          >
+            Overview
+          </button>
+          <button
+            onClick={() => setActiveTab('settings')}
+            className={`px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 ${
+              activeTab === 'settings'
+                ? 'bg-emerald-600 text-white shadow-lg'
+                : 'bg-emerald-900/50 text-emerald-200 hover:bg-emerald-800/50'
+            }`}
+          >
+            <Settings className="w-4 h-4" />
+            Settings
+          </button>
+        </div>
+
+        {/* Overview Tab */}
+        {activeTab === 'overview' && (
 
         <motion.div
           variants={containerVariants}
@@ -455,10 +486,38 @@ export default function ProfilePage() {
           </motion.div>
         </motion.div>
 
+        )}
+
         {(skillsError || userError) && (
           <div className="mt-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-200 text-center">
             Failed to load data. Please try again later.
           </div>
+        )}
+
+        {/* Settings Tab */}
+        {activeTab === 'settings' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="bg-white rounded-2xl p-8 shadow-xl"
+          >
+            <LinkedAccountsSettings />
+            
+            {/* ⭐ Logout Section */}
+            <div className="mt-8 pt-8 border-t border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Session Management</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Securely log out of your account. This will revoke your refresh token.
+              </p>
+              <button
+                onClick={() => accountApi.logout()}
+                className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-colors shadow-md hover:shadow-lg"
+              >
+                Logout
+              </button>
+            </div>
+          </motion.div>
         )}
       </div>
 

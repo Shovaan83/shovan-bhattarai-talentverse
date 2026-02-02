@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TalentVerse.WebAPI.Data;
@@ -11,9 +12,11 @@ using TalentVerse.WebAPI.Data;
 namespace TalentVerse.WebAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260202110832_AddRefreshTokenToAppUser")]
+    partial class AddRefreshTokenToAppUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -188,9 +191,6 @@ namespace TalentVerse.WebAPI.Migrations
                         .HasColumnType("character varying(2048)");
 
                     b.Property<bool>("IsProfileComplete")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsTwoFactorSetupComplete")
                         .HasColumnType("boolean");
 
                     b.Property<string>("LinkedInUrl")
