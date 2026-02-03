@@ -13,6 +13,7 @@ namespace TalentVerse.WebAPI.Services;
 public class AuthService : IAuthService
 {
     private readonly UserManager<AppUser> _userManager;
+    private readonly SignInManager<AppUser> _signInManager;
     private readonly ITokenService _tokenService;
     private readonly ITwoFactorService _twoFactorService;
     private readonly IEmailService _emailService;
@@ -40,13 +41,15 @@ public class AuthService : IAuthService
     }
 
     public AuthService(
-        UserManager<AppUser> userManager, 
+        UserManager<AppUser> userManager,
+        SignInManager<AppUser> signInManager,
         ITokenService tokenService, 
         ITwoFactorService twoFactorService,
         IEmailService emailService,
         ILogger<AuthService> logger)
     {
         _userManager = userManager;
+        _signInManager = signInManager;
         _tokenService = tokenService;
         _twoFactorService = twoFactorService;
         _emailService = emailService;
@@ -103,7 +106,8 @@ public class AuthService : IAuthService
             {
                 UserName = trimmedUsername,
                 Email = trimmedEmail,
-                Bio = string.IsNullOrEmpty(registerDto.Bio) ? null : trimmedBio
+                Bio = string.IsNullOrEmpty(registerDto.Bio) ? null : trimmedBio,
+                IsTwoFactorSetupComplete = false // ⭐ Email/password users need to setup 2FA
             };
 
             // Proper framework API usage: create user (also sets normalized fields)
@@ -130,6 +134,8 @@ public class AuthService : IAuthService
                     Bio = appUser.Bio,
                     Token = await _tokenService.CreateToken(appUser),
                     IsProfileComplete = appUser.IsProfileComplete,
+                    IsTwoFactorSetupComplete = appUser.IsTwoFactorSetupComplete,
+                    HasPassword = true, // Email/password registration always has password
                     ProfilePictureUrl = appUser.ProfilePictureURL,
                     Location = appUser.Location,
                     GitHubUrl = appUser.GitHubUrl,
@@ -146,7 +152,7 @@ public class AuthService : IAuthService
         }
     }
 
-    public async Task<ServiceResponse<UserDto>> LoginAsync(LoginDto loginDto)
+    public async Task<ServiceResponse<UserDto>> LoginAsync(LoginDto loginDto, string ipAddress)
     {
         try
         {
@@ -245,6 +251,12 @@ TalentVerse Team";
                     "Two-factor authentication is required. Please verify the code sent to your email.");
             }
 
+            // ⭐ Generate token pair instead of single JWT
+            var tokenPair = await _tokenService.GenerateTokenPairAsync(user, ipAddress);
+            
+            // Check if user has password (to determine auth method)
+            var hasPassword = await _userManager.HasPasswordAsync(user);
+
             return ServiceResponse<UserDto>.SuccessResponse(
                 new UserDto
                 {
@@ -252,7 +264,11 @@ TalentVerse Team";
                     Email = user.Email,
                     Bio = user.Bio,
                     ProfilePictureUrl = user.ProfilePictureURL,
-                    Token = await _tokenService.CreateToken(user)
+                    Token = tokenPair.AccessToken, // ⭐ Hybrid approach: access token in response body
+                    IsProfileComplete = user.IsProfileComplete,
+                    IsTwoFactorSetupComplete = user.IsTwoFactorSetupComplete,
+                    HasPassword = hasPassword // ⭐ Tells frontend if this is an OAuth user or password user
+                    // RefreshToken is set as httpOnly cookie in controller
                 },
                 AppConstant.SuccessMessages.LoginSuccessful);
         }
@@ -470,6 +486,10 @@ TalentVerse Team";
                 var errors = enableResult.Errors.Select(e => e.Description).ToList();
                 return ServiceResponse<bool>.FailureResponse("Failed to enable two-factor authentication.", errors);
             }
+
+            // ⭐ Mark 2FA setup as complete
+            user.IsTwoFactorSetupComplete = true;
+            await _userManager.UpdateAsync(user);
 
             return ServiceResponse<bool>.SuccessResponse(true, AppConstant.SuccessMessages.TwofaEnabled);
         }
@@ -760,5 +780,257 @@ TalentVerse Team";
             return ServiceResponse<UserDto>.FailureResponse(AppConstant.ErrorMessages.GenericError);
         }
     }
-}
 
+    #region External Authentication
+
+    public async Task<ServiceResponse<ExternalLoginResultDto>> ExternalLoginAsync(ExternalLoginInfo externalLoginInfo, string ipAddress)
+    {
+        try
+        {
+            if (externalLoginInfo == null)
+                return ServiceResponse<ExternalLoginResultDto>.FailureResponse("External login information is required");
+
+            var email = externalLoginInfo.Principal.FindFirstValue(ClaimTypes.Email);
+            if (string.IsNullOrWhiteSpace(email))
+                return ServiceResponse<ExternalLoginResultDto>.FailureResponse("Email not provided by external provider");
+
+            // Check if user already has this external login
+            var user = await _userManager.FindByLoginAsync(externalLoginInfo.LoginProvider, externalLoginInfo.ProviderKey);
+
+            if (user != null)
+            {
+                // User exists and has this external login - sign them in
+                // ⭐ Generate token pair
+                var tokenPair = await _tokenService.GenerateTokenPairAsync(user, ipAddress);
+
+                _logger.LogInformation(
+                    "User {UserId} logged in with {Provider}",
+                    user.Id,
+                    externalLoginInfo.LoginProvider);
+
+                return ServiceResponse<ExternalLoginResultDto>.SuccessResponse(new ExternalLoginResultDto
+                {
+                    Token = tokenPair.AccessToken, // ⭐ Hybrid: access token in response
+                    IsNewUser = false,
+                    RequiresOnboarding = !user.IsProfileComplete,
+                    IsTwoFactorSetupComplete = user.IsTwoFactorSetupComplete,
+                    Email = user.Email!,
+                    ProfilePictureUrl = user.ProfilePictureURL
+                }, "Login successful");
+            }
+
+            // Check if user exists with this email (account linking scenario)
+            user = await _userManager.FindByEmailAsync(email);
+
+            if (user != null)
+            {
+                // ⚠️ Account Conflict: Email exists but external login not linked
+                return ServiceResponse<ExternalLoginResultDto>.FailureResponse(
+                    $"An account with email {email} already exists. Please log in with your password and link your {externalLoginInfo.LoginProvider} account from profile settings.");
+            }
+
+            // New user - create account
+            var name = externalLoginInfo.Principal.FindFirstValue(ClaimTypes.Name) ?? email.Split('@')[0];
+            var picture = externalLoginInfo.Principal.FindFirstValue("picture");
+
+            var newUser = new AppUser
+            {
+                UserName = email,
+                Email = email,
+                ProfilePictureURL = picture,
+                EmailConfirmed = true, // Trust external provider's email verification
+                IsProfileComplete = false, // Require onboarding
+                IsTwoFactorSetupComplete = true, // ⭐ OAuth handles 2FA, skip our setup
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            var createResult = await _userManager.CreateAsync(newUser);
+
+            if (!createResult.Succeeded)
+            {
+                var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
+                _logger.LogError("Failed to create user from external login: {Errors}", errors);
+                return ServiceResponse<ExternalLoginResultDto>.FailureResponse($"Failed to create account: {errors}");
+            }
+
+            // Link external login to new user
+            var addLoginResult = await _userManager.AddLoginAsync(newUser, externalLoginInfo);
+
+            if (!addLoginResult.Succeeded)
+            {
+                // Rollback user creation
+                await _userManager.DeleteAsync(newUser);
+                var errors = string.Join(", ", addLoginResult.Errors.Select(e => e.Description));
+                _logger.LogError("Failed to link external login: {Errors}", errors);
+                return ServiceResponse<ExternalLoginResultDto>.FailureResponse($"Failed to link account: {errors}");
+            }
+
+            // Generate token pair for new user
+            // ⭐ Generate token pair
+            var newUserTokenPair = await _tokenService.GenerateTokenPairAsync(newUser, ipAddress);
+
+            _logger.LogInformation(
+                "New user {UserId} created via {Provider}",
+                newUser.Id,
+                externalLoginInfo.LoginProvider);
+
+            return ServiceResponse<ExternalLoginResultDto>.SuccessResponse(new ExternalLoginResultDto
+            {
+                Token = newUserTokenPair.AccessToken, // ⭐ Hybrid: access token in response
+                IsNewUser = true,
+                RequiresOnboarding = true,
+                IsTwoFactorSetupComplete = true, // ⭐ OAuth users skip 2FA setup
+                Email = newUser.Email!,
+                ProfilePictureUrl = newUser.ProfilePictureURL
+            }, "Account created successfully");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during external login");
+            return ServiceResponse<ExternalLoginResultDto>.FailureResponse(AppConstant.ErrorMessages.GenericError);
+        }
+    }
+
+    public async Task<ServiceResponse<IEnumerable<LinkedLoginDto>>> GetExternalLoginsAsync(string userId)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+                return ServiceResponse<IEnumerable<LinkedLoginDto>>.FailureResponse("User ID is required");
+
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+                return ServiceResponse<IEnumerable<LinkedLoginDto>>.FailureResponse("User not found");
+
+            var logins = await _userManager.GetLoginsAsync(user);
+
+            var linkedLogins = logins.Select(l => new LinkedLoginDto
+            {
+                Provider = l.LoginProvider,
+                ProviderDisplayName = l.ProviderDisplayName ?? l.LoginProvider,
+                ProviderKey = l.ProviderKey
+            }).ToList();
+
+            return ServiceResponse<IEnumerable<LinkedLoginDto>>.SuccessResponse(linkedLogins);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving external logins for user {UserId}", userId);
+            return ServiceResponse<IEnumerable<LinkedLoginDto>>.FailureResponse(AppConstant.ErrorMessages.GenericError);
+        }
+    }
+
+    public async Task<ServiceResponse<bool>> LinkExternalLoginAsync(string userId, ExternalLoginInfo externalLoginInfo)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+                return ServiceResponse<bool>.FailureResponse("User ID is required");
+
+            if (externalLoginInfo == null)
+                return ServiceResponse<bool>.FailureResponse("External login information is required");
+
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+                return ServiceResponse<bool>.FailureResponse("User not found");
+
+            // Check if this external login is already linked to another user
+            var existingUser = await _userManager.FindByLoginAsync(
+                externalLoginInfo.LoginProvider,
+                externalLoginInfo.ProviderKey);
+
+            if (existingUser != null && existingUser.Id != userId)
+            {
+                // ⚠️ Conflict: This external account is already linked to another user
+                return ServiceResponse<bool>.FailureResponse(
+                    $"This {externalLoginInfo.LoginProvider} account is already linked to another user.");
+            }
+
+            // Link the external login
+            var result = await _userManager.AddLoginAsync(user, externalLoginInfo);
+
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                return ServiceResponse<bool>.FailureResponse($"Failed to link account: {errors}");
+            }
+
+            _logger.LogInformation(
+                "User {UserId} linked {Provider} account",
+                userId,
+                externalLoginInfo.LoginProvider);
+
+            return ServiceResponse<bool>.SuccessResponse(
+                true,
+                $"{externalLoginInfo.LoginProvider} account linked successfully");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error linking external login for user {UserId}", userId);
+            return ServiceResponse<bool>.FailureResponse(AppConstant.ErrorMessages.GenericError);
+        }
+    }
+
+    public async Task<ServiceResponse<bool>> UnlinkExternalLoginAsync(string userId, string loginProvider)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+                return ServiceResponse<bool>.FailureResponse("User ID is required");
+
+            if (string.IsNullOrWhiteSpace(loginProvider))
+                return ServiceResponse<bool>.FailureResponse("Login provider is required");
+
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+                return ServiceResponse<bool>.FailureResponse("User not found");
+
+            // Get all external logins
+            var logins = await _userManager.GetLoginsAsync(user);
+
+            // Check if user has a password (for account recovery)
+            var hasPassword = await _userManager.HasPasswordAsync(user);
+
+            // Don't allow unlinking if it's the only login method and user has no password
+            if (logins.Count == 1 && !hasPassword)
+            {
+                return ServiceResponse<bool>.FailureResponse(
+                    "Cannot unlink the only login method. Please set a password first.");
+            }
+
+            // Find the login to remove
+            var loginToRemove = logins.FirstOrDefault(l => l.LoginProvider == loginProvider);
+
+            if (loginToRemove == null)
+                return ServiceResponse<bool>.FailureResponse($"{loginProvider} account is not linked");
+
+            var result = await _userManager.RemoveLoginAsync(user, loginProvider, loginToRemove.ProviderKey);
+
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                return ServiceResponse<bool>.FailureResponse($"Failed to unlink account: {errors}");
+            }
+
+            _logger.LogInformation(
+                "User {UserId} unlinked {Provider} account",
+                userId,
+                loginProvider);
+
+            return ServiceResponse<bool>.SuccessResponse(
+                true,
+                $"{loginProvider} account unlinked successfully");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error unlinking external login for user {UserId}", userId);
+            return ServiceResponse<bool>.FailureResponse(AppConstant.ErrorMessages.GenericError);
+        }
+    }
+
+    #endregion
+}

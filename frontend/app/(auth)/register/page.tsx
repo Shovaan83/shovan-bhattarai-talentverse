@@ -58,14 +58,18 @@ export default function RegisterPage() {
       if (response.data.success && response.data.data?.token) {
         localStorage.setItem("token", response.data.data.token);
         
-        // Check if profile is complete
+        // ⭐ NEW FLOW: Email/password users go to 2FA setup first
         const userData = response.data.data;
-        if (userData.isProfileComplete === false) {
-          // New user needs to complete onboarding
+        
+        if (!userData.isTwoFactorSetupComplete && userData.hasPassword) {
+          // Email/password users need to setup 2FA before onboarding
+          router.push("/setup-2fa");
+        } else if (userData.isProfileComplete === false) {
+          // After 2FA (or OAuth users), go to onboarding
           router.push("/onboarding");
         } else {
           // Profile already complete (shouldn't happen for new users, but handle it)
-          router.push("/setup-2fa");
+          router.push("/dashboard");
         }
       } else {
         setApiError(response.data.message || "Registration failed");

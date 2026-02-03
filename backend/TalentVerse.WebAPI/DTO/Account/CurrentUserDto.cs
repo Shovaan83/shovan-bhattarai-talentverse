@@ -7,6 +7,8 @@ namespace TalentVerse.WebAPI.DTO.Account
         public string? Bio { get; set; }
         public string? ProfilePictureUrl { get; set; }
         public bool IsProfileComplete { get; set; } = false;
+        public bool IsTwoFactorSetupComplete { get; set; } = false;
+        public bool HasPassword { get; set; } = true;
         public string? Location { get; set; }
         public string? GitHubUrl { get; set; }
         public string? LinkedInUrl { get; set; }

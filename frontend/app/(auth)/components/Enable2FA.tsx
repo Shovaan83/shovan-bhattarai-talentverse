@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { motion } from "framer-motion";
-import { Shield, Loader2, Mail, CheckCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Shield, Loader2, Mail, CheckCircle, AlertTriangle, X } from "lucide-react";
 import axiosInstance from "@/lib/axios";
 import EmailStatusNotification from "./EmailStatusNotification";
 
@@ -19,6 +19,7 @@ export default function Enable2FA({ onSuccess, onSkip }: Enable2FAProps) {
   const [success, setSuccess] = useState(false);
   const [emailStatus, setEmailStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [userEmail, setUserEmail] = useState<string>("");
+  const [showSkipDialog, setShowSkipDialog] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const handleRequestCode = async () => {
@@ -145,6 +146,19 @@ export default function Enable2FA({ onSuccess, onSkip }: Enable2FAProps) {
     }
   };
 
+  const handleSkipClick = () => {
+    setShowSkipDialog(true);
+  };
+
+  const handleConfirmSkip = () => {
+    setShowSkipDialog(false);
+    onSkip?.();
+  };
+
+  const handleCancelSkip = () => {
+    setShowSkipDialog(false);
+  };
+
   if (success) {
     return (
       <motion.div
@@ -241,7 +255,7 @@ export default function Enable2FA({ onSuccess, onSkip }: Enable2FAProps) {
             {onSkip && (
               <button
                 type="button"
-                onClick={onSkip}
+                onClick={handleSkipClick}
                 className="w-full py-3 text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors"
               >
                 Skip for now
@@ -343,13 +357,91 @@ export default function Enable2FA({ onSuccess, onSkip }: Enable2FAProps) {
 
         {onSkip && (
           <button
-            onClick={onSkip}
+            type="button"
+            onClick={handleSkipClick}
             className="w-full py-3 text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors"
           >
             I'll do this later
           </button>
         )}
       </div>
+
+      {/* Skip Confirmation Dialog */}
+      <AnimatePresence>
+        {showSkipDialog && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={handleCancelSkip}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+            />
+
+            {/* Dialog */}
+            <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Close Button */}
+                <button
+                  onClick={handleCancelSkip}
+                  className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+
+                {/* Icon */}
+                <div className="flex justify-center mb-4">
+                  <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center">
+                    <AlertTriangle className="w-8 h-8 text-amber-600" />
+                  </div>
+                </div>
+
+                {/* Title */}
+                <h3 className="text-2xl font-bold text-gray-900 text-center mb-3">
+                  Skip 2FA Setup?
+                </h3>
+
+                {/* Warning Message */}
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+                  <p className="text-sm text-amber-900 leading-relaxed">
+                    <strong className="font-semibold">Security Warning:</strong> Two-factor authentication (2FA) 
+                    significantly protects your account from unauthorized access. Without 2FA, your account is more 
+                    vulnerable to security breaches. We strongly recommend enabling it now.
+                  </p>
+                </div>
+
+                {/* Buttons */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleCancelSkip}
+                    className="flex-1 py-3 px-4 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition-colors"
+                  >
+                    Setup 2FA
+                  </button>
+                  <button
+                    onClick={handleConfirmSkip}
+                    className="flex-1 py-3 px-4 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
+                  >
+                    Skip Anyway
+                  </button>
+                </div>
+
+                {/* Footer Note */}
+                <p className="text-xs text-gray-500 text-center mt-4">
+                  You can enable 2FA later from your profile settings
+                </p>
+              </motion.div>
+            </div>
+          </>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

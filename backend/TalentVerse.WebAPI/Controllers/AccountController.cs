@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using System.Security.Claims;
 using TalentVerse.WebAPI.Common;
+using TalentVerse.WebAPI.Data.Entities;
 using TalentVerse.WebAPI.DTO.Account;
 using TalentVerse.WebAPI.Interfaces;
 
@@ -14,15 +17,27 @@ public class AccountController : ControllerBase
     private readonly IAuthService _authService;
     private readonly ICloudinaryService _cloudinaryService;
     private readonly ILogger<AccountController> _logger;
+    private readonly SignInManager<AppUser> _signInManager;
+    private readonly IConfiguration _configuration;
+    private readonly ITokenService _tokenService;
+    private readonly UserManager<AppUser> _userManager;
 
     public AccountController(
         IAuthService authService, 
         ICloudinaryService cloudinaryService,
-        ILogger<AccountController> logger)
+        ILogger<AccountController> logger,
+        SignInManager<AppUser> signInManager,
+        IConfiguration configuration,
+        ITokenService tokenService,
+        UserManager<AppUser> userManager)
     {
         _authService = authService;
         _cloudinaryService = cloudinaryService;
         _logger = logger;
+        _signInManager = signInManager;
+        _configuration = configuration;
+        _tokenService = tokenService;
+        _userManager = userManager;
     }
 
     /// <summary>
@@ -79,7 +94,10 @@ public class AccountController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ServiceResponse<UserDto>.FailureResponse("Validation failed"));
 
-        var result = await _authService.LoginAsync(loginDto);
+        // ⭐ Get client IP address
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+
+        var result = await _authService.LoginAsync(loginDto, ipAddress);
 
         if (!result.Success)
         {
@@ -101,6 +119,16 @@ public class AccountController : ControllerBase
             }
 
             return BadRequest(result);
+        }
+
+        // ⭐ Set refresh token as httpOnly cookie
+        if (result.Data != null)
+        {
+            var user = await _userManager.FindByEmailAsync(loginDto.Email);
+            if (user?.RefreshToken != null && user.RefreshTokenExpiresAt != null)
+            {
+                SetRefreshTokenCookie(user.RefreshToken, user.RefreshTokenExpiresAt.Value);
+            }
         }
 
         return Ok(result);
@@ -351,4 +379,306 @@ public class AccountController : ControllerBase
             return BadRequest(result);
 
         return Ok(result);
-    }}
+    }
+
+    #region External Authentication
+
+    /// <summary>
+    /// Initiates OAuth external login
+    /// </summary>
+    /// <param name="provider">OAuth provider (Google, GitHub, Microsoft, Twitter)</param>
+    /// <returns>Redirect to external provider</returns>
+    /// <response code="200">Redirects to external provider</response>
+    /// <response code="400">Invalid provider</response>
+    [HttpGet("external-login/{provider}")]
+    [EnableRateLimiting("fixed")]
+    [ProducesResponseType(StatusCodes.Status302Found)]
+    [ProducesResponseType(typeof(ServiceResponse<string>), StatusCodes.Status400BadRequest)]
+    public IActionResult ExternalLogin(string provider)
+    {
+        if (string.IsNullOrWhiteSpace(provider))
+            return BadRequest(ServiceResponse<string>.FailureResponse("Provider is required"));
+
+        var redirectUrl = Url.Action(
+            nameof(ExternalLoginCallback),
+            "Account",
+            null,
+            Request.Scheme);
+
+        var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+
+        _logger.LogInformation("Initiating {Provider} external login", provider);
+
+        return Challenge(properties, provider);
+    }
+
+    /// <summary>
+    /// Handles OAuth callback and issues JWT token
+    /// </summary>
+    /// <returns>Redirects to frontend with token</returns>
+    /// <response code="302">Redirects to frontend</response>
+    [HttpGet("external-login-callback")]
+    [EnableRateLimiting("fixed")]
+    public async Task<IActionResult> ExternalLoginCallback()
+    {
+        var frontendUrl = _configuration["FrontendUrl"] ?? "http://localhost:3000";
+
+        var externalLoginInfo = await _signInManager.GetExternalLoginInfoAsync();
+
+        if (externalLoginInfo == null)
+        {
+            _logger.LogWarning("External login info not found in callback");
+            return Redirect($"{frontendUrl}/login?error=ExternalLoginFailed");
+        }
+
+        // ⭐ Get client IP address
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+
+        var result = await _authService.ExternalLoginAsync(externalLoginInfo, ipAddress);
+
+        if (!result.Success)
+        {
+            _logger.LogWarning("External login failed: {Error}", result.Message);
+            return Redirect($"{frontendUrl}/login?error={Uri.EscapeDataString(result.Message)}");
+        }
+
+        var data = result.Data!;
+
+        // ⭐ Set refresh token as httpOnly cookie for OAuth users
+        var user = await _userManager.FindByEmailAsync(data.Email);
+        if (user?.RefreshToken != null && user.RefreshTokenExpiresAt != null)
+        {
+            SetRefreshTokenCookie(user.RefreshToken, user.RefreshTokenExpiresAt.Value);
+        }
+
+        // ⭐ Redirect to frontend with token (not in URL anymore, but for backward compatibility)
+        var callbackUrl = data.RequiresOnboarding
+            ? $"{frontendUrl}/onboarding?token={Uri.EscapeDataString(data.Token)}"
+            : $"{frontendUrl}/oauth-callback?token={Uri.EscapeDataString(data.Token)}&isNewUser={data.IsNewUser}&requiresOnboarding={data.RequiresOnboarding}";
+
+        _logger.LogInformation("External login successful, redirecting to frontend");
+
+        return Redirect(callbackUrl);
+    }
+
+    /// <summary>
+    /// Gets user's linked external accounts
+    /// </summary>
+    /// <returns>List of linked OAuth providers</returns>
+    /// <response code="200">Successfully retrieved linked accounts</response>
+    /// <response code="401">User not authenticated</response>
+    [HttpGet("external-logins")]
+    [Authorize]
+    [EnableRateLimiting("fixed")]
+    [ProducesResponseType(typeof(ServiceResponse<IEnumerable<LinkedLoginDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<ServiceResponse<IEnumerable<LinkedLoginDto>>>> GetExternalLogins()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrWhiteSpace(userId))
+            return Unauthorized();
+
+        var result = await _authService.GetExternalLoginsAsync(userId);
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Links an external OAuth account to current user
+    /// </summary>
+    /// <param name="provider">OAuth provider to link</param>
+    /// <returns>Success response</returns>
+    /// <response code="200">Account linked successfully</response>
+    /// <response code="400">Link failed (conflict or error)</response>
+    /// <response code="401">User not authenticated</response>
+    [HttpPost("link-external-login/{provider}")]
+    [Authorize]
+    [EnableRateLimiting("fixed")]
+    [ProducesResponseType(typeof(ServiceResponse<bool>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ServiceResponse<bool>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public IActionResult LinkExternalLogin(string provider)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrWhiteSpace(userId))
+            return Unauthorized();
+
+        if (string.IsNullOrWhiteSpace(provider))
+            return BadRequest(ServiceResponse<bool>.FailureResponse("Provider is required"));
+
+        var redirectUrl = Url.Action(
+            nameof(LinkExternalLoginCallback),
+            "Account",
+            null,
+            Request.Scheme);
+
+        var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+
+        _logger.LogInformation("User {UserId} initiating link with {Provider}", userId, provider);
+
+        return Challenge(properties, provider);
+    }
+
+    /// <summary>
+    /// Handles OAuth callback for linking accounts
+    /// </summary>
+    /// <returns>Redirects to frontend</returns>
+    /// <response code="302">Redirects to frontend profile settings</response>
+    [HttpGet("link-external-login-callback")]
+    [Authorize]
+    [EnableRateLimiting("fixed")]
+    public async Task<IActionResult> LinkExternalLoginCallback()
+    {
+        var frontendUrl = _configuration["FrontendUrl"] ?? "http://localhost:3000";
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrWhiteSpace(userId))
+            return Redirect($"{frontendUrl}/profile?error=Unauthorized");
+
+        var externalLoginInfo = await _signInManager.GetExternalLoginInfoAsync(userId);
+
+        if (externalLoginInfo == null)
+        {
+            _logger.LogWarning("External login info not found for user {UserId}", userId);
+            return Redirect($"{frontendUrl}/profile?error=ExternalLoginFailed");
+        }
+
+        var result = await _authService.LinkExternalLoginAsync(userId, externalLoginInfo);
+
+        if (!result.Success)
+        {
+            _logger.LogWarning("Link external login failed for user {UserId}: {Error}", userId, result.Message);
+            return Redirect($"{frontendUrl}/profile?error={Uri.EscapeDataString(result.Message)}");
+        }
+
+        _logger.LogInformation("User {UserId} successfully linked {Provider}", userId, externalLoginInfo.LoginProvider);
+
+        return Redirect($"{frontendUrl}/profile?success=AccountLinked");
+    }
+
+    /// <summary>
+    /// Unlinks an external OAuth account from current user
+    /// </summary>
+    /// <param name="provider">OAuth provider to unlink</param>
+    /// <returns>Success response</returns>
+    /// <response code="200">Account unlinked successfully</response>
+    /// <response code="400">Unlink failed (last login method or error)</response>
+    /// <response code="401">User not authenticated</response>
+    [HttpDelete("unlink-external-login/{provider}")]
+    [Authorize]
+    [EnableRateLimiting("fixed")]
+    [ProducesResponseType(typeof(ServiceResponse<bool>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ServiceResponse<bool>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<ServiceResponse<bool>>> UnlinkExternalLogin(string provider)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrWhiteSpace(userId))
+            return Unauthorized();
+
+        if (string.IsNullOrWhiteSpace(provider))
+            return BadRequest(ServiceResponse<bool>.FailureResponse("Provider is required"));
+
+        var result = await _authService.UnlinkExternalLoginAsync(userId, provider);
+
+        if (!result.Success)
+            return BadRequest(result);
+
+        return Ok(result);
+    }
+
+    #endregion
+
+    #region Refresh Token & Logout
+
+    /// <summary>
+    /// Refreshes the access token using the refresh token from httpOnly cookie
+    /// </summary>
+    /// <returns>New access token</returns>
+    /// <response code="200">Token refreshed successfully</response>
+    /// <response code="401">Invalid or expired refresh token</response>
+    [HttpPost("refresh")]
+    [EnableRateLimiting("fixed")]
+    [ProducesResponseType(typeof(ServiceResponse<string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ServiceResponse<string>), StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<ServiceResponse<string>>> RefreshToken()
+    {
+        // Extract refresh token from httpOnly cookie
+        var refreshToken = Request.Cookies["refreshToken"];
+
+        if (string.IsNullOrWhiteSpace(refreshToken))
+            return Unauthorized(ServiceResponse<string>.FailureResponse("Refresh token is missing"));
+
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+
+        var tokenPair = await _tokenService.RefreshTokenAsync(refreshToken, ipAddress);
+
+        if (tokenPair == null)
+            return Unauthorized(ServiceResponse<string>.FailureResponse("Invalid or expired refresh token"));
+
+        // ⭐ Extend refresh token expiry and set cookie (sliding expiration)
+        SetRefreshTokenCookie(tokenPair.Value.RefreshToken, tokenPair.Value.ExpiresAt);
+
+        return Ok(ServiceResponse<string>.SuccessResponse(
+            tokenPair.Value.AccessToken,
+            "Token refreshed successfully"));
+    }
+
+    /// <summary>
+    /// Logs out the user by revoking the refresh token
+    /// </summary>
+    /// <returns>Success response</returns>
+    /// <response code="200">Logged out successfully</response>
+    [HttpPost("logout")]
+    [Authorize]
+    [EnableRateLimiting("fixed")]
+    [ProducesResponseType(typeof(ServiceResponse<string>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ServiceResponse<string>>> Logout()
+    {
+        var refreshToken = Request.Cookies["refreshToken"];
+
+        if (!string.IsNullOrWhiteSpace(refreshToken))
+        {
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+            await _tokenService.RevokeRefreshTokenAsync(refreshToken, ipAddress);
+        }
+
+        // Clear refresh token cookie
+        Response.Cookies.Delete("refreshToken");
+
+        return Ok(ServiceResponse<string>.SuccessResponse("Logged out successfully"));
+    }
+
+    #endregion
+
+    #region Private Helper Methods
+
+    /// <summary>
+    /// Sets the refresh token as an httpOnly cookie
+    /// </summary>
+    /// <param name="refreshToken">The refresh token value</param>
+    /// <param name="expiresAt">Token expiration date</param>
+    private void SetRefreshTokenCookie(string refreshToken, DateTime expiresAt)
+    {
+        // ⭐ Environment-aware cookie configuration
+        // Development: SameSite=Lax + Secure based on request (works on HTTP)
+        // Production: SameSite=None + Secure=true (requires HTTPS)
+        var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
+        
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true, // ⭐ Cannot be accessed by JavaScript (prevents XSS)
+            Secure = isDevelopment ? Request.IsHttps : true, // ⭐ Dev: match request, Prod: always secure
+            SameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.None, // ⭐ Dev: Lax (HTTP), Prod: None (HTTPS)
+            Expires = expiresAt,
+            IsEssential = true
+        };
+
+        Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
+    }
+
+    #endregion
+}
