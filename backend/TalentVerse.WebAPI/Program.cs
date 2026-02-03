@@ -69,13 +69,15 @@ builder.Services.AddSingleton<DapperContext>();
 builder.Services.AddScoped<ISkillRepository, SkillRepository>();
 builder.Services.AddScoped<IProposalRepository, ProposalRepository>();
 builder.Services.AddScoped<IMarketplaceRepository, MarketplaceRepository>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ISkillService, SkillService>(); 
 builder.Services.AddScoped<IProposalService, ProposalService>();
 builder.Services.AddScoped<IMarketplaceService, MarketplaceService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IEmailService, EmailService>(); 
 builder.Services.AddScoped<ITwoFactorService, TwoFactorService>();
-builder.Services.AddScoped<ICloudinaryService, CloudinaryService>(); 
+builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 
 // Register background email queue service
 builder.Services.AddSingleton<IEmailQueueService, BackgroundEmailQueueService>();

@@ -237,7 +237,19 @@ public class MarketplaceRepository : IMarketplaceRepository
         var swapCounts = (await connection.QueryAsync<SwapCountResult>(swapsSql, new { UserIds = userIds }))
             .ToDictionary(x => x.UserId, x => x.Count);
 
-        // Map skills and swaps to users
+        // Fetch average ratings for all users
+        var ratingsSql = @"
+            SELECT 
+                r.""RevieweeId"" AS UserId,
+                AVG(r.""Rating"")::float AS AverageRating
+            FROM ""Reviews"" r
+            WHERE r.""RevieweeId"" = ANY(@UserIds)
+            GROUP BY r.""RevieweeId""";
+
+        var averageRatings = (await connection.QueryAsync<RatingResult>(ratingsSql, new { UserIds = userIds }))
+            .ToDictionary(x => x.UserId, x => x.AverageRating);
+
+        // Map skills, swaps, and ratings to users
         foreach (var user in users)
         {
             var userSkills = skills.Where(s => s.UserId == user.Id).ToList();
@@ -269,6 +281,7 @@ public class MarketplaceRepository : IMarketplaceRepository
                 .ToList();
 
             user.CompletedSwaps = swapCounts.GetValueOrDefault(user.Id, 0);
+            user.AverageRating = averageRatings.ContainsKey(user.Id) ? averageRatings[user.Id] : null;
         }
 
         // Maintain original order
