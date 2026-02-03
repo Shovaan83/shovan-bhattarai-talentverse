@@ -24,4 +24,61 @@ export const accountApi = {
     );
     return response.data.data;
   },
+
+  // ⭐ Upload profile picture
+  uploadProfilePicture: async (file: File): Promise<{url: string; publicId: string}> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await axiosInstance.post<ServiceResponse<{url: string; publicId: string; width: number; height: number; format: string}>>(
+      '/account/upload-profile-picture',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data.data;
+  },
+
+  // ⭐ Upload cover photo
+  uploadCoverPhoto: async (file: File): Promise<{url: string; publicId: string}> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await axiosInstance.post<ServiceResponse<{url: string; publicId: string; width: number; height: number; format: string}>>(
+      '/account/upload-cover-photo',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data.data;
+  },
+
+  // ⭐ Logout (revokes refresh token)
+  logout: async (): Promise<void> => {
+    try {
+      await axiosInstance.post('/account/logout');
+      // Clear any client-side state
+      localStorage.removeItem('token');
+      localStorage.removeItem('rememberMe');
+      localStorage.removeItem('userEmail');
+      if (typeof window !== "undefined") {
+        window.location.href = '/login';
+      }
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Force logout client-side even if API call fails
+      localStorage.removeItem('token');
+      localStorage.removeItem('rememberMe');
+      localStorage.removeItem('userEmail');
+      if (typeof window !== "undefined") {
+        window.location.href = '/login';
+      }
+    }
+  },
 };

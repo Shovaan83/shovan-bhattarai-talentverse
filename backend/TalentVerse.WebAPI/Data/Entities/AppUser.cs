@@ -11,6 +11,9 @@ namespace TalentVerse.WebAPI.Data.Entities
         [MaxLength(2048)] 
         public string? ProfilePictureURL { get; set; }
 
+    [MaxLength(2048)]
+    public string? CoverPhotoUrl { get; set; }
+
     public bool IsProfileComplete { get; set; } = false;
 
     [MaxLength(200)]

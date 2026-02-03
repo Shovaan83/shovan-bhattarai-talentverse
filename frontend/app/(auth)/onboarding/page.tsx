@@ -38,7 +38,13 @@ export default function OnboardingPage() {
       const response = await api.post("/account/complete-onboarding", payload);
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Update token with new claims (IsProfileComplete = true)
+      if (data?.data?.token) {
+        localStorage.setItem("token", data.data.token);
+        // Trigger auth state update
+        window.dispatchEvent(new Event('auth-change'));
+      }
       router.push("/dashboard");
     },
   });

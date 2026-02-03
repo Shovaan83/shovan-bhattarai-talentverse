@@ -201,12 +201,55 @@ namespace TalentVerse.WebAPI.Repositories
                 parameters.Add("Status", (int)statusEnum);
             }
 
+            // Search query filter - search in username OR offered skill OR received skill
+            if (!string.IsNullOrWhiteSpace(filter.SearchQuery))
+            {
+                var searchPattern = $"%{filter.SearchQuery.ToLower()}%";
+                whereConditions.Add(@"(
+                    LOWER(proposer.""UserName"") LIKE @SearchPattern OR
+                    LOWER(recipient.""UserName"") LIKE @SearchPattern OR
+                    LOWER(proposerSkill.""SkillName"") LIKE @SearchPattern OR
+                    LOWER(recipientSkill.""SkillName"") LIKE @SearchPattern
+                )");
+                parameters.Add("SearchPattern", searchPattern);
+            }
+
+            // Date range filters
+            if (filter.DateFrom.HasValue)
+            {
+                whereConditions.Add(@"p.""CreatedAt"" >= @DateFrom");
+                parameters.Add("DateFrom", filter.DateFrom.Value);
+            }
+
+            if (filter.DateTo.HasValue)
+            {
+                whereConditions.Add(@"p.""CreatedAt"" <= @DateTo");
+                parameters.Add("DateTo", filter.DateTo.Value);
+            }
+
             var whereClause = string.Join(" AND ", whereConditions);
 
-            // Count query
+            // Dynamic ORDER BY clause
+            var sortField = filter.SortBy switch
+            {
+                "CreatedAt" => @"""CreatedAt""",
+                "Status" => @"""Status""",
+                _ => @"""UpdatedAt"""
+            };
+
+            var sortDirection = filter.SortOrder?.Equals("asc", StringComparison.OrdinalIgnoreCase) == true ? "ASC" : "DESC";
+            var orderByClause = $"ORDER BY p.{sortField} {sortDirection}";
+
+            // Count query (needs joins for search filter)
             var countSql = $@"
                 SELECT COUNT(*)
                 FROM ""Proposals"" p
+                INNER JOIN ""AspNetUsers"" proposer ON p.""ProposerId"" = proposer.""Id""
+                INNER JOIN ""AspNetUsers"" recipient ON p.""RecipientId"" = recipient.""Id""
+                INNER JOIN ""UserSkills"" proposerUserSkill ON p.""ProposerUserSkillId"" = proposerUserSkill.""UserSkillId""
+                INNER JOIN ""Skills"" proposerSkill ON proposerUserSkill.""SkillId"" = proposerSkill.""SkillId""
+                INNER JOIN ""UserSkills"" recipientUserSkill ON p.""RecipientUserSkillId"" = recipientUserSkill.""UserSkillId""
+                INNER JOIN ""Skills"" recipientSkill ON recipientUserSkill.""SkillId"" = recipientSkill.""SkillId""
                 WHERE {whereClause}";
 
             var totalCount = await connection.ExecuteScalarAsync<int>(countSql, parameters);
@@ -242,7 +285,7 @@ namespace TalentVerse.WebAPI.Repositories
                 INNER JOIN ""UserSkills"" recipientUserSkill ON p.""RecipientUserSkillId"" = recipientUserSkill.""UserSkillId""
                 INNER JOIN ""Skills"" recipientSkill ON recipientUserSkill.""SkillId"" = recipientSkill.""SkillId""
                 WHERE {whereClause}
-                ORDER BY p.""UpdatedAt"" DESC
+                {orderByClause}
                 OFFSET @Offset ROWS FETCH NEXT @Limit ROWS ONLY";
 
             var results = await connection.QueryAsync<ProposalListQueryResult>(dataSql, parameters);

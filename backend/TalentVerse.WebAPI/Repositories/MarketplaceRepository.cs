@@ -186,6 +186,7 @@ public class MarketplaceRepository : IMarketplaceRepository
                 u.""UserName"" AS DisplayName,
                 u.""Bio"",
                 u.""ProfilePictureURL"" AS ProfilePictureUrl,
+                u.""CoverPhotoUrl"",
                 u.""CreatedAt"" AS JoinedAt
             FROM ""AspNetUsers"" u
             WHERE u.""Id"" = ANY(@UserIds)";

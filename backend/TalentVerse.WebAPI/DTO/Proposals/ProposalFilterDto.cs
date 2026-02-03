@@ -16,6 +16,31 @@ namespace TalentVerse.WebAPI.DTO.Proposals
         public string? Status { get; set; }
 
         /// <summary>
+        /// Search query - searches in username, offered skill name, and received skill name
+        /// </summary>
+        public string? SearchQuery { get; set; }
+
+        /// <summary>
+        /// Sort field: "UpdatedAt" (default), "CreatedAt", "Status"
+        /// </summary>
+        public string? SortBy { get; set; } = "UpdatedAt";
+
+        /// <summary>
+        /// Sort order: "desc" (default) or "asc"
+        /// </summary>
+        public string? SortOrder { get; set; } = "desc";
+
+        /// <summary>
+        /// Filter proposals created on or after this date
+        /// </summary>
+        public DateTime? DateFrom { get; set; }
+
+        /// <summary>
+        /// Filter proposals created on or before this date
+        /// </summary>
+        public DateTime? DateTo { get; set; }
+
+        /// <summary>
         /// Page number (1-based)
         /// </summary>
         public int Page { get; set; } = 1;

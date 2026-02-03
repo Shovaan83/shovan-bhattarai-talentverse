@@ -4,6 +4,8 @@ export interface CurrentUser {
   bio?: string | null;
   profilePictureUrl?: string | null;
   isProfileComplete: boolean;
+  isTwoFactorSetupComplete: boolean;
+  hasPassword: boolean;
   location?: string | null;
   gitHubUrl?: string | null;
   linkedInUrl?: string | null;
@@ -15,6 +17,7 @@ export interface UpdateProfilePayload {
   username?: string;
   bio?: string | null;
   profilePictureUrl?: string | null;
+  coverPhotoUrl?: string | null;
 }
 
 export interface SocialLinks {

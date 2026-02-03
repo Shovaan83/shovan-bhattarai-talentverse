@@ -84,6 +84,11 @@ export interface ProposalListResponse {
 export interface ProposalFilter {
   direction?: "sent" | "received";
   status?: ProposalStatus;
+  searchQuery?: string;
+  sortBy?: "UpdatedAt" | "CreatedAt" | "Status";
+  sortOrder?: "asc" | "desc";
+  dateFrom?: string; // ISO date string
+  dateTo?: string; // ISO date string
   page?: number;
   pageSize?: number;
 }

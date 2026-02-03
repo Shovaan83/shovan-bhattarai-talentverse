@@ -24,6 +24,8 @@ export default function OAuthCallbackPage() {
     // ⭐ Store access token in localStorage (hybrid approach)
     // Refresh token is already in httpOnly cookie from backend
     localStorage.setItem('token', token);
+    // Trigger auth state update
+    window.dispatchEvent(new Event('auth-change'));
 
     // Redirect based on user state
     if (requiresOnboarding) {

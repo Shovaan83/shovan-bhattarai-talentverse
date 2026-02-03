@@ -351,6 +351,46 @@ public class AccountController : ControllerBase
     }
 
     /// <summary>
+    /// Uploads a cover photo for the authenticated user
+    /// </summary>
+    /// <param name="file">Cover image file (max 10MB, jpg/png)</param>
+    /// <returns>Uploaded image details</returns>
+    /// <response code="200">Cover photo uploaded successfully</response>
+    /// <response code="400">File validation failed</response>
+    /// <response code="401">User not authenticated</response>
+    [HttpPost("upload-cover-photo")]
+    [Authorize]
+    [EnableRateLimiting("fixed")]
+    [ProducesResponseType(typeof(ServiceResponse<ImageUploadResultDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ServiceResponse<ImageUploadResultDto>), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ServiceResponse<ImageUploadResultDto>>> UploadCoverPhoto(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest(ServiceResponse<ImageUploadResultDto>.FailureResponse(
+                AppConstant.ErrorMessages.NoImageProvided));
+
+        var result = await _cloudinaryService.UploadImageAsync(file);
+
+        if (!result.Success)
+            return BadRequest(result);
+
+        // Update user's cover photo URL
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!string.IsNullOrEmpty(userId))
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user != null)
+            {
+                user.CoverPhotoUrl = result.Data?.Url;
+                user.UpdatedAt = DateTime.UtcNow;
+                await _userManager.UpdateAsync(user);
+            }
+        }
+
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Completes user onboarding by setting profile picture, bio, location, and social links
     /// </summary>
     /// <param name="dto">Onboarding data including profile picture URL, bio, location, and social links</param>

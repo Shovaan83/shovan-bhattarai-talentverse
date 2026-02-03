@@ -12,15 +12,18 @@ namespace TalentVerse.WebAPI.Services
         private readonly IProposalRepository _proposalRepo;
         private readonly UserManager<AppUser> _userManager;
         private readonly ILogger<ProposalService> _logger;
+        private readonly IEmailQueueService _emailQueue;
 
         public ProposalService(
             IProposalRepository proposalRepo, 
             UserManager<AppUser> userManager,
-            ILogger<ProposalService> logger)
+            ILogger<ProposalService> logger,
+            IEmailQueueService emailQueue)
         {
             _proposalRepo = proposalRepo;
             _userManager = userManager;
             _logger = logger;
+            _emailQueue = emailQueue;
         }
 
         public async Task<ServiceResponse<ProposalDto>> CreateProposalAsync(string userId, CreateProposalDto dto)
@@ -121,6 +124,21 @@ namespace TalentVerse.WebAPI.Services
                 _logger.LogInformation(
                     "Proposal {ProposalId} created by {ProposerId} for {RecipientId}",
                     created.ProposalId, userId, recipientId);
+
+                // Queue email notification to recipient (fire-and-forget)
+                var recipient = await _userManager.FindByIdAsync(recipientId);
+                if (recipient != null && !string.IsNullOrWhiteSpace(recipient.Email))
+                {
+                    _ = _emailQueue.QueueEmailAsync(
+                        recipient.Email,
+                        "New Skill Swap Proposal Received",
+                        BuildProposalCreatedEmailBody(
+                            recipient.UserName ?? "User",
+                            proposalDto.ProposerUsername,
+                            proposalDto.ProposerSkillName,
+                            proposalDto.RecipientSkillName,
+                            dto.Message));
+                }
 
                 return ServiceResponse<ProposalDto>.SuccessResponse(
                     proposalDto,
@@ -236,6 +254,20 @@ namespace TalentVerse.WebAPI.Services
                     "Proposal {ProposalId} accepted by {UserId}",
                     proposalId, userId);
 
+                // Queue email notification to proposer (fire-and-forget)
+                var proposer = await _userManager.FindByIdAsync(proposal.ProposerId);
+                if (proposer != null && !string.IsNullOrWhiteSpace(proposer.Email))
+                {
+                    _ = _emailQueue.QueueEmailAsync(
+                        proposer.Email,
+                        "Your Skill Swap Proposal Has Been Accepted!",
+                        BuildProposalAcceptedEmailBody(
+                            proposer.UserName ?? "User",
+                            updatedProposal!.RecipientUsername,
+                            updatedProposal.ProposerSkillName,
+                            updatedProposal.RecipientSkillName));
+                }
+
                 return ServiceResponse<ProposalDto>.SuccessResponse(
                     updatedProposal!,
                     AppConstant.SuccessMessages.ProposalAccepted);
@@ -284,6 +316,20 @@ namespace TalentVerse.WebAPI.Services
                     "Proposal {ProposalId} declined by {UserId}",
                     proposalId, userId);
 
+                // Queue email notification to proposer (fire-and-forget)
+                var proposer = await _userManager.FindByIdAsync(proposal.ProposerId);
+                if (proposer != null && !string.IsNullOrWhiteSpace(proposer.Email))
+                {
+                    _ = _emailQueue.QueueEmailAsync(
+                        proposer.Email,
+                        "Skill Swap Proposal Update",
+                        BuildProposalDeclinedEmailBody(
+                            proposer.UserName ?? "User",
+                            updatedProposal!.RecipientUsername,
+                            updatedProposal.ProposerSkillName,
+                            updatedProposal.RecipientSkillName));
+                }
+
                 return ServiceResponse<ProposalDto>.SuccessResponse(
                     updatedProposal!,
                     AppConstant.SuccessMessages.ProposalDeclined);
@@ -331,6 +377,20 @@ namespace TalentVerse.WebAPI.Services
                 _logger.LogInformation(
                     "Proposal {ProposalId} cancelled by {UserId}",
                     proposalId, userId);
+
+                // Queue email notification to recipient (fire-and-forget)
+                var recipient = await _userManager.FindByIdAsync(proposal.RecipientId);
+                if (recipient != null && !string.IsNullOrWhiteSpace(recipient.Email))
+                {
+                    _ = _emailQueue.QueueEmailAsync(
+                        recipient.Email,
+                        "Skill Swap Proposal Cancelled",
+                        BuildProposalCancelledEmailBody(
+                            recipient.UserName ?? "User",
+                            updatedProposal!.ProposerUsername,
+                            updatedProposal.ProposerSkillName,
+                            updatedProposal.RecipientSkillName));
+                }
 
                 return ServiceResponse<ProposalDto>.SuccessResponse(
                     updatedProposal!,
@@ -395,6 +455,37 @@ namespace TalentVerse.WebAPI.Services
                     "Proposal {ProposalId} completion confirmed by {UserId}. Status: {Status}",
                     proposalId, userId, updatedProposal?.Status);
 
+                // If both confirmed (status = Completed), notify both parties
+                if (updatedProposal?.Status == "Completed")
+                {
+                    var proposer = await _userManager.FindByIdAsync(proposal.ProposerId);
+                    var recipient = await _userManager.FindByIdAsync(proposal.RecipientId);
+
+                    if (proposer != null && !string.IsNullOrWhiteSpace(proposer.Email))
+                    {
+                        _ = _emailQueue.QueueEmailAsync(
+                            proposer.Email,
+                            "Skill Swap Completed Successfully!",
+                            BuildProposalCompletedEmailBody(
+                                proposer.UserName ?? "User",
+                                updatedProposal.RecipientUsername,
+                                updatedProposal.ProposerSkillName,
+                                updatedProposal.RecipientSkillName));
+                    }
+
+                    if (recipient != null && !string.IsNullOrWhiteSpace(recipient.Email))
+                    {
+                        _ = _emailQueue.QueueEmailAsync(
+                            recipient.Email,
+                            "Skill Swap Completed Successfully!",
+                            BuildProposalCompletedEmailBody(
+                                recipient.UserName ?? "User",
+                                updatedProposal.ProposerUsername,
+                                updatedProposal.RecipientSkillName,
+                                updatedProposal.ProposerSkillName));
+                    }
+                }
+
                 return ServiceResponse<ProposalDto>.SuccessResponse(updatedProposal!, message);
             }
             catch (Exception ex)
@@ -403,6 +494,118 @@ namespace TalentVerse.WebAPI.Services
                 return ServiceResponse<ProposalDto>.FailureResponse(AppConstant.ErrorMessages.GenericError);
             }
         }
+
+        #region Email Body Builders
+
+        private static string BuildProposalCreatedEmailBody(
+            string recipientName,
+            string proposerName,
+            string offeredSkill,
+            string requestedSkill,
+            string? message)
+        {
+            return $@"Hello {recipientName},
+
+You have received a new skill swap proposal from {proposerName}!
+
+Proposal Details:
+• {proposerName} offers to teach: {offeredSkill}
+• {proposerName} wants to learn: {requestedSkill}
+
+{(string.IsNullOrWhiteSpace(message) ? "" : $@"Message from {proposerName}:
+""{message}""
+
+")}To review and respond to this proposal, please visit your TalentVerse dashboard.
+
+Best regards,
+TalentVerse Team";
+        }
+
+        private static string BuildProposalAcceptedEmailBody(
+            string proposerName,
+            string recipientName,
+            string offeredSkill,
+            string requestedSkill)
+        {
+            return $@"Hello {proposerName},
+
+Great news! {recipientName} has accepted your skill swap proposal.
+
+Swap Details:
+• You will teach: {offeredSkill}
+• You will learn: {requestedSkill}
+
+Next Steps:
+1. Contact {recipientName} to schedule your first session
+2. Once you've completed the skill exchange, both parties should confirm completion
+
+Best regards,
+TalentVerse Team";
+        }
+
+        private static string BuildProposalDeclinedEmailBody(
+            string proposerName,
+            string recipientName,
+            string offeredSkill,
+            string requestedSkill)
+        {
+            return $@"Hello {proposerName},
+
+{recipientName} has declined your skill swap proposal.
+
+Proposal Details:
+• You offered: {offeredSkill}
+• You requested: {requestedSkill}
+
+Don't worry! There are many other talented users on TalentVerse who might be interested in exchanging skills with you.
+
+Best regards,
+TalentVerse Team";
+        }
+
+        private static string BuildProposalCompletedEmailBody(
+            string userName,
+            string otherUserName,
+            string offeredSkill,
+            string requestedSkill)
+        {
+            return $@"Hello {userName},
+
+Congratulations! Your skill swap with {otherUserName} has been marked as completed by both parties.
+
+Completed Swap:
+• You taught: {offeredSkill}
+• You learned: {requestedSkill}
+
+We hope this was a valuable learning experience! Consider leaving a review for {otherUserName} to help other users find great learning partners.
+
+Keep exploring and learning!
+
+Best regards,
+TalentVerse Team";
+        }
+
+        private static string BuildProposalCancelledEmailBody(
+            string recipientName,
+            string proposerName,
+            string offeredSkill,
+            string requestedSkill)
+        {
+            return $@"Hello {recipientName},
+
+{proposerName} has cancelled their skill swap proposal.
+
+Proposal Details:
+• They offered: {offeredSkill}
+• They wanted to learn: {requestedSkill}
+
+This proposal is no longer active. You can continue browsing other opportunities on TalentVerse.
+
+Best regards,
+TalentVerse Team";
+        }
+
+        #endregion
 
         /// <summary>
         /// Sets the action flags on a ProposalDto based on user role and proposal status

@@ -30,6 +30,11 @@ export const proposalsApi = {
     
     if (filter?.direction) params.append("direction", filter.direction);
     if (filter?.status) params.append("status", filter.status);
+    if (filter?.searchQuery) params.append("searchQuery", filter.searchQuery);
+    if (filter?.sortBy) params.append("sortBy", filter.sortBy);
+    if (filter?.sortOrder) params.append("sortOrder", filter.sortOrder);
+    if (filter?.dateFrom) params.append("dateFrom", filter.dateFrom);
+    if (filter?.dateTo) params.append("dateTo", filter.dateTo);
     if (filter?.page) params.append("page", filter.page.toString());
     if (filter?.pageSize) params.append("pageSize", filter.pageSize.toString());
     

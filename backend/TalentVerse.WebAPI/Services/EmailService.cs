@@ -92,4 +92,137 @@ public class EmailService : IEmailService
             // In production, you may want to rethrow or handle differently
         }
     }
+
+    public async Task SendProposalCreatedAsync(
+        string recipientEmail, 
+        string recipientName, 
+        string proposerName, 
+        string offeredSkill, 
+        string requestedSkill, 
+        string? message)
+    {
+        var subject = "New Skill Swap Proposal Received";
+        
+        var body = $@"Hello {recipientName},
+
+You have received a new skill swap proposal from {proposerName}!
+
+Proposal Details:
+• {proposerName} offers to teach: {offeredSkill}
+• {proposerName} wants to learn: {requestedSkill}
+
+{(string.IsNullOrWhiteSpace(message) ? "" : $@"Message from {proposerName}:
+""{message}""
+
+")}To review and respond to this proposal, please visit your TalentVerse dashboard.
+
+Best regards,
+TalentVerse Team";
+
+        await SendEmailAsync(recipientEmail, subject, body);
+    }
+
+    public async Task SendProposalAcceptedAsync(
+        string proposerEmail, 
+        string proposerName, 
+        string recipientName, 
+        string offeredSkill, 
+        string requestedSkill)
+    {
+        var subject = "Your Skill Swap Proposal Has Been Accepted!";
+        
+        var body = $@"Hello {proposerName},
+
+Great news! {recipientName} has accepted your skill swap proposal.
+
+Swap Details:
+• You will teach: {offeredSkill}
+• You will learn: {requestedSkill}
+
+Next Steps:
+1. Contact {recipientName} to schedule your first session
+2. Once you've completed the skill exchange, both parties should confirm completion
+
+Best regards,
+TalentVerse Team";
+
+        await SendEmailAsync(proposerEmail, subject, body);
+    }
+
+    public async Task SendProposalDeclinedAsync(
+        string proposerEmail, 
+        string proposerName, 
+        string recipientName, 
+        string offeredSkill, 
+        string requestedSkill)
+    {
+        var subject = "Skill Swap Proposal Update";
+        
+        var body = $@"Hello {proposerName},
+
+{recipientName} has declined your skill swap proposal.
+
+Proposal Details:
+• You offered: {offeredSkill}
+• You requested: {requestedSkill}
+
+Don't worry! There are many other talented users on TalentVerse who might be interested in exchanging skills with you.
+
+Best regards,
+TalentVerse Team";
+
+        await SendEmailAsync(proposerEmail, subject, body);
+    }
+
+    public async Task SendProposalCompletedAsync(
+        string userEmail, 
+        string userName, 
+        string otherUserName, 
+        string offeredSkill, 
+        string requestedSkill)
+    {
+        var subject = "Skill Swap Completed Successfully!";
+        
+        var body = $@"Hello {userName},
+
+Congratulations! Your skill swap with {otherUserName} has been marked as completed by both parties.
+
+Completed Swap:
+• You taught: {offeredSkill}
+• You learned: {requestedSkill}
+
+We hope this was a valuable learning experience! Consider leaving a review for {otherUserName} to help other users find great learning partners.
+
+Keep exploring and learning!
+
+Best regards,
+TalentVerse Team";
+
+        await SendEmailAsync(userEmail, subject, body);
+    }
+
+    public async Task SendProposalCancelledAsync(
+        string recipientEmail, 
+        string recipientName, 
+        string proposerName, 
+        string offeredSkill, 
+        string requestedSkill)
+    {
+        var subject = "Skill Swap Proposal Cancelled";
+        
+        var body = $@"Hello {recipientName},
+
+{proposerName} has cancelled their skill swap proposal.
+
+Proposal Details:
+• They offered: {offeredSkill}
+• They wanted to learn: {requestedSkill}
+
+This proposal is no longer active. You can continue browsing other opportunities on TalentVerse.
+
+Best regards,
+TalentVerse Team";
+
+        await SendEmailAsync(recipientEmail, subject, body);
+    }
 }

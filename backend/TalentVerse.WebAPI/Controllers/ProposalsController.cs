@@ -65,6 +65,11 @@ namespace TalentVerse.WebAPI.Controllers
         public async Task<ActionResult<ServiceResponse<ProposalListResponseDto>>> GetProposals(
             [FromQuery] string? direction = null,
             [FromQuery] string? status = null,
+            [FromQuery] string? searchQuery = null,
+            [FromQuery] string? sortBy = "UpdatedAt",
+            [FromQuery] string? sortOrder = "desc",
+            [FromQuery] DateTime? dateFrom = null,
+            [FromQuery] DateTime? dateTo = null,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10)
         {
@@ -76,6 +81,11 @@ namespace TalentVerse.WebAPI.Controllers
             {
                 Direction = direction,
                 Status = status,
+                SearchQuery = searchQuery,
+                SortBy = sortBy,
+                SortOrder = sortOrder,
+                DateFrom = dateFrom,
+                DateTo = dateTo,
                 Page = page,
                 PageSize = pageSize
             };

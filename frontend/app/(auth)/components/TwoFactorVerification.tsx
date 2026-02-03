@@ -82,6 +82,8 @@ export default function TwoFactorVerification({ email, onBack, emailSent = true 
 
       if (response.data.success && response.data.data?.token) {
         localStorage.setItem("token", response.data.data.token);
+        // Trigger auth state update
+        window.dispatchEvent(new Event('auth-change'));
         router.push("/profile");
       } else {
         setError(response.data.message || "Verification failed");
