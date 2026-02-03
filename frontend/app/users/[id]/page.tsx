@@ -21,6 +21,9 @@ import { useRouter } from 'next/navigation';
 import { useUserProfile } from '@/lib/hooks/useMarketplace';
 import { useCreateProposal, useProposals } from '@/lib/hooks/useProposals';
 import { useSkills } from '@/lib/hooks/useSkills';
+import { useUserReviews, useUserReputation } from '@/lib/hooks/useReviews';
+import ReputationBadge from '@/app/components/reviews/ReputationBadge';
+import ReviewList from '@/app/components/reviews/ReviewList';
 
 interface CreateProposalModalProps {
   isOpen: boolean;
@@ -188,8 +191,10 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
   const resolvedParams = use(params);
   const router = useRouter();
   const { data: user, isLoading, error } = useUserProfile(resolvedParams.id);
-  const { data: mySkills, isLoading: isLoadingMySkills } = useSkills();
   const { data: proposalsData } = useProposals();
+  const { data: mySkills, isLoading: isLoadingMySkills } = useSkills();
+  const { data: userReviews, isLoading: isLoadingReviews } = useUserReviews(resolvedParams.id);
+  const { data: userReputation } = useUserReputation(resolvedParams.id);
   const [showProposalModal, setShowProposalModal] = useState(false);
 
   // Map current user skills to the format expected by the modal
@@ -279,15 +284,19 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                 <div>
                   <h2 className="text-2xl font-bold">{user.displayName}</h2>
                   <p className="text-emerald-400">@{user.userName}</p>
+                  {/* Display reputation badge */}
+                  {userReputation && (
+                    <div className="mt-2">
+                      <ReputationBadge
+                        averageRating={userReputation.averageRating}
+                        totalReviews={userReputation.totalReviews}
+                        hasMinimumReviews={userReputation.hasMinimumReviews}
+                        size="md"
+                        showCount={true}
+                      />
+                    </div>
+                  )}
                 </div>
-                {user.averageRating && (
-                  <div className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-yellow-900/30 border border-yellow-800/50">
-                    <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                    <span className="text-yellow-300 font-medium">
-                      {user.averageRating.toFixed(1)}
-                    </span>
-                  </div>
-                )}
               </div>
 
               {user.bio && (
@@ -421,6 +430,22 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
             )}
           </motion.div>
         </div>
+
+        {/* Reviews Section */}
+        {userReputation && userReputation.hasMinimumReviews && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-8 bg-emerald-900/30 rounded-3xl p-6 border border-emerald-800/50"
+          >
+            <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
+              <Star className="w-6 h-6 text-yellow-400 fill-yellow-400" />
+              Reviews ({userReputation.totalReviews})
+            </h3>
+            <ReviewList reviews={userReviews || []} isLoading={isLoadingReviews} />
+          </motion.div>
+        )}
       </div>
 
       {/* Proposal Modal */}

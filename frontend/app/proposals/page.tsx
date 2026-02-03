@@ -18,6 +18,7 @@ import {
   ProposalStats,
   EmptyProposals,
 } from "./components";
+import ReviewModal from "../components/reviews/ReviewModal";
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -39,6 +40,17 @@ export default function ProposalsPage() {
   const [sortBy, setSortBy] = useState<"UpdatedAt" | "CreatedAt" | "Status">("UpdatedAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
+  
+  // Review modal state
+  const [reviewModalState, setReviewModalState] = useState<{
+    isOpen: boolean;
+    proposalId: number;
+    revieweeUsername: string;
+  }>({
+    isOpen: false,
+    proposalId: 0,
+    revieweeUsername: "",
+  });
 
   // Fetch proposals
   const { data, isLoading, isError, refetch, isFetching } = useProposals({
@@ -111,6 +123,22 @@ export default function ProposalsPage() {
   const handleCardClick = (id: number) => {
     // Could navigate to detailed view
     router.push(`/proposals/${id}`);
+  };
+
+  const handleLeaveReview = (proposalId: number, otherUsername: string) => {
+    setReviewModalState({
+      isOpen: true,
+      proposalId,
+      revieweeUsername: otherUsername,
+    });
+  };
+
+  const handleCloseReviewModal = () => {
+    setReviewModalState({
+      isOpen: false,
+      proposalId: 0,
+      revieweeUsername: "",
+    });
   };
 
   return (
@@ -212,6 +240,7 @@ export default function ProposalsPage() {
                 onDecline={handleDecline}
                 onCancel={handleCancel}
                 onConfirmCompletion={handleConfirmCompletion}
+                onLeaveReview={handleLeaveReview}
                 isLoading={actionLoadingId === proposal.proposalId}
                 onClick={handleCardClick}
               />
@@ -226,6 +255,14 @@ export default function ProposalsPage() {
           </div>
         )}
       </div>
+
+      {/* Review Modal */}
+      <ReviewModal
+        proposalId={reviewModalState.proposalId}
+        revieweeUsername={reviewModalState.revieweeUsername}
+        isOpen={reviewModalState.isOpen}
+        onClose={handleCloseReviewModal}
+      />
     </div>
   );
 }

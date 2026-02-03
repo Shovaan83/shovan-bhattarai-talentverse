@@ -46,6 +46,17 @@
             public const string ImageTooLarge = "Image size exceeds 5MB limit.";
             public const string ImageUploadFailed = "Failed to upload image. Please try again.";
             public const string NoImageProvided = "No image file provided.";
+            
+            // Review error messages
+            public const string UserIdRequired = "User ID is required.";
+            public const string InvalidRating = "Rating must be between 1 and 5.";
+            public const string CommentTooLong = "Comment cannot exceed 500 characters.";
+            public const string ProposalNotCompleted = "You can only review completed proposals.";
+            public const string NotProposalParticipant = "You are not a participant in this proposal.";
+            public const string AlreadyReviewedProposal = "You have already reviewed this proposal. Reviews are immutable.";
+            public const string UserNotFound = "User not found.";
+            public const string ReviewCreationFailed = "Failed to create review.";
+            public const string InvalidProposalId = "Invalid proposal ID.";
         }
     }
 }

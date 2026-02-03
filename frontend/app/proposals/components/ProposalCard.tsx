@@ -10,6 +10,7 @@ import {
   XCircle,
   ArrowRightLeft,
   Loader2,
+  Star,
 } from "lucide-react";
 
 interface ProposalCardProps {
@@ -18,6 +19,7 @@ interface ProposalCardProps {
   onDecline?: (id: number) => void;
   onCancel?: (id: number) => void;
   onConfirmCompletion?: (id: number) => void;
+  onLeaveReview?: (proposalId: number, otherUsername: string) => void;
   isLoading?: boolean;
   onClick?: (id: number) => void;
 }
@@ -73,6 +75,7 @@ export function ProposalCard({
   onDecline,
   onCancel,
   onConfirmCompletion,
+  onLeaveReview,
   isLoading,
   onClick,
 }: ProposalCardProps) {
@@ -86,6 +89,7 @@ export function ProposalCard({
     proposal.status === "Accepted" &&
     ((proposal.isProposer && !proposal.proposerConfirmed) ||
       (!proposal.isProposer && !proposal.recipientConfirmed));
+  const canLeaveReview = proposal.status === "Completed";
 
   const userConfirmed = proposal.isProposer
     ? proposal.proposerConfirmed
@@ -204,7 +208,7 @@ export function ProposalCard({
       </div>
 
       {/* Action buttons */}
-      {(canAccept || canDecline || canCancel || canConfirm) && (
+      {(canAccept || canDecline || canCancel || canConfirm || canLeaveReview) && (
         <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex gap-2">
           {canAccept && (
             <button
@@ -272,6 +276,19 @@ export function ProposalCard({
                 <CheckCircle2 size={16} />
               )}
               Confirm Done
+            </button>
+          )}
+          {canLeaveReview && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onLeaveReview?.(proposal.proposalId, proposal.otherUsername);
+              }}
+              disabled={isLoading}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
+            >
+              <Star size={16} />
+              Leave Review
             </button>
           )}
         </div>

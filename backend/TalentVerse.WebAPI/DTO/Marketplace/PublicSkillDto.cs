@@ -25,3 +25,10 @@ public class SwapCountResult
     public string UserId { get; set; } = string.Empty;
     public int Count { get; set; }
 }
+
+// Internal DTO for rating mapping
+public class RatingResult
+{
+    public string UserId { get; set; } = string.Empty;
+    public double AverageRating { get; set; }
+}
