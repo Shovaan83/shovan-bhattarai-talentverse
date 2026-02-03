@@ -5,7 +5,8 @@ import { motion } from 'framer-motion';
 import { Search, Users, TrendingUp, Sparkles, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchUsers, useFeaturedUsers, useBrowseSkills } from '@/lib/hooks/useMarketplace';
-import { UserCard, SearchFilters } from './components';
+import { UserCard as NewUserCard, UserCardSkeleton } from '@/app/components/marketplace/UserCard';
+import { SearchFilters } from './components';
 import type { UserSearchParams } from '@/lib/types/marketplace';
 
 export default function MarketplacePage() {
@@ -169,12 +170,9 @@ export default function MarketplacePage() {
 
         {/* Users Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center">
             {[...Array(6)].map((_, i) => (
-              <div
-                key={i}
-                className="bg-emerald-900/20 rounded-3xl h-64 animate-pulse border border-emerald-800/30"
-              />
+              <UserCardSkeleton key={i} />
             ))}
           </div>
         ) : users && users.length > 0 ? (
@@ -182,10 +180,10 @@ export default function MarketplacePage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center"
           >
-            {users.map((user, index) => (
-              <UserCard key={user.id} user={user} index={index} />
+            {users.map((user) => (
+              <NewUserCard key={user.id} user={user} />
             ))}
           </motion.div>
         ) : (

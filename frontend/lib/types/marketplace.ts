@@ -5,6 +5,7 @@ export interface PublicUserDto {
   displayName: string;
   bio?: string;
   profilePictureUrl?: string;
+  coverPhotoUrl?: string;
   joinedAt: string;
   offeredSkills: PublicSkillDto[];
   wantedSkills: PublicSkillDto[];

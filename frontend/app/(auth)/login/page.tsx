@@ -81,6 +81,8 @@ export default function LoginPage() {
             localStorage.removeItem("rememberMe");
             localStorage.removeItem("userEmail");
           }
+          // Trigger auth state update
+          window.dispatchEvent(new Event('auth-change'));
           router.push("/profile");
         }
       } else {

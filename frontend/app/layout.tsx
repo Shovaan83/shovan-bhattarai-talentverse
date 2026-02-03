@@ -3,6 +3,7 @@ import { Poppins, Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/lib/providers";
 import { GlobalEnforcement } from "./components/GlobalEnforcement";
+import { GlobalNavbar } from "./components/GlobalNavbar";
 
 const poppins = Poppins({
   variable: "--font-heading",
@@ -32,6 +33,7 @@ export default function RootLayout({
       >
         <Providers>
           <GlobalEnforcement />
+          <GlobalNavbar />
           {children}
         </Providers>
       </body>

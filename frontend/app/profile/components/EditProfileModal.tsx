@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { X } from "lucide-react";
+import { X, Upload, Image as ImageIcon } from "lucide-react";
+import { accountApi } from "@/lib/api/account";
+import toast from "react-hot-toast";
 import type { CurrentUser, UpdateProfilePayload } from "@/lib/types/account";
 
 interface EditProfileModalProps {
@@ -26,6 +28,7 @@ export default function EditProfileModal({
       username: user.username ?? "",
       bio: user.bio ?? "",
       profilePictureUrl: user.profilePictureUrl ?? "",
+      coverPhotoUrl: (user as any).coverPhotoUrl ?? "",
     }),
     [user]
   );
@@ -35,13 +38,73 @@ export default function EditProfileModal({
   const [profilePictureUrl, setProfilePictureUrl] = useState(
     initial.profilePictureUrl
   );
+  const [coverPhotoUrl, setCoverPhotoUrl] = useState(initial.coverPhotoUrl);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
     setUsername(initial.username);
     setBio(initial.bio);
     setProfilePictureUrl(initial.profilePictureUrl);
+    setCoverPhotoUrl(initial.coverPhotoUrl);
   }, [isOpen, initial]);
+
+  const handleProfilePictureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image must be less than 10MB');
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    try {
+      const result = await accountApi.uploadProfilePicture(file);
+      setProfilePictureUrl(result.url);
+      toast.success('Profile picture uploaded!');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to upload image');
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const handleCoverPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image must be less than 10MB');
+      return;
+    }
+
+    setIsUploadingCover(true);
+    try {
+      const result = await accountApi.uploadCoverPhoto(file);
+      setCoverPhotoUrl(result.url);
+      toast.success('Cover photo uploaded!');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to upload image');
+    } finally {
+      setIsUploadingCover(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -51,6 +114,7 @@ export default function EditProfileModal({
       bio,
       // Send empty string to allow backend to clear the picture URL
       profilePictureUrl: profilePictureUrl.trim(),
+      coverPhotoUrl: coverPhotoUrl.trim(),
     };
     onSubmit(payload);
   };
@@ -117,15 +181,76 @@ export default function EditProfileModal({
 
           <div className="space-y-1">
             <label className="text-sm font-semibold text-gray-700">
-              Profile picture URL
+              Profile picture
             </label>
-            <input
-              value={profilePictureUrl}
-              onChange={(e) => setProfilePictureUrl(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-300"
-              placeholder="https://..."
-              autoComplete="url"
-            />
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <label className="flex-1 cursor-pointer">
+                  <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-dashed border-gray-300 hover:border-emerald-500 hover:bg-emerald-50 transition-colors">
+                    <Upload className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">
+                      {isUploadingAvatar ? 'Uploading...' : 'Upload Image'}
+                    </span>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleProfilePictureUpload}
+                    disabled={isUploadingAvatar}
+                    className="hidden"
+                  />
+                </label>
+                {profilePictureUrl && (
+                  <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gray-200">
+                    <img src={profilePictureUrl} alt="Preview" className="w-full h-full object-cover" />
+                  </div>
+                )}
+              </div>
+              <input
+                value={profilePictureUrl}
+                onChange={(e) => setProfilePictureUrl(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                placeholder="Or paste URL: https://..."
+                autoComplete="url"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-gray-700">
+              Cover photo
+            </label>
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <label className="flex-1 cursor-pointer">
+                  <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-dashed border-gray-300 hover:border-emerald-500 hover:bg-emerald-50 transition-colors">
+                    <ImageIcon className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">
+                      {isUploadingCover ? 'Uploading...' : 'Upload Cover'}
+                    </span>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleCoverPhotoUpload}
+                    disabled={isUploadingCover}
+                    className="hidden"
+                  />
+                </label>
+                {coverPhotoUrl && (
+                  <div className="w-20 h-12 rounded-lg overflow-hidden border-2 border-gray-200">
+                    <img src={coverPhotoUrl} alt="Cover preview" className="w-full h-full object-cover" />
+                  </div>
+                )}
+              </div>
+              <input
+                value={coverPhotoUrl}
+                onChange={(e) => setCoverPhotoUrl(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                placeholder="Or paste URL: https://..."
+                autoComplete="url"
+              />
+            </div>
           </div>
         </div>
 

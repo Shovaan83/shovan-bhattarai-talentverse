@@ -294,6 +294,9 @@ TalentVerse Team";
                 return ServiceResponse<CurrentUserDto>.FailureResponse("User not found.");
             }
 
+            // Check if user has a password (to distinguish OAuth-only users)
+            var hasPassword = await _userManager.HasPasswordAsync(user);
+
             return ServiceResponse<CurrentUserDto>.SuccessResponse(new CurrentUserDto
             {
                 Username = user.UserName,
@@ -301,6 +304,8 @@ TalentVerse Team";
                 Bio = user.Bio,
                 ProfilePictureUrl = user.ProfilePictureURL,
                 IsProfileComplete = user.IsProfileComplete,
+                IsTwoFactorSetupComplete = user.IsTwoFactorSetupComplete,
+                HasPassword = hasPassword,
                 Location = user.Location,
                 GitHubUrl = user.GitHubUrl,
                 LinkedInUrl = user.LinkedInUrl,

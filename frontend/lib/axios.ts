@@ -6,7 +6,7 @@ const axiosInstance = axios.create({
     "Content-Type": "application/json",
   },
   timeout: 30000, // 30 seconds timeout for email operations
-  withCredentials: true, // ⭐ CRITICAL: Send cookies with every request
+  withCredentials: true, // CRITICAL: Send cookies with every request
 });
 
 // Add request interceptor to include auth token
