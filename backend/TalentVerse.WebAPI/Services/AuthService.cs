@@ -107,7 +107,7 @@ public class AuthService : IAuthService
                 UserName = trimmedUsername,
                 Email = trimmedEmail,
                 Bio = string.IsNullOrEmpty(registerDto.Bio) ? null : trimmedBio,
-                IsTwoFactorSetupComplete = false // ⭐ Email/password users need to setup 2FA
+                IsTwoFactorSetupComplete = false // Email/password users need to setup 2FA
             };
 
             // Proper framework API usage: create user (also sets normalized fields)
@@ -251,7 +251,7 @@ TalentVerse Team";
                     "Two-factor authentication is required. Please verify the code sent to your email.");
             }
 
-            // ⭐ Generate token pair instead of single JWT
+            // Generate token pair instead of single JWT
             var tokenPair = await _tokenService.GenerateTokenPairAsync(user, ipAddress);
             
             // Check if user has password (to determine auth method)
@@ -264,10 +264,10 @@ TalentVerse Team";
                     Email = user.Email,
                     Bio = user.Bio,
                     ProfilePictureUrl = user.ProfilePictureURL,
-                    Token = tokenPair.AccessToken, // ⭐ Hybrid approach: access token in response body
+                    Token = tokenPair.AccessToken, // Hybrid approach: access token in response body
                     IsProfileComplete = user.IsProfileComplete,
                     IsTwoFactorSetupComplete = user.IsTwoFactorSetupComplete,
-                    HasPassword = hasPassword // ⭐ Tells frontend if this is an OAuth user or password user
+                    HasPassword = hasPassword // Tells frontend if this is an OAuth user or password user
                     // RefreshToken is set as httpOnly cookie in controller
                 },
                 AppConstant.SuccessMessages.LoginSuccessful);
@@ -299,6 +299,7 @@ TalentVerse Team";
 
             return ServiceResponse<CurrentUserDto>.SuccessResponse(new CurrentUserDto
             {
+                Id = user.Id,
                 Username = user.UserName,
                 Email = user.Email,
                 Bio = user.Bio,
@@ -394,6 +395,7 @@ TalentVerse Team";
             return ServiceResponse<CurrentUserDto>.SuccessResponse(
                 new CurrentUserDto
                 {
+                    Id = user.Id,
                     Username = user.UserName,
                     Email = user.Email,
                     Bio = user.Bio,
@@ -805,7 +807,7 @@ TalentVerse Team";
             if (user != null)
             {
                 // User exists and has this external login - sign them in
-                // ⭐ Generate token pair
+                // Generate token pair
                 var tokenPair = await _tokenService.GenerateTokenPairAsync(user, ipAddress);
 
                 _logger.LogInformation(
@@ -815,7 +817,7 @@ TalentVerse Team";
 
                 return ServiceResponse<ExternalLoginResultDto>.SuccessResponse(new ExternalLoginResultDto
                 {
-                    Token = tokenPair.AccessToken, // ⭐ Hybrid: access token in response
+                    Token = tokenPair.AccessToken, // Hybrid: access token in response
                     IsNewUser = false,
                     RequiresOnboarding = !user.IsProfileComplete,
                     IsTwoFactorSetupComplete = user.IsTwoFactorSetupComplete,
@@ -829,7 +831,7 @@ TalentVerse Team";
 
             if (user != null)
             {
-                // ⚠️ Account Conflict: Email exists but external login not linked
+                // Account Conflict: Email exists but external login not linked
                 return ServiceResponse<ExternalLoginResultDto>.FailureResponse(
                     $"An account with email {email} already exists. Please log in with your password and link your {externalLoginInfo.LoginProvider} account from profile settings.");
             }
@@ -845,7 +847,7 @@ TalentVerse Team";
                 ProfilePictureURL = picture,
                 EmailConfirmed = true, // Trust external provider's email verification
                 IsProfileComplete = false, // Require onboarding
-                IsTwoFactorSetupComplete = true, // ⭐ OAuth handles 2FA, skip our setup
+                IsTwoFactorSetupComplete = true, // OAuth handles 2FA, skip our setup
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -882,10 +884,10 @@ TalentVerse Team";
 
             return ServiceResponse<ExternalLoginResultDto>.SuccessResponse(new ExternalLoginResultDto
             {
-                Token = newUserTokenPair.AccessToken, // ⭐ Hybrid: access token in response
+                Token = newUserTokenPair.AccessToken, // Hybrid: access token in response
                 IsNewUser = true,
                 RequiresOnboarding = true,
-                IsTwoFactorSetupComplete = true, // ⭐ OAuth users skip 2FA setup
+                IsTwoFactorSetupComplete = true, // OAuth users skip 2FA setup
                 Email = newUser.Email!,
                 ProfilePictureUrl = newUser.ProfilePictureURL
             }, "Account created successfully");
@@ -949,7 +951,7 @@ TalentVerse Team";
 
             if (existingUser != null && existingUser.Id != userId)
             {
-                // ⚠️ Conflict: This external account is already linked to another user
+                // Conflict: This external account is already linked to another user
                 return ServiceResponse<bool>.FailureResponse(
                     $"This {externalLoginInfo.LoginProvider} account is already linked to another user.");
             }

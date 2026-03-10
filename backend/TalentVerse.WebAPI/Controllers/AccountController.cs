@@ -94,7 +94,7 @@ public class AccountController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ServiceResponse<UserDto>.FailureResponse("Validation failed"));
 
-        // ⭐ Get client IP address
+        // Get client IP address
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
 
         var result = await _authService.LoginAsync(loginDto, ipAddress);
@@ -121,7 +121,7 @@ public class AccountController : ControllerBase
             return BadRequest(result);
         }
 
-        // ⭐ Set refresh token as httpOnly cookie
+        // Set refresh token as httpOnly cookie
         if (result.Data != null)
         {
             var user = await _userManager.FindByEmailAsync(loginDto.Email);
@@ -471,7 +471,7 @@ public class AccountController : ControllerBase
             return Redirect($"{frontendUrl}/login?error=ExternalLoginFailed");
         }
 
-        // ⭐ Get client IP address
+        // Get client IP address
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
 
         var result = await _authService.ExternalLoginAsync(externalLoginInfo, ipAddress);
@@ -484,14 +484,14 @@ public class AccountController : ControllerBase
 
         var data = result.Data!;
 
-        // ⭐ Set refresh token as httpOnly cookie for OAuth users
+        // Set refresh token as httpOnly cookie for OAuth users
         var user = await _userManager.FindByEmailAsync(data.Email);
         if (user?.RefreshToken != null && user.RefreshTokenExpiresAt != null)
         {
             SetRefreshTokenCookie(user.RefreshToken, user.RefreshTokenExpiresAt.Value);
         }
 
-        // ⭐ Redirect to frontend with token (not in URL anymore, but for backward compatibility)
+        // Redirect to frontend with token (not in URL anymore, but for backward compatibility)
         var callbackUrl = data.RequiresOnboarding
             ? $"{frontendUrl}/onboarding?token={Uri.EscapeDataString(data.Token)}"
             : $"{frontendUrl}/oauth-callback?token={Uri.EscapeDataString(data.Token)}&isNewUser={data.IsNewUser}&requiresOnboarding={data.RequiresOnboarding}";
@@ -659,7 +659,7 @@ public class AccountController : ControllerBase
         if (tokenPair == null)
             return Unauthorized(ServiceResponse<string>.FailureResponse("Invalid or expired refresh token"));
 
-        // ⭐ Extend refresh token expiry and set cookie (sliding expiration)
+        // Extend refresh token expiry and set cookie (sliding expiration)
         SetRefreshTokenCookie(tokenPair.Value.RefreshToken, tokenPair.Value.ExpiresAt);
 
         return Ok(ServiceResponse<string>.SuccessResponse(
@@ -703,16 +703,16 @@ public class AccountController : ControllerBase
     /// <param name="expiresAt">Token expiration date</param>
     private void SetRefreshTokenCookie(string refreshToken, DateTime expiresAt)
     {
-        // ⭐ Environment-aware cookie configuration
+        // Environment-aware cookie configuration
         // Development: SameSite=Lax + Secure based on request (works on HTTP)
         // Production: SameSite=None + Secure=true (requires HTTPS)
         var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
         
         var cookieOptions = new CookieOptions
         {
-            HttpOnly = true, // ⭐ Cannot be accessed by JavaScript (prevents XSS)
-            Secure = isDevelopment ? Request.IsHttps : true, // ⭐ Dev: match request, Prod: always secure
-            SameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.None, // ⭐ Dev: Lax (HTTP), Prod: None (HTTPS)
+            HttpOnly = true, // Cannot be accessed by JavaScript (prevents XSS)
+            Secure = isDevelopment ? Request.IsHttps : true, // Dev: match request, Prod: always secure
+            SameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.None, // Dev: Lax (HTTP), Prod: None (HTTPS)
             Expires = expiresAt,
             IsEssential = true
         };
