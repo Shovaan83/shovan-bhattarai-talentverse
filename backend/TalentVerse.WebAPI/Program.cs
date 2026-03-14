@@ -82,6 +82,11 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ITwoFactorService, TwoFactorService>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 
+// Appointment scheduling with Google Calendar
+builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+builder.Services.AddScoped<IGoogleCalendarService, GoogleCalendarService>();
+
 // Register background email queue service
 builder.Services.AddSingleton<IEmailQueueService, BackgroundEmailQueueService>();
 builder.Services.AddHostedService<BackgroundEmailQueueService>(provider =>
