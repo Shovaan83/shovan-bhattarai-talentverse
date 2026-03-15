@@ -25,6 +25,11 @@
         public const string ReviewSubmitted = "Review submitted successfully.";
         public const string ProfilePictureUploaded = "Profile picture uploaded successfully.";
         public const string OnboardingCompleted = "Welcome to TalentVerse! Your profile is now complete.";
+
+        public const string MessageSent = "Message sent successfully.";
+        public const string MessagesFetched = "Messages fetched successfully.";
+        public const string MessagesMarkedRead = "Messages marked as read.";
+        public const string ConversationsFetched = "Conversations fetched successfully.";
         }
 
         public static class ErrorMessages
@@ -57,6 +62,12 @@
             public const string UserNotFound = "User not found.";
             public const string ReviewCreationFailed = "Failed to create review.";
             public const string InvalidProposalId = "Invalid proposal ID.";
+
+            // Messaging error messages
+            public const string MessageNotFound = "Message not found.";
+            public const string MessageEmpty = "Message content cannot be empty.";
+            public const string MessageTooLong = "Message content cannot exceed 2000 characters.";
+            public const string ChatNotAvailable = "Chat is only available for accepted or completed proposals.";
         }
     }
 }

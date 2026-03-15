@@ -23,6 +23,8 @@ import {
   useCancelProposal,
   useConfirmCompletion,
 } from "@/lib/hooks/useProposals";
+import { useAuth } from "@/lib/hooks/useAuth";
+import ChatPanel from "@/app/proposals/[id]/components/ChatPanel";
 import type { ProposalStatus } from "@/lib/types/proposals";
 
 const statusConfig: Record<
@@ -71,7 +73,9 @@ export default function ProposalDetailPage() {
   const router = useRouter();
   const proposalId = Number(params.id);
   const [isActioning, setIsActioning] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
+  const { user: currentUser } = useAuth();
   const { data: proposal, isLoading, isError } = useProposal(proposalId);
 
   const acceptMutation = useAcceptProposal();
@@ -486,22 +490,42 @@ export default function ProposalDetailPage() {
               </div>
             </div>
 
-            {/* Quick Actions (Future) */}
+            {/* Chat Panel */}
+            {isChatOpen && currentUser && (
+              <ChatPanel
+                proposalId={proposalId}
+                currentUserId={currentUser.id}
+                onClose={() => setIsChatOpen(false)}
+              />
+            )}
+
+            {/* Quick Actions */}
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
               <h3 className="font-heading font-bold text-lg text-white mb-4">
-                Coming Soon
+                Chat & Schedule
               </h3>
-              <div className="space-y-3 opacity-50">
+              <div className="space-y-3">
+                {(proposal.status === "Accepted" || proposal.status === "Completed") ? (
+                  <button
+                    onClick={() => setIsChatOpen((prev) => !prev)}
+                    className="w-full flex items-center gap-3 px-4 py-3 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl transition-colors font-medium"
+                  >
+                    <MessageSquare size={20} />
+                    {isChatOpen ? "Close Chat" : "Open Chat"}
+                  </button>
+                ) : (
+                  <button
+                    disabled
+                    className="w-full flex items-center gap-3 px-4 py-3 bg-white/10 text-white/50 rounded-xl cursor-not-allowed"
+                    title="Chat is available once the proposal is accepted"
+                  >
+                    <MessageSquare size={20} />
+                    Chat (Accept first)
+                  </button>
+                )}
                 <button
                   disabled
-                  className="w-full flex items-center gap-3 px-4 py-3 bg-white/10 text-white rounded-xl"
-                >
-                  <MessageSquare size={20} />
-                  Start Chat
-                </button>
-                <button
-                  disabled
-                  className="w-full flex items-center gap-3 px-4 py-3 bg-white/10 text-white rounded-xl"
+                  className="w-full flex items-center gap-3 px-4 py-3 bg-white/10 text-white/50 rounded-xl cursor-not-allowed"
                 >
                   <Calendar size={20} />
                   Schedule Meeting

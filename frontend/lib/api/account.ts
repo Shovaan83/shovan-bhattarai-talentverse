@@ -25,7 +25,7 @@ export const accountApi = {
     return response.data.data;
   },
 
-  // ⭐ Upload profile picture
+  // Upload profile picture
   uploadProfilePicture: async (file: File): Promise<{url: string; publicId: string}> => {
     const formData = new FormData();
     formData.append('file', file);
@@ -42,7 +42,7 @@ export const accountApi = {
     return response.data.data;
   },
 
-  // ⭐ Upload cover photo
+  // Upload cover photo
   uploadCoverPhoto: async (file: File): Promise<{url: string; publicId: string}> => {
     const formData = new FormData();
     formData.append('file', file);
@@ -59,7 +59,7 @@ export const accountApi = {
     return response.data.data;
   },
 
-  // ⭐ Logout (revokes refresh token)
+  // Logout (revokes refresh token)
   logout: async (): Promise<void> => {
     try {
       await axiosInstance.post('/account/logout');

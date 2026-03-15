@@ -9,13 +9,14 @@ using System.Threading.RateLimiting;
 using TalentVerse.WebAPI.Configuration;
 using TalentVerse.WebAPI.Data;
 using TalentVerse.WebAPI.Data.Entities;
+using TalentVerse.WebAPI.Hubs;
 using TalentVerse.WebAPI.Interfaces;
 using TalentVerse.WebAPI.Repositories;
 using TalentVerse.WebAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ⭐ Configure Data Protection for OAuth state cookies with persistent keys
+// Configure Data Protection for OAuth state cookies with persistent keys
 var keysDirectory = Path.Combine(builder.Environment.ContentRootPath, "keys");
 Directory.CreateDirectory(keysDirectory); // Ensure directory exists
 
@@ -23,7 +24,7 @@ builder.Services.AddDataProtection()
     .SetApplicationName("TalentVerse")
     .PersistKeysToFileSystem(new DirectoryInfo(keysDirectory));
 
-// ⭐ Environment-aware cookie configuration for OAuth
+// Environment-aware cookie configuration for OAuth
 // Development: SameSite=Lax + SameAsRequest (works on HTTP)
 // Production: SameSite=None + Always (requires HTTPS)
 var isDevelopment = builder.Environment.IsDevelopment();
@@ -70,6 +71,8 @@ builder.Services.AddScoped<ISkillRepository, SkillRepository>();
 builder.Services.AddScoped<IProposalRepository, ProposalRepository>();
 builder.Services.AddScoped<IMarketplaceRepository, MarketplaceRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ISkillService, SkillService>(); 
 builder.Services.AddScoped<IProposalService, ProposalService>();
@@ -110,6 +113,8 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
     });
 
+builder.Services.AddSignalR();
+
 // Configure options from appsettings
 builder.Services.Configure<AppConfigOptions>(
     builder.Configuration.GetSection("AppConfig"));
@@ -148,11 +153,11 @@ builder.Services.AddIdentityCore<AppUser>(options =>
     options.Tokens.AuthenticatorTokenProvider = TokenOptions.DefaultAuthenticatorProvider;
 })
     .AddRoles<IdentityRole>()
-    .AddSignInManager<SignInManager<AppUser>>() // ⭐ Add SignInManager for external authentication
+    .AddSignInManager<SignInManager<AppUser>>() // Add SignInManager for external authentication
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
-// ⭐ Add authentication with JWT as default, and Identity cookie schemes for OAuth
+// Add authentication with JWT as default, and Identity cookie schemes for OAuth
 var authBuilder = builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
@@ -171,8 +176,22 @@ var authBuilder = builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenKey))
     };
+    // Allow JWT token from query string for SignalR WebSocket connections
+    options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/chat"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
 })
-// ⭐ Add Identity cookie schemes for OAuth external authentication
+// Add Identity cookie schemes for OAuth external authentication
 .AddCookie(IdentityConstants.ApplicationScheme, options =>
 {
     options.Cookie.Name = ".AspNetCore.Identity.Application";
@@ -183,7 +202,7 @@ var authBuilder = builder.Services.AddAuthentication(options =>
     options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
     options.SlidingExpiration = true;
 })
-// ⭐ Add Identity.External cookie scheme (required by SignInManager.GetExternalLoginInfoAsync)
+// Add Identity.External cookie scheme (required by SignInManager.GetExternalLoginInfoAsync)
 .AddCookie(IdentityConstants.ExternalScheme, options =>
 {
     options.Cookie.Name = ".AspNetCore.Identity.External";
@@ -195,7 +214,7 @@ var authBuilder = builder.Services.AddAuthentication(options =>
     options.SlidingExpiration = false;
 });
 
-// ⭐ Configure OAuth providers - only register if credentials exist
+// Configure OAuth providers - only register if credentials exist
 
 // Google OAuth
 var googleClientId = builder.Configuration["Authentication:Google:ClientId"];
@@ -210,7 +229,7 @@ if (!string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(goo
         options.SaveTokens = true;
         options.SignInScheme = IdentityConstants.ExternalScheme;
         
-        // ⭐ Environment-aware cookie configuration for OAuth state
+        // Environment-aware cookie configuration for OAuth state
         options.CorrelationCookie.SameSite = cookieSameSite;
         options.CorrelationCookie.SecurePolicy = cookieSecurePolicy;
         options.CorrelationCookie.HttpOnly = true;
@@ -233,7 +252,7 @@ if (!string.IsNullOrWhiteSpace(githubClientId) && !string.IsNullOrWhiteSpace(git
         options.SignInScheme = IdentityConstants.ExternalScheme;
         options.Scope.Add("user:email");
         
-        // ⭐ Environment-aware cookie configuration for OAuth state
+        // Environment-aware cookie configuration for OAuth state
         options.CorrelationCookie.SameSite = cookieSameSite;
         options.CorrelationCookie.SecurePolicy = cookieSecurePolicy;
         options.CorrelationCookie.HttpOnly = true;
@@ -272,13 +291,13 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Docke
     app.UseSwaggerUI();
 }
 
-// ⭐ Enable HTTPS redirection only in production
+// Enable HTTPS redirection only in production
 if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
 
-// ⭐ Environment-aware cookie policy for OAuth
+// Environment-aware cookie policy for OAuth
 app.UseCookiePolicy(new CookiePolicyOptions
 {
     MinimumSameSitePolicy = app.Environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None,
@@ -293,6 +312,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<ChatHub>("/hubs/chat");
 
 app.Run();
 

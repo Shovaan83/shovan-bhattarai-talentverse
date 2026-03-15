@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
-import { Menu, X, Search, ArrowRightLeft, Users } from 'lucide-react';
+import { Menu, X, Search, ArrowRightLeft, Users, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useProposalNotifications } from '@/lib/hooks/useProposalNotifications';
 import { ProfileDropdown } from './ProfileDropdown';
 import { NotificationDropdown } from './NotificationDropdown';
+import { useUnreadCount } from '@/lib/hooks/useMessages';
 
 export function GlobalNavbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -17,6 +18,7 @@ export function GlobalNavbar() {
   const pathname = usePathname();
   const { user, isAuthenticated, isLoading } = useAuth();
   const { count: notificationCount } = useProposalNotifications();
+  const { data: unreadMessageCount = 0 } = useUnreadCount();
   const { scrollY } = useScroll();
 
   // Prevent hydration mismatch by only rendering after mount
@@ -59,7 +61,8 @@ export function GlobalNavbar() {
   // Navigation links for authenticated users
   const authenticatedLinks = [
     { href: '/marketplace', label: 'Marketplace', icon: Search },
-    { href: '/proposals', label: 'Proposals', icon: ArrowRightLeft, badge: notificationCount },
+    { href: '/proposals', label: 'Proposals', icon: ArrowRightLeft, badge: notificationCount, badgeColor: 'bg-red-500' },
+    { href: '/messages', label: 'Messages', icon: MessageSquare, badge: unreadMessageCount, badgeColor: 'bg-blue-500' },
     { href: '/#community', label: 'Community', icon: Users },
   ];
 
@@ -120,7 +123,7 @@ export function GlobalNavbar() {
                       <link.icon className="w-4 h-4" />
                       {link.label}
                       {link.badge !== undefined && link.badge > 0 && (
-                        <span className="ml-1 px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">
+                        <span className={`ml-1 px-2 py-0.5 ${link.badgeColor ?? 'bg-red-500'} text-white text-xs font-bold rounded-full`}>
                           {link.badge > 9 ? '9+' : link.badge}
                         </span>
                       )}
@@ -216,7 +219,7 @@ export function GlobalNavbar() {
                           {link.label}
                         </div>
                         {link.badge !== undefined && link.badge > 0 && (
-                          <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">
+                          <span className={`px-2 py-0.5 ${link.badgeColor ?? 'bg-red-500'} text-white text-xs font-bold rounded-full`}>
                             {link.badge > 9 ? '9+' : link.badge}
                           </span>
                         )}

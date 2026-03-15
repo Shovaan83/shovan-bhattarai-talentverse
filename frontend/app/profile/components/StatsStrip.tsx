@@ -5,15 +5,23 @@ import { Coins, Star, ArrowRightLeft } from "lucide-react";
 
 interface StatsStripProps {
   swapCredits: number;
-  reputationScore: number;
+  averageRating: number;
+  totalReviews: number;
+  hasMinimumReviews: boolean;
   totalSwaps: number;
 }
 
 export function StatsStrip({
   swapCredits,
-  reputationScore,
+  averageRating,
+  totalReviews,
+  hasMinimumReviews,
   totalSwaps,
 }: StatsStripProps) {
+  const reputationDisplay = hasMinimumReviews
+    ? `${averageRating.toFixed(1)} ★`
+    : "New";
+
   const stats = [
     {
       label: "Swap Credits",
@@ -23,8 +31,8 @@ export function StatsStrip({
       bgGlow: "bg-amber-400/20",
     },
     {
-      label: "Reputation",
-      value: `${reputationScore}%`,
+      label: `Reputation${hasMinimumReviews ? ` (${totalReviews})` : ""}`,
+      value: reputationDisplay,
       icon: Star,
       color: "from-emerald-400 to-teal-500",
       bgGlow: "bg-emerald-400/20",

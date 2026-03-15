@@ -12,12 +12,11 @@ import {
   Twitter,
   Github,
   Edit2,
-  TrendingUp,
   Zap,
   Target,
   Trash2,
-  ArrowRightLeft,
   Settings,
+  Star,
 } from "lucide-react";
 import { accountApi } from "@/lib/api/account";
 import { skillsApi } from "@/lib/api/skills";
@@ -26,6 +25,10 @@ import type { UserSkill } from "@/lib/types/skills";
 import SkillModal, { SkillType } from "./components/SkillModal";
 import EditProfileModal from "./components/EditProfileModal";
 import LinkedAccountsSettings from "./components/LinkedAccountsSettings";
+import { useUserReputation, useUserReviews } from "@/lib/hooks/useReviews";
+import ReputationBadge from "@/app/components/reviews/ReputationBadge";
+import ReviewList from "@/app/components/reviews/ReviewList";
+import { StatsStrip } from "./components/StatsStrip";
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -72,6 +75,9 @@ export default function ProfilePage() {
     queryKey: ["my-skills"],
     queryFn: skillsApi.getMySkills,
   });
+
+  const { data: userReputation } = useUserReputation(user?.id ?? '');
+  const { data: userReviews, isLoading: reviewsLoading } = useUserReviews(user?.id ?? '');
 
   const createSkillMutation = useMutation({
     mutationFn: skillsApi.addSkill,
@@ -165,10 +171,11 @@ export default function ProfilePage() {
   const bio = user.bio ?? "";
   const avatarUrl = user.profilePictureUrl ?? "";
 
-  // stats are not exposed from backend so it is kept as zero
-  const credits = 0;
-  const reputation = 0;
-  const totalSwaps = 0;
+  const credits = 0; // Credit system not yet implemented
+  const averageRating = userReputation?.averageRating ?? 0;
+  const totalReviews = userReputation?.totalReviews ?? 0;
+  const hasMinimumReviews = userReputation?.hasMinimumReviews ?? false;
+  const totalSwaps = userReputation?.completedSwaps ?? 0;
 
   return (
     <div className="relative min-h-screen p-4 md:p-8 bg-emerald-950 text-white overflow-hidden selection:bg-emerald-200 selection:text-emerald-950">
@@ -250,6 +257,17 @@ export default function ProfilePage() {
                   <p className="text-sm text-gray-500 font-medium">
                     {handle}
                   </p>
+                  {userReputation && (
+                    <div className="mt-2">
+                      <ReputationBadge
+                        averageRating={userReputation.averageRating}
+                        totalReviews={userReputation.totalReviews}
+                        hasMinimumReviews={userReputation.hasMinimumReviews}
+                        size="sm"
+                        showCount={true}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <p className="text-gray-600 text-sm leading-relaxed mb-6 font-sans">
@@ -301,50 +319,15 @@ export default function ProfilePage() {
 
           <motion.div
             variants={itemVariants}
-            className="col-span-1 md:col-span-8 lg:col-span-9 bg-white rounded-3xl shadow-lg shadow-black/10 border border-gray-100 p-6 flex flex-col md:flex-row items-center justify-between gap-6"
+            className="col-span-1 md:col-span-8 lg:col-span-9"
           >
-            <div className="flex-1 w-full flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-br from-emerald-50 to-white border border-emerald-100/60">
-              <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700">
-                <Zap size={24} fill="currentColor" />
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">
-                  Credits Balance
-                </p>
-                <p className="text-2xl font-heading font-bold text-gray-900">
-                  {credits}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex-1 w-full flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-br from-orange-50 to-white border border-orange-100/60">
-              <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center text-orange-700">
-                <TrendingUp size={24} />
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-orange-700 uppercase tracking-wider">
-                  Reputation
-                </p>
-                <p className="text-2xl font-heading font-bold text-gray-900">
-                  {reputation}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex-1 w-full flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-br from-emerald-50 to-orange-50 border border-emerald-100/60">
-              <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700">
-                <ArrowRightLeft size={24} />
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">
-                  Total Swaps
-                </p>
-                <p className="text-2xl font-heading font-bold text-gray-900">
-                  {totalSwaps}
-                </p>
-              </div>
-            </div>
-
+            <StatsStrip
+              swapCredits={credits}
+              averageRating={averageRating}
+              totalReviews={totalReviews}
+              hasMinimumReviews={hasMinimumReviews}
+              totalSwaps={totalSwaps}
+            />
           </motion.div>
 
           <motion.div
@@ -467,6 +450,21 @@ export default function ProfilePage() {
               )}
             </div>
           </motion.div>
+
+          {/* Reviews Section */}
+          {userReputation?.hasMinimumReviews && (
+            <motion.div
+              variants={itemVariants}
+              className="col-span-1 md:col-span-12 bg-emerald-900/30 rounded-3xl p-6 border border-emerald-800/50"
+            >
+              <h3 className="text-xl font-semibold mb-6 flex items-center gap-2 text-white">
+                <Star className="w-6 h-6 text-yellow-400 fill-yellow-400" />
+                Reviews ({userReputation.totalReviews})
+              </h3>
+              <ReviewList reviews={userReviews ?? []} isLoading={reviewsLoading} />
+            </motion.div>
+          )}
+
         </motion.div>
 
         )}
