@@ -12,6 +12,7 @@ export interface CurrentUser {
   linkedInUrl?: string | null;
   twitterUrl?: string | null;
   websiteUrl?: string | null;
+  creditBalance: number;
 }
 
 export interface UpdateProfilePayload {

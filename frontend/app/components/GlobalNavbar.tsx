@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
-import { Menu, X, Search, ArrowRightLeft, Users, MessageSquare } from 'lucide-react';
+import { Menu, X, Search, ArrowRightLeft, Users, MessageSquare, Coins, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/hooks/useAuth';
@@ -10,6 +10,7 @@ import { useProposalNotifications } from '@/lib/hooks/useProposalNotifications';
 import { ProfileDropdown } from './ProfileDropdown';
 import { NotificationDropdown } from './NotificationDropdown';
 import { useUnreadCount } from '@/lib/hooks/useMessages';
+import { useWallet } from '@/lib/hooks/useCredits';
 
 export function GlobalNavbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -19,6 +20,7 @@ export function GlobalNavbar() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { count: notificationCount } = useProposalNotifications();
   const { data: unreadMessageCount = 0 } = useUnreadCount();
+  const { data: wallet } = useWallet();
   const { scrollY } = useScroll();
 
   // Prevent hydration mismatch by only rendering after mount
@@ -63,6 +65,8 @@ export function GlobalNavbar() {
     { href: '/marketplace', label: 'Marketplace', icon: Search },
     { href: '/proposals', label: 'Proposals', icon: ArrowRightLeft, badge: notificationCount, badgeColor: 'bg-red-500' },
     { href: '/messages', label: 'Messages', icon: MessageSquare, badge: unreadMessageCount, badgeColor: 'bg-blue-500' },
+    { href: '/credits', label: 'Credits', icon: Coins, badge: wallet?.balance !== undefined && wallet.balance > 0 ? Math.floor(wallet.balance) : undefined, badgeColor: 'bg-amber-500' },
+    { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
     { href: '/#community', label: 'Community', icon: Users },
   ];
 

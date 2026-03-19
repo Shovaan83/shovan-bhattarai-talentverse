@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using TalentVerse.WebAPI.Data.Entities;
 
@@ -13,11 +13,11 @@ namespace TalentVerse.WebAPI.Data
                 if (await userManager.Users.AnyAsync()) return;
 
                 var roles = new List<IdentityRole>
-            {
-                new IdentityRole{Name = "Member", NormalizedName = "MEMBER"},
-                new IdentityRole{Name = "Admin", NormalizedName = "ADMIN"},
-                new IdentityRole{Name = "Business", NormalizedName = "BUSINESS" }
-            };
+                {
+                    new IdentityRole { Name = "Member", NormalizedName = "MEMBER" },
+                    new IdentityRole { Name = "Admin", NormalizedName = "ADMIN" },
+                    new IdentityRole { Name = "Business", NormalizedName = "BUSINESS" }
+                };
 
                 foreach (var role in roles)
                 {
@@ -75,7 +75,108 @@ namespace TalentVerse.WebAPI.Data
                 logger.LogError($"An error occurred while seeding users: {ex.Message}");
                 throw;
             }
+        }
 
+        public static async Task SeedBadges(AppDbContext context, ILogger logger)
+        {
+            try
+            {
+                if (await context.Badges.AnyAsync()) return;
+
+                var badges = new List<Badge>
+                {
+                    new Badge
+                    {
+                        Name = "Welcome Aboard",
+                        Description = "Joined TalentVerse and started your skill-swap journey.",
+                        IconKey = "welcome",
+                        Tier = "Bronze",
+                        Category = "Milestone",
+                        CreditReward = 0
+                    },
+                    new Badge
+                    {
+                        Name = "First Swap",
+                        Description = "Completed your very first skill swap.",
+                        IconKey = "first_swap",
+                        Tier = "Bronze",
+                        Category = "Engagement",
+                        CreditReward = 5
+                    },
+                    new Badge
+                    {
+                        Name = "Swap Veteran",
+                        Description = "Completed 5 skill swaps.",
+                        IconKey = "swap_veteran",
+                        Tier = "Silver",
+                        Category = "Engagement",
+                        CreditReward = 10
+                    },
+                    new Badge
+                    {
+                        Name = "Swap Master",
+                        Description = "Completed 10 skill swaps.",
+                        IconKey = "swap_master",
+                        Tier = "Gold",
+                        Category = "Engagement",
+                        CreditReward = 25
+                    },
+                    new Badge
+                    {
+                        Name = "First Review",
+                        Description = "Wrote your first review for a swap partner.",
+                        IconKey = "first_review",
+                        Tier = "Bronze",
+                        Category = "Engagement",
+                        CreditReward = 5
+                    },
+                    new Badge
+                    {
+                        Name = "Top Rated",
+                        Description = "Maintained an average review rating of 4.5 or above.",
+                        IconKey = "top_rated",
+                        Tier = "Gold",
+                        Category = "Skill",
+                        CreditReward = 20
+                    },
+                    new Badge
+                    {
+                        Name = "Credit Saver",
+                        Description = "Accumulated 100 credits.",
+                        IconKey = "credit_saver",
+                        Tier = "Silver",
+                        Category = "Economy",
+                        CreditReward = 0
+                    },
+                    new Badge
+                    {
+                        Name = "Credit Mogul",
+                        Description = "Accumulated 500 credits.",
+                        IconKey = "credit_mogul",
+                        Tier = "Gold",
+                        Category = "Economy",
+                        CreditReward = 50
+                    },
+                    new Badge
+                    {
+                        Name = "Skill Sharer",
+                        Description = "Listed 5 or more skills on your profile.",
+                        IconKey = "skill_sharer",
+                        Tier = "Bronze",
+                        Category = "Skill",
+                        CreditReward = 5
+                    }
+                };
+
+                await context.Badges.AddRangeAsync(badges);
+                await context.SaveChangesAsync();
+                logger.LogInformation("Badge seeding completed. {Count} badges seeded.", badges.Count);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"An error occurred while seeding badges: {ex.Message}");
+                throw;
+            }
         }
     }
 }

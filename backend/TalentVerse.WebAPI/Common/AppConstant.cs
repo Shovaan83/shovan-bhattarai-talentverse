@@ -36,6 +36,10 @@
         public const string AppointmentRescheduled = "Appointment rescheduled successfully.";
         public const string GoogleCalendarConnected = "Google Calendar connected successfully.";
         public const string GoogleCalendarDisconnected = "Google Calendar disconnected.";
+
+        // Credit / economy success messages
+        public const string CheckoutSessionCreated = "Checkout session created. Redirecting to Stripe.";
+        public const string CreditsAwarded = "Credits awarded successfully.";
         }
 
         public static class ErrorMessages
@@ -85,6 +89,11 @@
             public const string AppointmentAlreadyCancelled = "This appointment has already been cancelled.";
             public const string ProposalNotAccepted = "Appointments can only be scheduled for accepted proposals.";
             public const string UnauthorizedAppointmentAction = "You are not authorized to perform this action on this appointment.";
+
+            // Credit / economy error messages
+            public const string CreditPackNotFound = "Credit pack not found.";
+            public const string InsufficientCredits = "Insufficient credit balance.";
+            public const string CheckoutSessionFailed = "Failed to create checkout session. Please try again.";
         }
     }
 }

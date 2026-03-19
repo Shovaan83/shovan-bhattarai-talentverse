@@ -14,6 +14,8 @@ public class AppDbContext : IdentityDbContext<AppUser>
     public DbSet<Review> Reviews { get; set; }
     public DbSet<Appointment> Appointments { get; set; }
     public DbSet<CreditTransaction> CreditTransactions { get; set; }
+    public DbSet<Badge> Badges { get; set; }
+    public DbSet<UserBadge> UserBadges { get; set; }
     public DbSet<GoogleCalendarToken> GoogleCalendarTokens { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
@@ -93,5 +95,35 @@ public class AppDbContext : IdentityDbContext<AppUser>
         builder.Entity<GoogleCalendarToken>()
             .HasIndex(t => t.UserId)
             .IsUnique();
+
+        // Badge — no cascade delete (badge records are permanent reference data)
+        builder.Entity<UserBadge>()
+            .HasOne(ub => ub.User)
+            .WithMany(u => u.UserBadges)
+            .HasForeignKey(ub => ub.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<UserBadge>()
+            .HasOne(ub => ub.Badge)
+            .WithMany(b => b.UserBadges)
+            .HasForeignKey(ub => ub.BadgeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // A user can only earn each badge once
+        builder.Entity<UserBadge>()
+            .HasIndex(ub => new { ub.UserId, ub.BadgeId })
+            .IsUnique();
+
+        // CreditTransaction — cascade delete when user is deleted
+        builder.Entity<CreditTransaction>()
+            .HasOne(ct => ct.User)
+            .WithMany(u => u.CreditTransactions)
+            .HasForeignKey(ct => ct.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // TransactionType stored as int column
+        builder.Entity<CreditTransaction>()
+            .Property(ct => ct.Type)
+            .HasConversion<int>();
     }
 }

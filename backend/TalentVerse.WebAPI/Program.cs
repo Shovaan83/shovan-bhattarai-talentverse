@@ -87,6 +87,12 @@ builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 builder.Services.AddScoped<IGoogleCalendarService, GoogleCalendarService>();
 
+// Credit / Economy / Gamification
+builder.Services.AddScoped<ICreditRepository, CreditRepository>();
+builder.Services.AddScoped<ICreditService, CreditService>();
+builder.Services.AddScoped<IBadgeRepository, BadgeRepository>();
+builder.Services.AddScoped<IBadgeService, BadgeService>();
+
 // Register background email queue service
 builder.Services.AddSingleton<IEmailQueueService, BackgroundEmailQueueService>();
 builder.Services.AddHostedService<BackgroundEmailQueueService>(provider =>
@@ -125,6 +131,11 @@ builder.Services.Configure<AppConfigOptions>(
     builder.Configuration.GetSection("AppConfig"));
 builder.Services.Configure<RateLimitingOptions>(
     builder.Configuration.GetSection("RateLimiting"));
+builder.Services.Configure<StripeSettings>(
+    builder.Configuration.GetSection("Stripe"));
+
+// Initialize Stripe with the secret key (fully-qualified to avoid ambiguity with TokenService)
+global::Stripe.StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
 // Add rate limiting configuration using settings
 var rateLimitConfig = builder.Configuration.GetSection("RateLimiting").Get<RateLimitingOptions>() 
@@ -283,6 +294,7 @@ try
     await context.Database.MigrateAsync();
 
     await Seed.SeedUsers(userManager, roleManager, logger);
+    await Seed.SeedBadges(context, logger);
 }
 catch (Exception ex)
 {

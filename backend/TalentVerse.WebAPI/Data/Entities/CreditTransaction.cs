@@ -26,5 +26,14 @@ namespace TalentVerse.WebAPI.Data.Entities
 
         [MaxLength(255)]
         public string? Description { get; set; }
+
+        // Optional reference to the entity that triggered this transaction (e.g., ProposalId)
+        public long? ReferenceId { get; set; }
+
+        [MaxLength(50)]
+        public string? ReferenceType { get; set; } // "Proposal" | "Badge" | "Purchase"
+
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal BalanceAfter { get; set; }
     }
 }

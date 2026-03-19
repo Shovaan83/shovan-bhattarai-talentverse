@@ -15,5 +15,6 @@ namespace TalentVerse.WebAPI.DTO.Account
         public string? LinkedInUrl { get; set; }
         public string? TwitterUrl { get; set; }
         public string? WebsiteUrl { get; set; }
+        public decimal CreditBalance { get; set; }
     }
 }
