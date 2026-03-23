@@ -122,4 +122,18 @@ public class MarketplaceService : IMarketplaceService
             return ServiceResponse<List<SkillBrowseDto>>.FailureResponse(AppConstant.ErrorMessages.GenericError);
         }
     }
+
+    public async Task<ServiceResponse<List<string>>> GetCategoriesAsync()
+    {
+        try
+        {
+            var categories = await _marketplaceRepository.GetCategoriesAsync();
+            return ServiceResponse<List<string>>.SuccessResponse(categories);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting categories");
+            return ServiceResponse<List<string>>.FailureResponse(AppConstant.ErrorMessages.GenericError);
+        }
+    }
 }

@@ -55,6 +55,18 @@ public class MarketplaceRepository : IMarketplaceRepository
             parameters.Add("SkillTypeFilter", skillTypeFilter);
         }
 
+        // Filter by category - JOIN UserSkills with Skills table
+        if (!string.IsNullOrWhiteSpace(searchDto.Category))
+        {
+            whereConditions.Add(@"EXISTS (
+                SELECT 1 FROM ""UserSkills"" us 
+                INNER JOIN ""Skills"" s ON us.""SkillId"" = s.""SkillId""
+                WHERE us.""UserId"" = u.""Id"" 
+                AND LOWER(s.""Category"") = LOWER(@Category)
+            )");
+            parameters.Add("Category", searchDto.Category);
+        }
+
         // Note: ProficiencyLevel filter removed - column doesn't exist in schema
 
         var whereClause = string.Join(" AND ", whereConditions);
@@ -167,6 +179,21 @@ public class MarketplaceRepository : IMarketplaceRepository
             AND p.""Status"" = 3";
 
         return await connection.ExecuteScalarAsync<int>(sql, new { UserId = userId });
+    }
+
+    public async Task<List<string>> GetCategoriesAsync()
+    {
+        using var connection = _dapperContext.CreateConnection();
+
+        var sql = @"
+            SELECT DISTINCT ""Category""
+            FROM ""Skills""
+            WHERE ""Category"" IS NOT NULL 
+            AND ""IsActive"" = true
+            ORDER BY ""Category""";
+
+        var categories = await connection.QueryAsync<string>(sql);
+        return categories.ToList();
     }
 
     private async Task<List<PublicUserDto>> GetUsersWithSkillsAsync(System.Data.IDbConnection connection, List<string> userIds)

@@ -165,6 +165,15 @@ namespace TalentVerse.WebAPI.Data
                         Tier = "Bronze",
                         Category = "Skill",
                         CreditReward = 5
+                    },
+                    new Badge
+                    {
+                        Name = "Verified",
+                        Description = "Identity has been verified by TalentVerse.",
+                        IconKey = "verified",
+                        Tier = "Gold",
+                        Category = "Milestone",
+                        CreditReward = 25
                     }
                 };
 

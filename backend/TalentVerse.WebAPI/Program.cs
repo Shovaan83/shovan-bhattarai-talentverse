@@ -93,6 +93,14 @@ builder.Services.AddScoped<ICreditService, CreditService>();
 builder.Services.AddScoped<IBadgeRepository, BadgeRepository>();
 builder.Services.AddScoped<IBadgeService, BadgeService>();
 
+// Identity Verification
+builder.Services.AddScoped<IVerificationRepository, VerificationRepository>();
+builder.Services.AddScoped<IVerificationService, VerificationService>();
+
+// Admin Panel
+builder.Services.AddScoped<IAdminRepository, AdminRepository>();
+builder.Services.AddScoped<IAdminService, AdminService>();
+
 // Register background email queue service
 builder.Services.AddSingleton<IEmailQueueService, BackgroundEmailQueueService>();
 builder.Services.AddHostedService<BackgroundEmailQueueService>(provider =>

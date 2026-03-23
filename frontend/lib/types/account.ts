@@ -13,6 +13,8 @@ export interface CurrentUser {
   twitterUrl?: string | null;
   websiteUrl?: string | null;
   creditBalance: number;
+  isIdentityVerified: boolean;
+  verificationStatus?: 'None' | 'Pending' | 'Approved' | 'Rejected';
 }
 
 export interface UpdateProfilePayload {

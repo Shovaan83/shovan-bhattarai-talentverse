@@ -194,6 +194,9 @@ namespace TalentVerse.WebAPI.Migrations
                         .HasMaxLength(2048)
                         .HasColumnType("character varying(2048)");
 
+                    b.Property<bool>("IsIdentityVerified")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("IsProfileComplete")
                         .HasColumnType("boolean");
 
@@ -258,6 +261,9 @@ namespace TalentVerse.WebAPI.Migrations
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime?>("VerifiedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("WebsiteUrl")
                         .HasMaxLength(2048)
@@ -364,6 +370,56 @@ namespace TalentVerse.WebAPI.Migrations
                     b.HasKey("BadgeId");
 
                     b.ToTable("Badges");
+                });
+
+            modelBuilder.Entity("TalentVerse.WebAPI.Data.Entities.ContentReport", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ContentId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("ReporterId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ResolvedByAdminId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReporterId");
+
+                    b.HasIndex("ResolvedByAdminId");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("ContentReports");
                 });
 
             modelBuilder.Entity("TalentVerse.WebAPI.Data.Entities.CreditTransaction", b =>
@@ -671,6 +727,58 @@ namespace TalentVerse.WebAPI.Migrations
                     b.ToTable("UserSkills");
                 });
 
+            modelBuilder.Entity("TalentVerse.WebAPI.Data.Entities.VerificationRequest", b =>
+                {
+                    b.Property<long>("VerificationRequestId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("VerificationRequestId"));
+
+                    b.Property<string>("AdminNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("DocumentPublicId")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("DocumentUrl")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
+
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ReviewedByUserId")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("SubmittedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("VerificationRequestId");
+
+                    b.HasIndex("ReviewedByUserId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("VerificationRequests");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -739,6 +847,24 @@ namespace TalentVerse.WebAPI.Migrations
                     b.Navigation("CreatedByUser");
 
                     b.Navigation("Proposal");
+                });
+
+            modelBuilder.Entity("TalentVerse.WebAPI.Data.Entities.ContentReport", b =>
+                {
+                    b.HasOne("TalentVerse.WebAPI.Data.Entities.AppUser", "Reporter")
+                        .WithMany()
+                        .HasForeignKey("ReporterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TalentVerse.WebAPI.Data.Entities.AppUser", "ResolvedByAdmin")
+                        .WithMany()
+                        .HasForeignKey("ResolvedByAdminId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Reporter");
+
+                    b.Navigation("ResolvedByAdmin");
                 });
 
             modelBuilder.Entity("TalentVerse.WebAPI.Data.Entities.CreditTransaction", b =>
@@ -882,6 +1008,24 @@ namespace TalentVerse.WebAPI.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("TalentVerse.WebAPI.Data.Entities.VerificationRequest", b =>
+                {
+                    b.HasOne("TalentVerse.WebAPI.Data.Entities.AppUser", "ReviewedBy")
+                        .WithMany()
+                        .HasForeignKey("ReviewedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("TalentVerse.WebAPI.Data.Entities.AppUser", "User")
+                        .WithMany("VerificationRequests")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ReviewedBy");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("TalentVerse.WebAPI.Data.Entities.AppUser", b =>
                 {
                     b.Navigation("CreditTransactions");
@@ -899,6 +1043,8 @@ namespace TalentVerse.WebAPI.Migrations
                     b.Navigation("UserBadges");
 
                     b.Navigation("UserSkills");
+
+                    b.Navigation("VerificationRequests");
                 });
 
             modelBuilder.Entity("TalentVerse.WebAPI.Data.Entities.Badge", b =>

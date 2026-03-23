@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using TalentVerse.WebAPI.Data.Entities;
 using TalentVerse.WebAPI.Data.Enums;
@@ -17,6 +17,8 @@ public class AppDbContext : IdentityDbContext<AppUser>
     public DbSet<Badge> Badges { get; set; }
     public DbSet<UserBadge> UserBadges { get; set; }
     public DbSet<GoogleCalendarToken> GoogleCalendarTokens { get; set; }
+    public DbSet<VerificationRequest> VerificationRequests { get; set; }
+    public DbSet<ContentReport> ContentReports { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
@@ -125,5 +127,43 @@ public class AppDbContext : IdentityDbContext<AppUser>
         builder.Entity<CreditTransaction>()
             .Property(ct => ct.Type)
             .HasConversion<int>();
+
+        // VerificationRequest configuration
+        builder.Entity<VerificationRequest>()
+            .HasOne(vr => vr.User)
+            .WithMany(u => u.VerificationRequests)
+            .HasForeignKey(vr => vr.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<VerificationRequest>()
+            .HasOne(vr => vr.ReviewedBy)
+            .WithMany()
+            .HasForeignKey(vr => vr.ReviewedByUserId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // VerificationStatus stored as int column
+        builder.Entity<VerificationRequest>()
+            .Property(vr => vr.Status)
+            .HasConversion<int>();
+
+        // Index for faster querying by status
+        builder.Entity<VerificationRequest>()
+            .HasIndex(vr => vr.Status);
+
+        // ContentReport — reporter FK
+        builder.Entity<ContentReport>()
+            .HasOne(cr => cr.Reporter)
+            .WithMany()
+            .HasForeignKey(cr => cr.ReporterId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<ContentReport>()
+            .HasOne(cr => cr.ResolvedByAdmin)
+            .WithMany()
+            .HasForeignKey(cr => cr.ResolvedByAdminId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Entity<ContentReport>()
+            .HasIndex(cr => cr.Status);
     }
 }

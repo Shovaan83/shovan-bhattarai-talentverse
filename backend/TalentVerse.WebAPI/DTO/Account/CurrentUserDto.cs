@@ -16,5 +16,7 @@ namespace TalentVerse.WebAPI.DTO.Account
         public string? TwitterUrl { get; set; }
         public string? WebsiteUrl { get; set; }
         public decimal CreditBalance { get; set; }
+        public bool IsIdentityVerified { get; set; } = false;
+        public string VerificationStatus { get; set; } = "None";
     }
 }

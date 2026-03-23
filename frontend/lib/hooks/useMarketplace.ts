@@ -34,3 +34,11 @@ export const useFeaturedUsers = () => {
     staleTime: 300000, // 5 minutes
   });
 };
+
+export const useCategories = () => {
+  return useQuery({
+    queryKey: ['marketplace', 'categories'],
+    queryFn: () => marketplaceApi.getCategories(),
+    staleTime: 600000, // 10 minutes - categories rarely change
+  });
+};

@@ -5,6 +5,7 @@ import { ArrowRightLeft, ArrowRight, User } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import type { PublicUserDto } from "@/lib/types/marketplace";
+import VerifiedBadge from "../VerifiedBadge";
 
 interface UserCardProps {
   user: PublicUserDto;
@@ -75,9 +76,12 @@ export function UserCard({ user }: UserCardProps) {
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-2xl font-bold text-white leading-tight truncate">
-                  {user.displayName}
-                </h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-2xl font-bold text-white leading-tight truncate">
+                    {user.displayName}
+                  </h3>
+                  {user.isVerified && <VerifiedBadge size="sm" />}
+                </div>
                 <p className="text-sm font-medium text-emerald-300 truncate">
                   @{user.userName}
                 </p>

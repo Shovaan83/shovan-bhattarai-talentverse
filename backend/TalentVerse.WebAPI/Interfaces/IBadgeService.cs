@@ -13,5 +13,8 @@ namespace TalentVerse.WebAPI.Interfaces
         Task EvaluateOnSwapCompletedAsync(string userId);
         Task EvaluateOnReviewSubmittedAsync(string userId);
         Task EvaluateOnSkillAddedAsync(string userId);
+
+        // Manual badge award — called by VerificationService
+        Task AwardVerifiedBadgeAsync(string userId);
     }
 }

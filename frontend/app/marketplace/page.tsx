@@ -27,7 +27,7 @@ export default function MarketplacePage() {
     setSearchParams(prev => ({ ...prev, page }));
   };
 
-  const isShowingSearchResults = searchParams.query || searchParams.skillName;
+  const isShowingSearchResults = searchParams.query || searchParams.skillName || searchParams.category;
   const users = isShowingSearchResults ? searchResults?.users : featuredUsers;
   const isLoading = isShowingSearchResults ? isSearching : isFeaturedLoading;
 

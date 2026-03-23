@@ -21,6 +21,7 @@ public class BadgeService : IBadgeService
     private const string BadgeCreditSaver = "Credit Saver";
     private const string BadgeCreditMogul = "Credit Mogul";
     private const string BadgeSkillSharer = "Skill Sharer";
+    private const string BadgeVerified = "Verified";
 
     public BadgeService(
         IBadgeRepository badgeRepository,
@@ -111,6 +112,11 @@ public class BadgeService : IBadgeService
         var skillCount = await _creditRepository.GetSkillCountAsync(userId);
         if (skillCount >= 5)
             await TryAwardBadgeAsync(userId, BadgeSkillSharer);
+    }
+
+    public async Task AwardVerifiedBadgeAsync(string userId)
+    {
+        await TryAwardBadgeAsync(userId, BadgeVerified);
     }
 
     // Helper: try to award a badge; if not already held, grant it + its credit reward

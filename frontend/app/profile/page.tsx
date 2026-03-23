@@ -26,6 +26,7 @@ import type { UserSkill } from "@/lib/types/skills";
 import SkillModal, { SkillType } from "./components/SkillModal";
 import EditProfileModal from "./components/EditProfileModal";
 import LinkedAccountsSettings from "./components/LinkedAccountsSettings";
+import VerificationRequestForm from "./components/VerificationRequestForm";
 import { useUserReputation, useUserReviews } from "@/lib/hooks/useReviews";
 import ReputationBadge from "@/app/components/reviews/ReputationBadge";
 import ReviewList from "@/app/components/reviews/ReviewList";
@@ -500,7 +501,16 @@ export default function ProfilePage() {
             className="bg-white rounded-2xl p-8 shadow-xl"
           >
             <LinkedAccountsSettings />
-            
+
+            {/* ⭐ Identity Verification Section */}
+            <div className="mt-8 pt-8 border-t border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Identity Verification</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Get verified to increase trust on the platform and earn a special badge plus 25 credits.
+              </p>
+              <VerificationRequestForm />
+            </div>
+
             {/* ⭐ Logout Section */}
             <div className="mt-8 pt-8 border-t border-gray-200">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Session Management</h3>
