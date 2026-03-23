@@ -11,6 +11,7 @@ export interface PublicUserDto {
   wantedSkills: PublicSkillDto[];
   completedSwaps: number;
   averageRating?: number;
+  isVerified: boolean;
 }
 
 export interface PublicSkillDto {
@@ -25,6 +26,7 @@ export interface UserSearchParams {
   query?: string;
   skillName?: string;
   skillType?: 'Offered' | 'Wanted';
+  category?: string;
   minProficiency?: number;
   maxProficiency?: number;
   page?: number;

@@ -13,4 +13,5 @@ public class PublicUserDto
     public List<PublicSkillDto> WantedSkills { get; set; } = new();
     public int CompletedSwaps { get; set; }
     public double? AverageRating { get; set; }
+    public bool IsVerified { get; set; } = false;
 }

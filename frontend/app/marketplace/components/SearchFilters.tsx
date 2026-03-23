@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, SlidersHorizontal, X } from 'lucide-react';
+import { Search, SlidersHorizontal, X, ChevronDown } from 'lucide-react';
+import { useCategories } from '@/lib/hooks/useMarketplace';
 import type { UserSearchParams } from '@/lib/types/marketplace';
 
 interface SearchFiltersProps {
@@ -12,6 +13,7 @@ interface SearchFiltersProps {
 export function SearchFilters({ onSearch, currentParams }: SearchFiltersProps) {
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState(currentParams.query || '');
+  const { data: categories } = useCategories();
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,9 +24,15 @@ export function SearchFilters({ onSearch, currentParams }: SearchFiltersProps) {
     onSearch({ skillType: type });
   };
 
+  const handleCategoryChange = (category: string | undefined) => {
+    onSearch({ category });
+  };
+
   const handleProficiencyChange = (min: number, max: number) => {
     onSearch({ minProficiency: min, maxProficiency: max });
   };
+
+  const hasActiveFilters = currentParams.skillType || currentParams.minProficiency || currentParams.category;
 
   return (
     <div className="mb-8">
@@ -114,6 +122,28 @@ export function SearchFilters({ onSearch, currentParams }: SearchFiltersProps) {
               </div>
             </div>
 
+            {/* Category Filter */}
+            <div>
+              <label className="block text-sm font-medium text-emerald-400 mb-2">
+                Category
+              </label>
+              <div className="relative">
+                <select
+                  value={currentParams.category || ''}
+                  onChange={(e) => handleCategoryChange(e.target.value || undefined)}
+                  className="appearance-none pl-3 pr-8 py-1.5 rounded-lg text-sm bg-emerald-900/50 text-emerald-300 border border-emerald-800/50 hover:border-emerald-600 focus:outline-none focus:border-emerald-600 transition-colors cursor-pointer min-w-[160px]"
+                >
+                  <option value="">All Categories</option>
+                  {categories?.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500 pointer-events-none" />
+              </div>
+            </div>
+
             {/* Proficiency Filter */}
             <div>
               <label className="block text-sm font-medium text-emerald-400 mb-2">
@@ -138,9 +168,9 @@ export function SearchFilters({ onSearch, currentParams }: SearchFiltersProps) {
           </div>
 
           {/* Clear Filters */}
-          {(currentParams.skillType || currentParams.minProficiency) && (
+          {hasActiveFilters && (
             <button
-              onClick={() => onSearch({ skillType: undefined, minProficiency: undefined, maxProficiency: undefined })}
+              onClick={() => onSearch({ skillType: undefined, category: undefined, minProficiency: undefined, maxProficiency: undefined })}
               className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
             >
               Clear all filters

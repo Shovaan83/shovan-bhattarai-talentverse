@@ -31,5 +31,11 @@ export const marketplaceApi = {
   getFeaturedUsers: async (): Promise<PublicUserDto[]> => {
     const response = await api.get('/marketplace/featured');
     return response.data.data;
+  },
+
+  // Get all available skill categories
+  getCategories: async (): Promise<string[]> => {
+    const response = await api.get('/marketplace/categories');
+    return response.data.data;
   }
 };

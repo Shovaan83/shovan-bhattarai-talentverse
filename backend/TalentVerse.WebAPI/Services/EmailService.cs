@@ -225,4 +225,67 @@ TalentVerse Team";
 
         await SendEmailAsync(recipientEmail, subject, body);
     }
+
+    public async Task SendVerificationSubmittedAsync(string userEmail, string userName)
+    {
+        var subject = "Identity Verification Request Received";
+
+        var body = $@"Hello {userName},
+
+Thank you for submitting your identity verification request!
+
+We have received your documents and they are now being reviewed by our team. This process typically takes 1-3 business days.
+
+You will receive an email notification once your verification has been processed.
+
+If you have any questions, please don't hesitate to contact our support team.
+
+Best regards,
+TalentVerse Team";
+
+        await SendEmailAsync(userEmail, subject, body);
+    }
+
+    public async Task SendVerificationApprovedAsync(string userEmail, string userName)
+    {
+        var subject = "Your Identity Has Been Verified!";
+
+        var body = $@"Hello {userName},
+
+Congratulations! Your identity has been successfully verified.
+
+You have been awarded the ""Verified"" badge and 25 credits as a reward for completing the verification process.
+
+Your verified status will be displayed on your profile, helping other users trust and connect with you more easily.
+
+Thank you for being a trusted member of the TalentVerse community!
+
+Best regards,
+TalentVerse Team";
+
+        await SendEmailAsync(userEmail, subject, body);
+    }
+
+    public async Task SendVerificationRejectedAsync(string userEmail, string userName, string reason)
+    {
+        var subject = "Identity Verification Update";
+
+        var body = $@"Hello {userName},
+
+We have reviewed your identity verification request and unfortunately, we were unable to verify your identity at this time.
+
+Reason: {reason}
+
+You are welcome to submit a new verification request with updated documents. Please ensure:
+• The document is clearly legible
+• All information is visible
+• The document is a valid government-issued ID
+
+If you believe this was an error or have questions, please contact our support team.
+
+Best regards,
+TalentVerse Team";
+
+        await SendEmailAsync(userEmail, subject, body);
+    }
 }

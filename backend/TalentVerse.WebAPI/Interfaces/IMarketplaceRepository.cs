@@ -9,4 +9,5 @@ public interface IMarketplaceRepository
     Task<List<PublicUserDto>> GetFeaturedUsersAsync(string? excludeUserId = null, int limit = 12);
     Task<List<SkillBrowseDto>> GetPopularSkillsAsync(string? skillType = null, int limit = 20);
     Task<int> GetCompletedSwapsCountAsync(string userId);
+    Task<List<string>> GetCategoriesAsync();
 }

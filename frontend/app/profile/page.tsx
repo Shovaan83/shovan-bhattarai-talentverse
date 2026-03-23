@@ -17,6 +17,7 @@ import {
   Trash2,
   Settings,
   Star,
+  Award,
 } from "lucide-react";
 import { accountApi } from "@/lib/api/account";
 import { skillsApi } from "@/lib/api/skills";
@@ -25,10 +26,13 @@ import type { UserSkill } from "@/lib/types/skills";
 import SkillModal, { SkillType } from "./components/SkillModal";
 import EditProfileModal from "./components/EditProfileModal";
 import LinkedAccountsSettings from "./components/LinkedAccountsSettings";
+import VerificationRequestForm from "./components/VerificationRequestForm";
 import { useUserReputation, useUserReviews } from "@/lib/hooks/useReviews";
 import ReputationBadge from "@/app/components/reviews/ReputationBadge";
 import ReviewList from "@/app/components/reviews/ReviewList";
 import { StatsStrip } from "./components/StatsStrip";
+import { useAllBadges } from "@/lib/hooks/useBadges";
+import BadgeGrid from "@/app/components/badges/BadgeGrid";
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -78,6 +82,7 @@ export default function ProfilePage() {
 
   const { data: userReputation } = useUserReputation(user?.id ?? '');
   const { data: userReviews, isLoading: reviewsLoading } = useUserReviews(user?.id ?? '');
+  const { data: allBadges, isLoading: badgesLoading } = useAllBadges();
 
   const createSkillMutation = useMutation({
     mutationFn: skillsApi.addSkill,
@@ -171,7 +176,7 @@ export default function ProfilePage() {
   const bio = user.bio ?? "";
   const avatarUrl = user.profilePictureUrl ?? "";
 
-  const credits = 0; // Credit system not yet implemented
+  const credits = user.creditBalance ?? 0;
   const averageRating = userReputation?.averageRating ?? 0;
   const totalReviews = userReputation?.totalReviews ?? 0;
   const hasMinimumReviews = userReputation?.hasMinimumReviews ?? false;
@@ -465,6 +470,18 @@ export default function ProfilePage() {
             </motion.div>
           )}
 
+          {/* Badges Section */}
+          <motion.div
+            variants={itemVariants}
+            className="col-span-1 md:col-span-12 bg-emerald-900/30 rounded-3xl p-6 border border-emerald-800/50"
+          >
+            <h3 className="text-xl font-semibold mb-6 flex items-center gap-2 text-white">
+              <Award className="w-6 h-6 text-amber-400" />
+              Badges &amp; Achievements
+            </h3>
+            <BadgeGrid badges={allBadges ?? []} isLoading={badgesLoading} />
+          </motion.div>
+
         </motion.div>
 
         )}
@@ -484,7 +501,16 @@ export default function ProfilePage() {
             className="bg-white rounded-2xl p-8 shadow-xl"
           >
             <LinkedAccountsSettings />
-            
+
+            {/* ⭐ Identity Verification Section */}
+            <div className="mt-8 pt-8 border-t border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Identity Verification</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Get verified to increase trust on the platform and earn a special badge plus 25 credits.
+              </p>
+              <VerificationRequestForm />
+            </div>
+
             {/* ⭐ Logout Section */}
             <div className="mt-8 pt-8 border-t border-gray-200">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Session Management</h3>

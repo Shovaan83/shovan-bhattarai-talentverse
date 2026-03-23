@@ -12,11 +12,13 @@ export function useAuth() {
   const queryClient = useQueryClient();
   const router = useRouter();
   const [hasToken, setHasToken] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Check token on client-side only to avoid SSR issues
   useEffect(() => {
     const checkToken = () => {
       setHasToken(!!localStorage.getItem('token'));
+      setIsInitialized(true);
     };
     
     checkToken();
@@ -63,7 +65,7 @@ export function useAuth() {
 
   return {
     user,
-    isLoading,
+    isLoading: !isInitialized || (hasToken && isLoading),
     isAuthenticated: !!user && hasToken,
     logout,
     error,

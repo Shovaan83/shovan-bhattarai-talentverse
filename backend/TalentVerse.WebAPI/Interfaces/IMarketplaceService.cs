@@ -9,4 +9,5 @@ public interface IMarketplaceService
     Task<ServiceResponse<PublicUserDto>> GetUserProfileAsync(string userId);
     Task<ServiceResponse<List<PublicUserDto>>> GetFeaturedUsersAsync(string currentUserId);
     Task<ServiceResponse<List<SkillBrowseDto>>> GetPopularSkillsAsync(string? skillType = null);
+    Task<ServiceResponse<List<string>>> GetCategoriesAsync();
 }

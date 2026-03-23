@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TalentVerse.WebAPI.Data.Entities
 {
@@ -31,6 +32,9 @@ namespace TalentVerse.WebAPI.Data.Entities
     [MaxLength(2048)]
     public string? WebsiteUrl { get; set; }
 
+    [Column(TypeName = "decimal(18, 2)")]
+    public decimal CreditBalance { get; set; } = 0;
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
@@ -46,6 +50,10 @@ namespace TalentVerse.WebAPI.Data.Entities
     // ⭐ Tracks if user has completed 2FA setup wizard (for email/password users)
     public bool IsTwoFactorSetupComplete { get; set; } = false;
 
+    // ⭐ Identity Verification fields
+    public bool IsIdentityVerified { get; set; } = false;
+    public DateTime? VerifiedAt { get; set; }
+
         public virtual ICollection<UserSkill> UserSkills { get; set; } = new List<UserSkill>();
 
         public virtual ICollection<Proposal> SentProposals { get; set; } = new List<Proposal>();
@@ -59,5 +67,9 @@ namespace TalentVerse.WebAPI.Data.Entities
         public virtual ICollection<Review> ReviewsReceived { get; set; } = new List<Review>();
 
         public virtual ICollection<CreditTransaction> CreditTransactions { get; set; } = new List<CreditTransaction>();
+
+        public virtual ICollection<UserBadge> UserBadges { get; set; } = new List<UserBadge>();
+
+        public virtual ICollection<VerificationRequest> VerificationRequests { get; set; } = new List<VerificationRequest>();
     }
 }

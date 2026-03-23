@@ -12,17 +12,20 @@ public class ReviewService : IReviewService
     private readonly IReviewRepository _reviewRepository;
     private readonly IProposalRepository _proposalRepository;
     private readonly UserManager<AppUser> _userManager;
+    private readonly IBadgeService _badgeService;
     private readonly ILogger<ReviewService> _logger;
 
     public ReviewService(
         IReviewRepository reviewRepository,
         IProposalRepository proposalRepository,
         UserManager<AppUser> userManager,
+        IBadgeService badgeService,
         ILogger<ReviewService> logger)
     {
         _reviewRepository = reviewRepository;
         _proposalRepository = proposalRepository;
         _userManager = userManager;
+        _badgeService = badgeService;
         _logger = logger;
     }
 
@@ -105,6 +108,9 @@ public class ReviewService : IReviewService
             };
 
             _logger.LogInformation("User {UserId} submitted review for proposal {ProposalId}", userId, dto.ProposalId);
+
+            // Evaluate badges for the reviewer (First Review, Top Rated)
+            await _badgeService.EvaluateOnReviewSubmittedAsync(userId);
 
             return ServiceResponse<ReviewDto>.SuccessResponse(reviewDto, AppConstant.SuccessMessages.ReviewSubmitted);
         }

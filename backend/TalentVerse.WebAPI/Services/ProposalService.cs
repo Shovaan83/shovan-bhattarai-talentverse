@@ -13,17 +13,23 @@ namespace TalentVerse.WebAPI.Services
         private readonly UserManager<AppUser> _userManager;
         private readonly ILogger<ProposalService> _logger;
         private readonly IEmailQueueService _emailQueue;
+        private readonly ICreditService _creditService;
+        private readonly IBadgeService _badgeService;
 
         public ProposalService(
             IProposalRepository proposalRepo, 
             UserManager<AppUser> userManager,
             ILogger<ProposalService> logger,
-            IEmailQueueService emailQueue)
+            IEmailQueueService emailQueue,
+            ICreditService creditService,
+            IBadgeService badgeService)
         {
             _proposalRepo = proposalRepo;
             _userManager = userManager;
             _logger = logger;
             _emailQueue = emailQueue;
+            _creditService = creditService;
+            _badgeService = badgeService;
         }
 
         public async Task<ServiceResponse<ProposalDto>> CreateProposalAsync(string userId, CreateProposalDto dto)
@@ -484,6 +490,16 @@ namespace TalentVerse.WebAPI.Services
                                 updatedProposal.RecipientSkillName,
                                 updatedProposal.ProposerSkillName));
                     }
+                }
+
+                // Award swap credits (+10 each) and evaluate badges for both parties
+                if (updatedProposal?.Status == "Completed")
+                {
+                    await _creditService.AwardSwapRewardAsync(
+                        proposal.ProposerId, proposal.RecipientId, proposalId);
+
+                    await _badgeService.EvaluateOnSwapCompletedAsync(proposal.ProposerId);
+                    await _badgeService.EvaluateOnSwapCompletedAsync(proposal.RecipientId);
                 }
 
                 return ServiceResponse<ProposalDto>.SuccessResponse(updatedProposal!, message);

@@ -24,6 +24,7 @@ import { useSkills } from '@/lib/hooks/useSkills';
 import { useUserReviews, useUserReputation } from '@/lib/hooks/useReviews';
 import ReputationBadge from '@/app/components/reviews/ReputationBadge';
 import ReviewList from '@/app/components/reviews/ReviewList';
+import VerifiedBadge from '@/app/components/VerifiedBadge';
 
 interface CreateProposalModalProps {
   isOpen: boolean;
@@ -282,7 +283,10 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
             <div className="flex-1">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h2 className="text-2xl font-bold">{user.displayName}</h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-2xl font-bold">{user.displayName}</h2>
+                    {user.isVerified && <VerifiedBadge size="md" />}
+                  </div>
                   <p className="text-emerald-400">@{user.userName}</p>
                   {/* Display reputation badge */}
                   {userReputation && (

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using TalentVerse.WebAPI.Data.Entities;
 using TalentVerse.WebAPI.Data.Enums;
@@ -14,7 +14,11 @@ public class AppDbContext : IdentityDbContext<AppUser>
     public DbSet<Review> Reviews { get; set; }
     public DbSet<Appointment> Appointments { get; set; }
     public DbSet<CreditTransaction> CreditTransactions { get; set; }
+    public DbSet<Badge> Badges { get; set; }
+    public DbSet<UserBadge> UserBadges { get; set; }
     public DbSet<GoogleCalendarToken> GoogleCalendarTokens { get; set; }
+    public DbSet<VerificationRequest> VerificationRequests { get; set; }
+    public DbSet<ContentReport> ContentReports { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
@@ -93,5 +97,73 @@ public class AppDbContext : IdentityDbContext<AppUser>
         builder.Entity<GoogleCalendarToken>()
             .HasIndex(t => t.UserId)
             .IsUnique();
+
+        // Badge — no cascade delete (badge records are permanent reference data)
+        builder.Entity<UserBadge>()
+            .HasOne(ub => ub.User)
+            .WithMany(u => u.UserBadges)
+            .HasForeignKey(ub => ub.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<UserBadge>()
+            .HasOne(ub => ub.Badge)
+            .WithMany(b => b.UserBadges)
+            .HasForeignKey(ub => ub.BadgeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // A user can only earn each badge once
+        builder.Entity<UserBadge>()
+            .HasIndex(ub => new { ub.UserId, ub.BadgeId })
+            .IsUnique();
+
+        // CreditTransaction — cascade delete when user is deleted
+        builder.Entity<CreditTransaction>()
+            .HasOne(ct => ct.User)
+            .WithMany(u => u.CreditTransactions)
+            .HasForeignKey(ct => ct.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // TransactionType stored as int column
+        builder.Entity<CreditTransaction>()
+            .Property(ct => ct.Type)
+            .HasConversion<int>();
+
+        // VerificationRequest configuration
+        builder.Entity<VerificationRequest>()
+            .HasOne(vr => vr.User)
+            .WithMany(u => u.VerificationRequests)
+            .HasForeignKey(vr => vr.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<VerificationRequest>()
+            .HasOne(vr => vr.ReviewedBy)
+            .WithMany()
+            .HasForeignKey(vr => vr.ReviewedByUserId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // VerificationStatus stored as int column
+        builder.Entity<VerificationRequest>()
+            .Property(vr => vr.Status)
+            .HasConversion<int>();
+
+        // Index for faster querying by status
+        builder.Entity<VerificationRequest>()
+            .HasIndex(vr => vr.Status);
+
+        // ContentReport — reporter FK
+        builder.Entity<ContentReport>()
+            .HasOne(cr => cr.Reporter)
+            .WithMany()
+            .HasForeignKey(cr => cr.ReporterId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<ContentReport>()
+            .HasOne(cr => cr.ResolvedByAdmin)
+            .WithMany()
+            .HasForeignKey(cr => cr.ResolvedByAdminId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Entity<ContentReport>()
+            .HasIndex(cr => cr.Status);
     }
 }

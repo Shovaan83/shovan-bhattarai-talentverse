@@ -17,6 +17,8 @@ public class AuthService : IAuthService
     private readonly ITokenService _tokenService;
     private readonly ITwoFactorService _twoFactorService;
     private readonly IEmailService _emailService;
+    private readonly ICreditService _creditService;
+    private readonly IBadgeService _badgeService;
     public readonly ILogger<AuthService> _logger;
 
     private const int UsernameMinLength = 3;
@@ -46,6 +48,8 @@ public class AuthService : IAuthService
         ITokenService tokenService, 
         ITwoFactorService twoFactorService,
         IEmailService emailService,
+        ICreditService creditService,
+        IBadgeService badgeService,
         ILogger<AuthService> logger)
     {
         _userManager = userManager;
@@ -53,6 +57,8 @@ public class AuthService : IAuthService
         _tokenService = tokenService;
         _twoFactorService = twoFactorService;
         _emailService = emailService;
+        _creditService = creditService;
+        _badgeService = badgeService;
         _logger = logger;
     }
 
@@ -125,6 +131,10 @@ public class AuthService : IAuthService
                 var errors = addRoleResult.Errors.Select(e => e.Description).ToList();
                 return ServiceResponse<UserDto>.FailureResponse("User created but role assignment failed.", errors);
             }
+
+            // Award signup bonus credits and Welcome Aboard badge
+            await _creditService.AwardSignupBonusAsync(appUser.Id);
+            await _badgeService.EvaluateOnSignupAsync(appUser.Id);
 
             return ServiceResponse<UserDto>.SuccessResponse(
                 new UserDto
@@ -311,7 +321,8 @@ TalentVerse Team";
                 GitHubUrl = user.GitHubUrl,
                 LinkedInUrl = user.LinkedInUrl,
                 TwitterUrl = user.TwitterUrl,
-                WebsiteUrl = user.WebsiteUrl
+                WebsiteUrl = user.WebsiteUrl,
+                CreditBalance = user.CreditBalance
             });
         }
         catch (Exception ex)
@@ -399,7 +410,8 @@ TalentVerse Team";
                     Username = user.UserName,
                     Email = user.Email,
                     Bio = user.Bio,
-                    ProfilePictureUrl = user.ProfilePictureURL
+                    ProfilePictureUrl = user.ProfilePictureURL,
+                    CreditBalance = user.CreditBalance
                 },
                 "Profile updated successfully.");
         }

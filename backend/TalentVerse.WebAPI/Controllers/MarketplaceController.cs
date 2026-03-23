@@ -108,4 +108,21 @@ public class MarketplaceController : ControllerBase
 
         return Ok(result);
     }
+
+    /// <summary>
+    /// Get all available skill categories
+    /// </summary>
+    [HttpGet("categories")]
+    [ProducesResponseType(typeof(ServiceResponse<List<string>>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ServiceResponse<List<string>>>> GetCategories()
+    {
+        var result = await _marketplaceService.GetCategoriesAsync();
+
+        if (!result.Success)
+        {
+            return BadRequest(result);
+        }
+
+        return Ok(result);
+    }
 }

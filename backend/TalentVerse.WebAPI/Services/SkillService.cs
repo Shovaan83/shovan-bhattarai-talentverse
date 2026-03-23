@@ -7,11 +7,13 @@ namespace TalentVerse.WebAPI.Services;
 public class SkillService : ISkillService
 {
     private readonly ISkillRepository _skillRepo;
+    private readonly IBadgeService _badgeService;
     private readonly ILogger<SkillService> _logger;
 
-    public SkillService(ISkillRepository skillRepo, ILogger<SkillService> logger)
+    public SkillService(ISkillRepository skillRepo, IBadgeService badgeService, ILogger<SkillService> logger)
     {
         _skillRepo = skillRepo;
+        _badgeService = badgeService;
         _logger = logger;
     }
 
@@ -65,6 +67,14 @@ public class SkillService : ISkillService
             if (success)
             {
                 _logger.LogInformation("Skill '{SkillName}' added for user {UserId}", trimmedSkillName, userId);
+
+                // Evaluate badge milestones asynchronously — never block the response
+                _ = Task.Run(async () =>
+                {
+                    try { await _badgeService.EvaluateOnSkillAddedAsync(userId); }
+                    catch (Exception ex) { _logger.LogWarning(ex, "Badge evaluation failed after skill add for user {UserId}", userId); }
+                });
+
                 return ServiceResponse<bool>.SuccessResponse(true, "Skill added successfully.");
             }
 
