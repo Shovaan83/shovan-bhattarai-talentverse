@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using TalentVerse.WebAPI.Data.Entities;
+using TalentVerse.WebAPI.Data.Enums;
 
 namespace TalentVerse.WebAPI.Data;
 
@@ -13,6 +14,7 @@ public class AppDbContext : IdentityDbContext<AppUser>
     public DbSet<Review> Reviews { get; set; }
     public DbSet<Appointment> Appointments { get; set; }
     public DbSet<CreditTransaction> CreditTransactions { get; set; }
+    public DbSet<GoogleCalendarToken> GoogleCalendarTokens { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
@@ -68,5 +70,28 @@ public class AppDbContext : IdentityDbContext<AppUser>
             .WithMany(u => u.ReviewsReceived)
             .HasForeignKey(r => r.RevieweeId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Appointment — creator FK (Restrict so deleting a user doesn't cascade-delete appointments)
+        builder.Entity<Appointment>()
+            .HasOne(a => a.CreatedByUser)
+            .WithMany()
+            .HasForeignKey(a => a.CreatedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // AppointmentStatus stored as int column
+        builder.Entity<Appointment>()
+            .Property(a => a.Status)
+            .HasConversion<int>();
+
+        // GoogleCalendarToken — one token record per user
+        builder.Entity<GoogleCalendarToken>()
+            .HasOne(t => t.User)
+            .WithMany()
+            .HasForeignKey(t => t.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<GoogleCalendarToken>()
+            .HasIndex(t => t.UserId)
+            .IsUnique();
     }
 }

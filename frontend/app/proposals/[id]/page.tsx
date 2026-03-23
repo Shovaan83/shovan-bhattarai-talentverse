@@ -25,6 +25,10 @@ import {
 } from "@/lib/hooks/useProposals";
 import { useAuth } from "@/lib/hooks/useAuth";
 import ChatPanel from "@/app/proposals/[id]/components/ChatPanel";
+import ConnectGoogleCalendar from "@/app/proposals/[id]/components/ConnectGoogleCalendar";
+import ScheduleMeetingModal from "@/app/proposals/[id]/components/ScheduleMeetingModal";
+import AppointmentsList from "@/app/proposals/[id]/components/AppointmentsList";
+import { useGoogleCalendarStatus } from "@/lib/hooks/useAppointments";
 import type { ProposalStatus } from "@/lib/types/proposals";
 
 const statusConfig: Record<
@@ -74,9 +78,11 @@ export default function ProposalDetailPage() {
   const proposalId = Number(params.id);
   const [isActioning, setIsActioning] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isScheduleOpen, setIsScheduleOpen] = useState(false);
 
   const { user: currentUser } = useAuth();
   const { data: proposal, isLoading, isError } = useProposal(proposalId);
+  const { data: calendarStatus } = useGoogleCalendarStatus();
 
   const acceptMutation = useAcceptProposal();
   const declineMutation = useDeclineProposal();
@@ -370,6 +376,18 @@ export default function ProposalDetailPage() {
                 </p>
               </div>
             )}
+
+            {/* Scheduled Meetings */}
+            {(proposal.status === "Accepted" || proposal.status === "Completed") && (
+              <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-100">
+                  <h3 className="font-heading font-bold text-lg text-gray-900">Scheduled Meetings</h3>
+                </div>
+                <div className="p-6">
+                  <AppointmentsList proposalId={proposalId} />
+                </div>
+              </div>
+            )}
           </motion.div>
 
           {/* Right Column - Actions */}
@@ -499,6 +517,16 @@ export default function ProposalDetailPage() {
               />
             )}
 
+            {/* Google Calendar - only show for accepted proposals */}
+            {proposal.status === "Accepted" && (
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20">
+                <h3 className="font-heading font-bold text-sm text-white mb-3">
+                  Google Calendar
+                </h3>
+                <ConnectGoogleCalendar />
+              </div>
+            )}
+
             {/* Quick Actions */}
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
               <h3 className="font-heading font-bold text-lg text-white mb-4">
@@ -523,18 +551,39 @@ export default function ProposalDetailPage() {
                     Chat (Accept first)
                   </button>
                 )}
-                <button
-                  disabled
-                  className="w-full flex items-center gap-3 px-4 py-3 bg-white/10 text-white/50 rounded-xl cursor-not-allowed"
-                >
-                  <Calendar size={20} />
-                  Schedule Meeting
-                </button>
+                {proposal.status === "Accepted" ? (
+                  <button
+                    onClick={() => setIsScheduleOpen(true)}
+                    disabled={!calendarStatus?.isConnected || calendarStatus?.isRevoked}
+                    title={!calendarStatus?.isConnected ? "Connect Google Calendar first" : undefined}
+                    className="w-full flex items-center gap-3 px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Calendar size={20} />
+                    Schedule Meeting
+                  </button>
+                ) : (
+                  <button
+                    disabled
+                    className="w-full flex items-center gap-3 px-4 py-3 bg-white/10 text-white/50 rounded-xl cursor-not-allowed"
+                    title="Schedule a meeting once the proposal is accepted"
+                  >
+                    <Calendar size={20} />
+                    Schedule Meeting
+                  </button>
+                )}
               </div>
             </div>
           </motion.div>
         </div>
       </div>
+
+      {/* Schedule Meeting Modal */}
+      {isScheduleOpen && (
+        <ScheduleMeetingModal
+          proposalId={proposalId}
+          onClose={() => setIsScheduleOpen(false)}
+        />
+      )}
     </div>
   );
 }

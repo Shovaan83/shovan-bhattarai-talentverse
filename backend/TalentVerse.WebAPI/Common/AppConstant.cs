@@ -30,6 +30,12 @@
         public const string MessagesFetched = "Messages fetched successfully.";
         public const string MessagesMarkedRead = "Messages marked as read.";
         public const string ConversationsFetched = "Conversations fetched successfully.";
+
+        public const string AppointmentScheduled = "Appointment scheduled successfully.";
+        public const string AppointmentCancelled = "Appointment cancelled successfully.";
+        public const string AppointmentRescheduled = "Appointment rescheduled successfully.";
+        public const string GoogleCalendarConnected = "Google Calendar connected successfully.";
+        public const string GoogleCalendarDisconnected = "Google Calendar disconnected.";
         }
 
         public static class ErrorMessages
@@ -68,6 +74,17 @@
             public const string MessageEmpty = "Message content cannot be empty.";
             public const string MessageTooLong = "Message content cannot exceed 2000 characters.";
             public const string ChatNotAvailable = "Chat is only available for accepted or completed proposals.";
+
+            // Appointment error messages
+            public const string AppointmentNotFound = "Appointment not found.";
+            public const string GoogleCalendarNotConnected = "Please connect your Google Calendar first to schedule a meeting.";
+            public const string GoogleCalendarRevoked = "Your Google Calendar access has been revoked. Please reconnect your calendar.";
+            public const string GoogleCalendarError = "Failed to create the Google Calendar event. Please try again.";
+            public const string InvalidMeetingTime = "Meeting time must be at least 15 minutes in the future.";
+            public const string InvalidDuration = "Duration must be 30, 60, 90, or 120 minutes.";
+            public const string AppointmentAlreadyCancelled = "This appointment has already been cancelled.";
+            public const string ProposalNotAccepted = "Appointments can only be scheduled for accepted proposals.";
+            public const string UnauthorizedAppointmentAction = "You are not authorized to perform this action on this appointment.";
         }
     }
 }
