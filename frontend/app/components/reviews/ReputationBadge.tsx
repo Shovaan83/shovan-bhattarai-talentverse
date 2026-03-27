@@ -21,7 +21,7 @@ export default function ReputationBadge({
   if (!hasMinimumReviews) {
     return (
       <div className="flex items-center gap-1.5">
-        <span className="text-sm text-gray-500 font-medium">New Member</span>
+        <span className="text-sm text-zinc-500 font-medium">New Member</span>
       </div>
     );
   }
@@ -42,12 +42,12 @@ export default function ReputationBadge({
     <div className={`flex items-center gap-1.5 ${sizeClasses[size]}`}>
       <div className="flex items-center gap-0.5">
         <Star className={`${starSizes[size]} fill-yellow-400 text-yellow-400`} />
-        <span className="font-semibold text-gray-900">
+        <span className="font-semibold text-zinc-900">
           {averageRating.toFixed(1)}
         </span>
       </div>
       {showCount && (
-        <span className="text-gray-500">({totalReviews} reviews)</span>
+        <span className="text-zinc-500">({totalReviews} reviews)</span>
       )}
     </div>
   );

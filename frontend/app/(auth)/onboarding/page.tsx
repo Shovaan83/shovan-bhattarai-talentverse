@@ -82,17 +82,19 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-orange-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-8">
+    <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl border border-zinc-200 p-8">
         {/* Progress indicator */}
         <div className="flex items-center justify-between mb-8">
           {[1, 2, 3].map((s) => (
             <div key={s} className="flex items-center flex-1">
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-                  s <= step
-                    ? "bg-emerald-500 text-white"
-                    : "bg-gray-200 text-gray-500"
+                  s < step
+                    ? "bg-[#1D9E75] text-white"
+                    : s === step
+                    ? "bg-zinc-900 text-white"
+                    : "bg-zinc-200 text-zinc-500"
                 }`}
               >
                 {s < step ? <Check className="w-5 h-5" /> : s}
@@ -100,7 +102,7 @@ export default function OnboardingPage() {
               {s < 3 && (
                 <div
                   className={`flex-1 h-1 mx-2 ${
-                    s < step ? "bg-emerald-500" : "bg-gray-200"
+                    s < step ? "bg-[#1D9E75]" : "bg-zinc-200"
                   }`}
                 />
               )}
@@ -112,8 +114,8 @@ export default function OnboardingPage() {
         {step === 1 && (
           <div className="space-y-6">
             <div className="text-center">
-              <Upload className="w-12 h-12 text-emerald-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              <Upload className="w-12 h-12 text-[#1D9E75] mx-auto mb-4" />
+              <h2 className="text-2xl font-display font-bold text-zinc-900 mb-2">
                 Add Your Profile Picture
               </h2>
               <p className="text-gray-600">
@@ -127,11 +129,11 @@ export default function OnboardingPage() {
                   <img
                     src={imagePreview}
                     alt="Profile preview"
-                    className="w-40 h-40 rounded-full object-cover border-4 border-emerald-500"
+                    className="w-40 h-40 rounded-full object-cover border-4 border-[#1D9E75]"
                   />
                   <label
                     htmlFor="image-upload"
-                    className="absolute bottom-0 right-0 bg-emerald-500 text-white p-2 rounded-full cursor-pointer hover:bg-emerald-600 transition"
+                    className="absolute bottom-0 right-0 bg-[#1D9E75] text-white p-2 rounded-full cursor-pointer hover:bg-[#178a65] transition"
                   >
                     <Upload className="w-5 h-5" />
                     <input
@@ -146,7 +148,7 @@ export default function OnboardingPage() {
               ) : (
                 <label
                   htmlFor="image-upload"
-                  className="w-40 h-40 rounded-full border-4 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-emerald-500 transition"
+                  className="w-40 h-40 rounded-full border-4 border-dashed border-zinc-200 flex items-center justify-center cursor-pointer hover:border-[#1D9E75] transition"
                 >
                   <Upload className="w-10 h-10 text-gray-400" />
                   <input
@@ -175,14 +177,14 @@ export default function OnboardingPage() {
             <div className="flex gap-3">
               <button
                 onClick={handleSkip}
-                className="flex-1 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
+                className="flex-1 px-6 py-3 bg-zinc-100 rounded-lg text-zinc-700 hover:bg-zinc-200 transition"
               >
                 Skip for now
               </button>
               <button
                 onClick={() => setStep(2)}
                 disabled={!profilePictureUrl}
-                className="flex-1 px-6 py-3 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-6 py-3 bg-[#1D9E75] text-white rounded-lg hover:bg-[#178a65] transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
               </button>
@@ -194,8 +196,8 @@ export default function OnboardingPage() {
         {step === 2 && (
           <div className="space-y-6">
             <div className="text-center">
-              <MapPin className="w-12 h-12 text-emerald-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              <MapPin className="w-12 h-12 text-[#1D9E75] mx-auto mb-4" />
+              <h2 className="text-2xl font-display font-bold text-zinc-900 mb-2">
                 Tell us about yourself
               </h2>
               <p className="text-gray-600">
@@ -212,7 +214,7 @@ export default function OnboardingPage() {
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   placeholder="Tell us about your skills, interests, or what you're looking to learn..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white border border-zinc-200 rounded-lg focus:border-[#1D9E75] focus:ring-2 focus:ring-[#1D9E75]/10 focus:outline-none transition"
                   rows={4}
                   maxLength={500}
                 />
@@ -228,7 +230,7 @@ export default function OnboardingPage() {
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   placeholder="e.g., San Francisco, CA"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white border border-zinc-200 rounded-lg focus:border-[#1D9E75] focus:ring-2 focus:ring-[#1D9E75]/10 focus:outline-none transition"
                   maxLength={200}
                 />
               </div>
@@ -237,14 +239,14 @@ export default function OnboardingPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => setStep(1)}
-                className="flex-1 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
+                className="flex-1 px-6 py-3 bg-zinc-100 rounded-lg text-zinc-700 hover:bg-zinc-200 transition"
               >
                 Back
               </button>
               <button
                 onClick={() => setStep(3)}
                 disabled={!location.trim()}
-                className="flex-1 px-6 py-3 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-6 py-3 bg-[#1D9E75] text-white rounded-lg hover:bg-[#178a65] transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
               </button>
@@ -256,8 +258,8 @@ export default function OnboardingPage() {
         {step === 3 && (
           <div className="space-y-6">
             <div className="text-center">
-              <LinkIcon className="w-12 h-12 text-emerald-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              <LinkIcon className="w-12 h-12 text-[#1D9E75] mx-auto mb-4" />
+              <h2 className="text-2xl font-display font-bold text-zinc-900 mb-2">
                 Connect Your Profiles
               </h2>
               <p className="text-gray-600">
@@ -277,7 +279,7 @@ export default function OnboardingPage() {
                     setSocialLinks({ ...socialLinks, gitHubUrl: e.target.value })
                   }
                   placeholder="https://github.com/username"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white border border-zinc-200 rounded-lg focus:border-[#1D9E75] focus:ring-2 focus:ring-[#1D9E75]/10 focus:outline-none transition"
                 />
               </div>
 
@@ -292,7 +294,7 @@ export default function OnboardingPage() {
                     setSocialLinks({ ...socialLinks, linkedInUrl: e.target.value })
                   }
                   placeholder="https://linkedin.com/in/username"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white border border-zinc-200 rounded-lg focus:border-[#1D9E75] focus:ring-2 focus:ring-[#1D9E75]/10 focus:outline-none transition"
                 />
               </div>
 
@@ -307,7 +309,7 @@ export default function OnboardingPage() {
                     setSocialLinks({ ...socialLinks, twitterUrl: e.target.value })
                   }
                   placeholder="https://twitter.com/username"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white border border-zinc-200 rounded-lg focus:border-[#1D9E75] focus:ring-2 focus:ring-[#1D9E75]/10 focus:outline-none transition"
                 />
               </div>
 
@@ -322,7 +324,7 @@ export default function OnboardingPage() {
                     setSocialLinks({ ...socialLinks, websiteUrl: e.target.value })
                   }
                   placeholder="https://yourwebsite.com"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white border border-zinc-200 rounded-lg focus:border-[#1D9E75] focus:ring-2 focus:ring-[#1D9E75]/10 focus:outline-none transition"
                 />
               </div>
             </div>
@@ -330,14 +332,14 @@ export default function OnboardingPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => setStep(2)}
-                className="flex-1 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
+                className="flex-1 px-6 py-3 bg-zinc-100 rounded-lg text-zinc-700 hover:bg-zinc-200 transition"
               >
                 Back
               </button>
               <button
                 onClick={handleComplete}
                 disabled={completeOnboardingMutation.isPending}
-                className="flex-1 px-6 py-3 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition disabled:opacity-50"
+                className="flex-1 px-6 py-3 bg-[#1D9E75] text-white rounded-lg hover:bg-[#178a65] transition disabled:opacity-50"
               >
                 {completeOnboardingMutation.isPending
                   ? "Saving..."

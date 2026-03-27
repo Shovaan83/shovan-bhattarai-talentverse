@@ -95,7 +95,7 @@ export default function AdminDashboardPage() {
                 <kpi.icon className="w-4 h-4" />
               </div>
             </div>
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-2xl font-display font-bold text-zinc-900">
               {kpi.value.toLocaleString()}
             </p>
             <p className="text-xs text-gray-500 mt-0.5">{kpi.label}</p>
@@ -106,8 +106,8 @@ export default function AdminDashboardPage() {
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* User Growth Line Chart */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="bg-white rounded-xl border border-zinc-200 p-6 shadow-sm">
+          <h3 className="text-lg font-display font-semibold text-zinc-900 mb-4">
             User Growth (Last 12 Months)
           </h3>
           {data.userGrowth.length > 0 ? (
@@ -118,8 +118,8 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Proposal Distribution Donut */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="bg-white rounded-xl border border-zinc-200 p-6 shadow-sm">
+          <h3 className="text-lg font-display font-semibold text-zinc-900 mb-4">
             Proposal Status Distribution
           </h3>
           <DonutChart data={data.proposalStats} />
@@ -127,8 +127,8 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Top Skills Bar Chart */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white rounded-xl border border-zinc-200 p-6 shadow-sm">
+        <h3 className="text-lg font-display font-semibold text-zinc-900 mb-4">
           Top 10 Skills by User Count
         </h3>
         {data.topSkills.length > 0 ? (

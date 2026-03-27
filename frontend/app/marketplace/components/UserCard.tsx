@@ -21,10 +21,10 @@ export function UserCard({ user, index }: UserCardProps) {
       transition={{ delay: index * 0.05 }}
     >
       <Link href={`/users/${user.id}`}>
-        <div className="bg-gradient-to-br from-emerald-900/40 to-emerald-900/20 rounded-3xl p-6 border border-emerald-800/50 hover:border-emerald-600/50 transition-all hover:shadow-lg hover:shadow-emerald-900/20 group cursor-pointer">
+        <div className="bg-gradient-to-br from-zinc-800/40 to-zinc-900/20 rounded-3xl p-6 border border-zinc-700/50 hover:border-[#1D9E75]/50 transition-all hover:shadow-lg hover:shadow-zinc-900/20 group cursor-pointer">
           {/* User Header */}
           <div className="flex items-start gap-4 mb-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-800 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#1D9E75] to-[#0F6E56] flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
               {user.profilePictureUrl ? (
                 <img
                   src={user.profilePictureUrl}
@@ -32,14 +32,14 @@ export function UserCard({ user, index }: UserCardProps) {
                   className="w-full h-full rounded-2xl object-cover"
                 />
               ) : (
-                <User className="w-7 h-7 text-emerald-200" />
+                <User className="w-7 h-7 text-zinc-200" />
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-lg truncate group-hover:text-emerald-300 transition-colors">
+              <h3 className="font-semibold text-lg truncate group-hover:text-[#5DCAA5] transition-colors">
                 {user.displayName}
               </h3>
-              <p className="text-emerald-400 text-sm truncate">@{user.userName}</p>
+              <p className="text-zinc-400 text-sm truncate">@{user.userName}</p>
             </div>
             {user.averageRating && (
               <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-yellow-900/30 border border-yellow-800/50">

@@ -42,18 +42,21 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#FAFAFA]">
       {/* Header */}
-      <div className="border-b bg-white shadow-sm">
+      <div className="border-b border-zinc-200 bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-indigo-50 rounded-lg">
-              <Shield className="w-6 h-6 text-indigo-600" />
+            <div className="p-2 bg-zinc-100 rounded-lg">
+              <Shield className="w-6 h-6 text-zinc-700" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
-              <p className="text-sm text-gray-600">Platform Management</p>
+              <h1 className="text-2xl font-display font-bold text-zinc-900">Admin Panel</h1>
+              <p className="text-sm text-zinc-600">Platform Management</p>
             </div>
+            <span className="ml-2 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold bg-zinc-900 text-white">
+              ADMIN
+            </span>
           </div>
         </div>
       </div>
@@ -62,7 +65,7 @@ export default function AdminLayout({
         <div className="flex flex-col md:flex-row gap-6">
           {/* Sidebar Nav */}
           <aside className="w-full md:w-56 shrink-0">
-            <nav className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <nav className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
               {NAV_ITEMS.map((item) => {
                 const isActive =
                   item.href === "/admin"
@@ -75,8 +78,8 @@ export default function AdminLayout({
                     href={item.href}
                     className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors border-l-[3px] ${
                       isActive
-                        ? "bg-indigo-50 text-indigo-700 border-indigo-600"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 border-transparent"
+                        ? "bg-zinc-100 text-zinc-900 border-zinc-900"
+                        : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 border-transparent"
                     }`}
                   >
                     <item.icon className="w-4.5 h-4.5" />

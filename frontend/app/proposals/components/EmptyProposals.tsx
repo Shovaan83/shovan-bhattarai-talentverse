@@ -37,8 +37,8 @@ export function EmptyProposals({
       animate={{ opacity: 1, y: 0 }}
       className="bg-white rounded-3xl p-12 shadow-lg shadow-black/5 border border-gray-100 text-center"
     >
-      <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-200 flex items-center justify-center">
-        <ArrowRightLeft className="w-10 h-10 text-emerald-600" />
+      <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#E1F5EE] to-[#CECBF6] flex items-center justify-center">
+        <ArrowRightLeft className="w-10 h-10 text-[#1D9E75]" />
       </div>
       <h3 className="text-xl font-heading font-bold text-gray-900 mb-2">
         {title}
@@ -47,7 +47,7 @@ export function EmptyProposals({
       {onCreateProposal && (
         <button
           onClick={onCreateProposal}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-colors shadow-lg shadow-emerald-500/30"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-[#1D9E75] hover:bg-[#0F6E56] text-white font-semibold rounded-xl transition-colors shadow-lg shadow-[#1D9E75]/30"
         >
           <Plus size={20} />
           Browse Skills

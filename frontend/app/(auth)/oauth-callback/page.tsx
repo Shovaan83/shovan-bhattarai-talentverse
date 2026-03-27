@@ -7,11 +7,11 @@ import { Loader2, AlertCircle } from 'lucide-react';
 // Loading fallback component
 function LoadingFallback() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="bg-white p-8 rounded-xl shadow-md max-w-md w-full">
+    <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-4">
+      <div className="bg-white p-8 rounded-xl shadow-md border border-zinc-200 max-w-md w-full">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-emerald-600 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Loading</h2>
+          <Loader2 className="w-12 h-12 animate-spin text-[#1D9E75] mx-auto mb-4" />
+          <h2 className="text-2xl font-display font-bold text-zinc-900 mb-2">Loading</h2>
           <p className="text-gray-600">Please wait...</p>
         </div>
       </div>
@@ -63,11 +63,11 @@ function OAuthCallbackContent() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="bg-white p-8 rounded-xl shadow-md max-w-md w-full">
+      <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-4">
+        <div className="bg-white p-8 rounded-xl shadow-md border border-zinc-200 max-w-md w-full">
           <div className="text-center">
             <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Authentication Failed</h2>
+            <h2 className="text-2xl font-display font-bold text-zinc-900 mb-2">Authentication Failed</h2>
             <p className="text-gray-600 mb-4">{error}</p>
             <p className="text-sm text-gray-500">Redirecting to login...</p>
           </div>
@@ -77,11 +77,11 @@ function OAuthCallbackContent() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="bg-white p-8 rounded-xl shadow-md max-w-md w-full">
+    <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-4">
+      <div className="bg-white p-8 rounded-xl shadow-md border border-zinc-200 max-w-md w-full">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-emerald-600 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Completing Sign In</h2>
+          <Loader2 className="w-12 h-12 animate-spin text-[#1D9E75] mx-auto mb-4" />
+          <h2 className="text-2xl font-display font-bold text-zinc-900 mb-2">Completing Sign In</h2>
           <p className="text-gray-600">Please wait while we finish setting up your account...</p>
         </div>
       </div>

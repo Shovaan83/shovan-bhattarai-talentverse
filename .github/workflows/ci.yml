@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - name: Restore
+        run: dotnet restore backend/TalentVerse.sln
+      - name: Build
+        run: dotnet build backend/TalentVerse.sln --no-restore -c Release
+      - name: Test
+        run: dotnet test backend/TalentVerse.sln --no-build -c Release
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install
+        run: cd frontend && npm ci
+      - name: Build
+        run: cd frontend && npm run build
+        env:
+          NEXT_PUBLIC_API_URL: https://api.yourdomain.com/api
+          NEXT_PUBLIC_SIGNALR_URL: https://api.yourdomain.com

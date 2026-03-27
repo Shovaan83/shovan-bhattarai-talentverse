@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Users, TrendingUp, Sparkles, ArrowLeft } from 'lucide-react';
+import { Search, Users, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchUsers, useFeaturedUsers, useBrowseSkills } from '@/lib/hooks/useMarketplace';
 import { UserCard as NewUserCard, UserCardSkeleton } from '@/app/components/marketplace/UserCard';
@@ -32,27 +32,27 @@ export default function MarketplacePage() {
   const isLoading = isShowingSearchResults ? isSearching : isFeaturedLoading;
 
   return (
-    <div className="min-h-screen bg-emerald-950 text-white">
+    <div className="min-h-screen bg-[#FAFAFA] text-zinc-900">
       {/* Header */}
-      <div className="border-b border-emerald-900/50 bg-emerald-950/80 backdrop-blur-sm sticky top-0 z-10">
+      <div className="border-b border-zinc-200 bg-white/95 backdrop-blur-sm sticky top-16 z-10">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link 
-                href="/profile" 
-                className="p-2 rounded-xl bg-emerald-900/50 hover:bg-emerald-900 transition-colors"
+              <Link
+                href="/profile"
+                className="p-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-600 transition-colors"
               >
                 <ArrowLeft className="w-5 h-5" />
               </Link>
               <div>
-                <h1 className="text-2xl font-bold">Skill Marketplace</h1>
-                <p className="text-emerald-400 text-sm">Discover talents, create connections</p>
+                <h1 className="text-2xl font-display font-bold text-zinc-900">Skill Marketplace</h1>
+                <p className="text-zinc-500 text-sm">Discover talents, create connections</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <Link
                 href="/proposals"
-                className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 transition-colors flex items-center gap-2"
+                className="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white transition-colors flex items-center gap-2 text-sm font-medium"
               >
                 <Users className="w-4 h-4" />
                 My Proposals
@@ -67,52 +67,22 @@ export default function MarketplacePage() {
         <SearchFilters onSearch={handleSearch} currentParams={searchParams} />
 
         {/* Stats Strip */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"
-        >
-          <div className="bg-emerald-900/30 rounded-2xl p-4 border border-emerald-800/50">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-emerald-800/50">
-                <Users className="w-5 h-5 text-emerald-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{searchResults?.totalCount || featuredUsers?.length || 0}</p>
-                <p className="text-emerald-400 text-sm">
-                  {isShowingSearchResults ? 'Results Found' : 'Active Users'}
-                </p>
-              </div>
-            </div>
+        <div className="flex items-center gap-8 py-4 mb-8">
+          <div>
+            <p className="text-2xl font-semibold text-zinc-900">{searchResults?.totalCount || featuredUsers?.length || 0}</p>
+            <p className="text-xs text-zinc-500 uppercase tracking-wide">{isShowingSearchResults ? 'Results' : 'Active Users'}</p>
           </div>
-
-          <div className="bg-orange-900/30 rounded-2xl p-4 border border-orange-800/50">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-orange-800/50">
-                <TrendingUp className="w-5 h-5 text-orange-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{popularSkills?.length || 0}</p>
-                <p className="text-orange-400 text-sm">Skills Available</p>
-              </div>
-            </div>
+          <div className="w-px h-8 bg-zinc-200" />
+          <div>
+            <p className="text-2xl font-semibold text-zinc-900">{popularSkills?.length || 0}</p>
+            <p className="text-xs text-zinc-500 uppercase tracking-wide">Skills Available</p>
           </div>
-
-          <div className="bg-purple-900/30 rounded-2xl p-4 border border-purple-800/50">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-purple-800/50">
-                <Sparkles className="w-5 h-5 text-purple-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {popularSkills?.[0]?.skillName || 'N/A'}
-                </p>
-                <p className="text-purple-400 text-sm">Most Popular Skill</p>
-              </div>
-            </div>
+          <div className="w-px h-8 bg-zinc-200" />
+          <div>
+            <p className="text-2xl font-semibold text-zinc-900">{popularSkills?.[0]?.skillName || 'N/A'}</p>
+            <p className="text-xs text-zinc-500 uppercase tracking-wide">Most Popular</p>
           </div>
-        </motion.div>
+        </div>
 
         {/* Popular Skills Quick Filters */}
         {popularSkills && popularSkills.length > 0 && (
@@ -122,7 +92,7 @@ export default function MarketplacePage() {
             transition={{ delay: 0.2 }}
             className="mb-8"
           >
-            <h3 className="text-sm font-medium text-emerald-400 mb-3">Popular Skills</h3>
+            <h3 className="text-sm font-medium text-zinc-600 mb-3">Popular Skills</h3>
             <div className="flex flex-wrap gap-2">
               {popularSkills.slice(0, 8).map((skill) => (
                 <button
@@ -130,12 +100,12 @@ export default function MarketplacePage() {
                   onClick={() => handleSearch({ skillName: skill.skillName, skillType: 'Offered' })}
                   className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
                     searchParams.skillName === skill.skillName
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-emerald-900/50 text-emerald-300 hover:bg-emerald-900'
+                      ? 'bg-[#1D9E75] text-white'
+                      : 'bg-white text-zinc-900 hover:bg-zinc-100 border border-zinc-200'
                   }`}
                 >
                   {skill.skillName}
-                  <span className="ml-1.5 text-emerald-500">({skill.userCount})</span>
+                  <span className="ml-1.5 text-[#1D9E75]">({skill.userCount})</span>
                 </button>
               ))}
             </div>
@@ -144,12 +114,12 @@ export default function MarketplacePage() {
 
         {/* Section Title */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold">
+          <h2 className="text-xl font-display font-semibold text-zinc-900">
             {isShowingSearchResults ? (
               <>
                 Search Results
                 {searchResults && (
-                  <span className="text-emerald-400 text-base font-normal ml-2">
+                  <span className="text-zinc-500 text-base font-normal ml-2">
                     ({searchResults.totalCount} users)
                   </span>
                 )}
@@ -161,7 +131,7 @@ export default function MarketplacePage() {
           {isShowingSearchResults && (
             <button
               onClick={() => setSearchParams({ page: 1, pageSize: 12 })}
-              className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
+              className="text-sm text-zinc-500 hover:text-zinc-900 transition-colors"
             >
               Clear filters
             </button>
@@ -170,7 +140,7 @@ export default function MarketplacePage() {
 
         {/* Users Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center">
+          <div className="bg-white border border-zinc-200 rounded-xl divide-y divide-zinc-100">
             {[...Array(6)].map((_, i) => (
               <UserCardSkeleton key={i} />
             ))}
@@ -180,7 +150,7 @@ export default function MarketplacePage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center"
+            className="bg-white border border-zinc-200 rounded-xl divide-y divide-zinc-100"
           >
             {users.map((user) => (
               <NewUserCard key={user.id} user={user} />
@@ -192,11 +162,11 @@ export default function MarketplacePage() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center py-16"
           >
-            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-emerald-900/30 flex items-center justify-center">
-              <Search className="w-10 h-10 text-emerald-600" />
+            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-zinc-100 flex items-center justify-center">
+              <Search className="w-10 h-10 text-zinc-400" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">No users found</h3>
-            <p className="text-emerald-400 max-w-md mx-auto">
+            <h3 className="text-xl font-display font-semibold text-zinc-900 mb-2">No users found</h3>
+            <p className="text-gray-500 max-w-md mx-auto">
               {isShowingSearchResults
                 ? 'Try adjusting your search criteria or browse popular skills above.'
                 : 'Be the first to add skills and appear in the marketplace!'}
@@ -217,8 +187,8 @@ export default function MarketplacePage() {
                 onClick={() => handlePageChange(i + 1)}
                 className={`w-10 h-10 rounded-xl transition-colors ${
                   searchParams.page === i + 1
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-emerald-900/50 text-emerald-300 hover:bg-emerald-900'
+                    ? 'bg-[#1D9E75] text-white'
+                    : 'bg-white text-zinc-900 hover:bg-zinc-100 border border-zinc-200'
                 }`}
               >
                 {i + 1}

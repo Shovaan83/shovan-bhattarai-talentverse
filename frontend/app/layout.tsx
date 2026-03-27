@@ -1,19 +1,20 @@
 import type { Metadata } from "next";
-import { Poppins, Inter } from "next/font/google";
+import { Sora, DM_Sans } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/lib/providers";
 import { GlobalEnforcement } from "./components/GlobalEnforcement";
 import { GlobalNavbar } from "./components/GlobalNavbar";
 
-const poppins = Poppins({
-  variable: "--font-heading",
+const sora = Sora({
+  variable: "--font-display",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
 });
 
-const inter = Inter({
-  variable: "--font-sans",
+const dmSans = DM_Sans({
+  variable: "--font-body",
   subsets: ["latin"],
+  weight: ["400", "500"],
 });
 
 export const metadata: Metadata = {
@@ -28,9 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${poppins.variable} ${inter.variable} antialiased`}
-      >
+      <body className={`${sora.variable} ${dmSans.variable} bg-[#FAFAFA] antialiased`}>
         <Providers>
           <GlobalEnforcement />
           <GlobalNavbar />

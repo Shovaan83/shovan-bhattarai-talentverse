@@ -142,34 +142,29 @@ export default function ProposalsPage() {
   };
 
   return (
-    <div className="relative min-h-screen p-4 md:p-8 bg-emerald-950 text-white overflow-hidden selection:bg-emerald-200 selection:text-emerald-950">
-      {/* Background decorations */}
-      <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-emerald-900/50 to-transparent pointer-events-none" />
-      <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-emerald-800/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
-
+    <div className="relative min-h-screen p-4 md:p-8 bg-[#FAFAFA] text-zinc-900 overflow-hidden">
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
         <header className="mb-8">
           <div className="flex items-center gap-4 mb-2">
             <button
               onClick={() => router.push("/profile")}
-              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors"
+              className="p-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-600 transition-colors"
             >
               <ArrowLeft size={20} />
             </button>
             <div className="flex-1">
-              <h1 className="text-3xl font-heading font-bold text-white">
+              <h1 className="text-3xl font-display font-bold text-zinc-900">
                 My Proposals
               </h1>
-              <p className="text-emerald-200/80 font-sans">
+              <p className="text-zinc-500 font-body">
                 Manage your skill swap proposals
               </p>
             </div>
             <button
               onClick={() => refetch()}
               disabled={isFetching}
-              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-50"
+              className="p-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-600 transition-colors disabled:opacity-50"
             >
               <RefreshCw
                 size={20}
@@ -206,7 +201,7 @@ export default function ProposalsPage() {
         {/* Content */}
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-500 rounded-full animate-spin" />
+            <div className="w-12 h-12 border-4 border-zinc-200 border-t-[#1D9E75] rounded-full animate-spin" />
           </div>
         ) : isError ? (
           <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
@@ -230,7 +225,7 @@ export default function ProposalsPage() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
+            className="bg-white border border-zinc-200 rounded-xl divide-y divide-zinc-100"
           >
             {data.proposals.map((proposal) => (
               <ProposalCard
@@ -250,7 +245,7 @@ export default function ProposalsPage() {
 
         {/* Pagination info */}
         {data && data.totalPages > 1 && (
-          <div className="mt-8 text-center text-emerald-200/60 text-sm">
+          <div className="mt-8 text-center text-zinc-500 text-sm">
             Showing {data.proposals.length} of {data.totalCount} proposals
           </div>
         )}

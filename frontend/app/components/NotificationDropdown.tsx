@@ -2,33 +2,30 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, ArrowRightLeft, Clock, User as UserIcon } from 'lucide-react';
+import { Bell, ArrowRightLeft, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { proposalsApi } from '@/lib/api/proposals';
 
 interface NotificationDropdownProps {
   count: number;
-  isScrolled?: boolean;
 }
 
-export function NotificationDropdown({ count, isScrolled = true }: NotificationDropdownProps) {
+export function NotificationDropdown({ count }: NotificationDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Fetch recent pending proposals
   const { data: proposalsData } = useQuery({
     queryKey: ['proposals', 'notifications', 'recent'],
     queryFn: () => proposalsApi.getProposals({
       direction: 'received',
       status: 'Pending',
       page: 1,
-      pageSize: 5, // Show max 5 recent
+      pageSize: 5,
     }),
-    enabled: isOpen, // Only fetch when dropdown is open
+    enabled: isOpen,
   });
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -61,15 +58,11 @@ export function NotificationDropdown({ count, isScrolled = true }: NotificationD
       {/* Bell Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`relative p-2 rounded-lg transition-colors ${
-          isScrolled ? 'hover:bg-gray-100' : 'hover:bg-white/10'
-        }`}
+        className="relative p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
       >
-        <Bell className={`w-5 h-5 transition-colors ${
-          isScrolled ? 'text-gray-700' : 'text-white'
-        }`} />
+        <Bell className="w-5 h-5" />
         {count > 0 && (
-          <span className="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+          <span className="absolute top-0 right-0 w-5 h-5 bg-[#1D9E75] text-white text-xs font-bold rounded-full flex items-center justify-center">
             {count > 9 ? '9+' : count}
           </span>
         )}
@@ -83,11 +76,11 @@ export function NotificationDropdown({ count, isScrolled = true }: NotificationD
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-100 z-50"
+            className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-zinc-200 z-50"
           >
             {/* Header */}
-            <div className="px-4 py-3 border-b border-gray-100">
-              <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
+            <div className="px-4 py-3 border-b border-zinc-200">
+              <h3 className="text-sm font-display font-semibold text-zinc-900">Notifications</h3>
               <p className="text-xs text-gray-500 mt-0.5">
                 {count === 0 ? 'No new notifications' : `${count} pending proposal${count === 1 ? '' : 's'}`}
               </p>
@@ -102,16 +95,16 @@ export function NotificationDropdown({ count, isScrolled = true }: NotificationD
                     href={`/proposals/${proposal.proposalId}`}
                     onClick={() => setIsOpen(false)}
                   >
-                    <div className="px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50 cursor-pointer">
+                    <div className="px-4 py-3 hover:bg-zinc-50 transition-colors border-b border-zinc-100 cursor-pointer">
                       <div className="flex items-start gap-3">
                         {/* Icon */}
-                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                          <ArrowRightLeft className="w-5 h-5 text-blue-600" />
+                        <div className="w-10 h-10 rounded-full bg-[#E1F5EE] flex items-center justify-center shrink-0">
+                          <ArrowRightLeft className="w-5 h-5 text-[#1D9E75]" />
                         </div>
-                        
+
                         {/* Content */}
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
+                          <p className="text-sm font-medium text-zinc-900 truncate">
                             New proposal from {proposal.otherUsername}
                           </p>
                           <p className="text-xs text-gray-500 mt-1 line-clamp-2">
@@ -128,11 +121,11 @@ export function NotificationDropdown({ count, isScrolled = true }: NotificationD
                 ))
               ) : (
                 <div className="px-4 py-8 text-center">
-                  <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                    <Bell className="w-6 h-6 text-gray-400" />
+                  <div className="w-12 h-12 rounded-full bg-[#E1F5EE] flex items-center justify-center mx-auto mb-3">
+                    <Bell className="w-6 h-6 text-[#1D9E75]" />
                   </div>
-                  <p className="text-sm text-gray-500">No new notifications</p>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-sm font-medium text-zinc-900">No new notifications</p>
+                  <p className="text-xs text-gray-500 mt-1">
                     You&apos;re all caught up!
                   </p>
                 </div>
@@ -141,11 +134,11 @@ export function NotificationDropdown({ count, isScrolled = true }: NotificationD
 
             {/* Footer */}
             {count > 0 && (
-              <div className="px-4 py-3 border-t border-gray-100">
+              <div className="px-4 py-3 border-t border-zinc-200">
                 <Link href="/proposals">
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="w-full text-center text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors"
+                    className="w-full text-center text-sm font-medium text-[#1D9E75] hover:text-[#0F6E56] transition-colors"
                   >
                     View all proposals
                   </button>

@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, type Variants } from "framer-motion";
 import axios from "axios";
-import Link from "next/link";
 import {
   Plus,
   MapPin,
@@ -18,6 +17,8 @@ import {
   Settings,
   Star,
   Award,
+  Coins,
+  ArrowRightLeft,
 } from "lucide-react";
 import { accountApi } from "@/lib/api/account";
 import { skillsApi } from "@/lib/api/skills";
@@ -30,7 +31,6 @@ import VerificationRequestForm from "./components/VerificationRequestForm";
 import { useUserReputation, useUserReviews } from "@/lib/hooks/useReviews";
 import ReputationBadge from "@/app/components/reviews/ReputationBadge";
 import ReviewList from "@/app/components/reviews/ReviewList";
-import { StatsStrip } from "./components/StatsStrip";
 import { useAllBadges } from "@/lib/hooks/useBadges";
 import BadgeGrid from "@/app/components/badges/BadgeGrid";
 
@@ -153,15 +153,15 @@ export default function ProfilePage() {
   const isLoading = userLoading || skillsLoading;
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-emerald-950 text-white selection:bg-emerald-200 selection:text-emerald-950">
-        <div className="w-12 h-12 border-4 border-emerald-500 rounded-full animate-spin border-t-transparent" />
+      <div className="flex items-center justify-center min-h-screen bg-[#FAFAFA] text-zinc-900">
+        <div className="w-12 h-12 border-4 border-[#1D9E75] rounded-full animate-spin border-t-transparent" />
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen p-4 md:p-8 bg-emerald-950 text-white selection:bg-emerald-200 selection:text-emerald-950">
+      <div className="min-h-screen p-4 md:p-8 bg-[#FAFAFA] text-zinc-900">
         <div className="max-w-7xl mx-auto">
           <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-center">
             Failed to load your profile. Please login again.
@@ -183,39 +183,36 @@ export default function ProfilePage() {
   const totalSwaps = userReputation?.completedSwaps ?? 0;
 
   return (
-    <div className="relative min-h-screen p-4 md:p-8 bg-emerald-950 text-white overflow-hidden selection:bg-emerald-200 selection:text-emerald-950">
-      {/* Hero-style background */}
-      <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-emerald-900/50 to-transparent pointer-events-none" />
-      <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-emerald-800/20 rounded-full blur-3xl pointer-events-none" />
-
+    <div className="relative min-h-screen p-4 md:p-8 bg-[#FAFAFA] text-zinc-900 overflow-hidden">
       <div className="max-w-7xl mx-auto relative z-10">
-        <header className="mb-8">
-          <h1 className="text-3xl font-heading font-bold text-white">
+        {/* Page Header */}
+        <header className="mb-6">
+          <h1 className="text-2xl font-display font-bold text-zinc-900">
             My Profile
           </h1>
-          <p className="text-emerald-200/80 font-sans">
+          <p className="text-zinc-600 font-body text-sm">
             Manage your identity and skill portfolio
           </p>
         </header>
 
         {/* Tabs */}
-        <div className="flex gap-4 mb-8">
+        <div className="flex gap-1 mb-6 border-b border-zinc-200">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`px-6 py-3 rounded-xl font-bold transition-all ${
+            className={`px-4 py-2.5 font-medium text-sm transition-all ${
               activeTab === 'overview'
-                ? 'bg-emerald-600 text-white shadow-lg'
-                : 'bg-emerald-900/50 text-emerald-200 hover:bg-emerald-800/50'
+                ? 'text-zinc-900 border-b-2 border-[#1D9E75]'
+                : 'text-zinc-500 hover:text-zinc-900'
             }`}
           >
             Overview
           </button>
           <button
             onClick={() => setActiveTab('settings')}
-            className={`px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 ${
+            className={`px-4 py-2.5 font-medium text-sm transition-all flex items-center gap-2 ${
               activeTab === 'settings'
-                ? 'bg-emerald-600 text-white shadow-lg'
-                : 'bg-emerald-900/50 text-emerald-200 hover:bg-emerald-800/50'
+                ? 'text-zinc-900 border-b-2 border-[#1D9E75]'
+                : 'text-zinc-500 hover:text-zinc-900'
             }`}
           >
             <Settings className="w-4 h-4" />
@@ -225,269 +222,297 @@ export default function ProfilePage() {
 
         {/* Overview Tab */}
         {activeTab === 'overview' && (
-
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[minmax(180px,auto)]"
-        >
           <motion.div
-            variants={itemVariants}
-            className="col-span-1 md:col-span-4 lg:col-span-3 row-span-2 relative group"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="space-y-6"
           >
-            <div className="h-full bg-white rounded-3xl shadow-2xl shadow-black/20 overflow-hidden border border-white/10 flex flex-col sticky top-6">
-              <div className="h-32 bg-gradient-to-br from-emerald-900 to-emerald-950" />
-              <div className="px-6 pb-6 flex-1 flex flex-col relative">
-                <div className="absolute -top-12 left-6">
-                  {avatarUrl ? (
-                    <img
-                      src={avatarUrl}
-                      alt={displayName}
-                      className="w-24 h-24 rounded-2xl border-4 border-white shadow-md object-cover"
-                    />
-                  ) : (
-                    <div className="w-24 h-24 rounded-2xl border-4 border-white shadow-md bg-white flex items-center justify-center">
-                      <span className="font-heading font-bold text-2xl text-gray-400">
-                        {displayName.slice(0, 1).toUpperCase()}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="mt-14 mb-4">
-                  <h2 className="text-xl font-heading font-bold text-gray-900">
-                    {displayName}
-                  </h2>
-                  <p className="text-sm text-gray-500 font-medium">
-                    {handle}
-                  </p>
-                  {userReputation && (
-                    <div className="mt-2">
-                      <ReputationBadge
-                        averageRating={userReputation.averageRating}
-                        totalReviews={userReputation.totalReviews}
-                        hasMinimumReviews={userReputation.hasMinimumReviews}
-                        size="sm"
-                        showCount={true}
+            {/* Profile Header Strip */}
+            <motion.div
+              variants={itemVariants}
+              className="bg-white border border-zinc-200 rounded-xl overflow-hidden"
+            >
+              {/* Cover gradient */}
+              <div className="h-20 bg-gradient-to-br from-zinc-100 to-zinc-200" />
+              
+              <div className="px-6 pb-6">
+                {/* Avatar + Info Row */}
+                <div className="flex flex-col md:flex-row md:items-end gap-4 -mt-10">
+                  {/* Avatar */}
+                  <div className="shrink-0">
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt={displayName}
+                        className="w-20 h-20 rounded-xl border-4 border-white shadow-sm object-cover bg-white"
                       />
-                    </div>
-                  )}
-                </div>
-
-                <p className="text-gray-600 text-sm leading-relaxed mb-6 font-sans">
-                  {bio}
-                </p>
-
-                <div className="space-y-3 mb-8">
-                  <div className="flex items-center gap-3 text-sm text-gray-500">
-                    <MapPin size={16} />
-                    <span>Itahari, Sunsari</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm text-gray-500">
-                    <LinkIcon size={16} />
-                    <a
-                      href="#"
-                      className="hover:text-orange-500 transition-colors"
-                    >
-                      shovan.com.np
-                    </a>
-                  </div>
-                </div>
-
-                <div className="flex gap-4 mt-auto">
-                  <button
-                    className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-                    type="button"
-                  >
-                    <Twitter size={18} />
-                  </button>
-                  <button
-                    className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-                    type="button"
-                  >
-                    <Github size={18} />
-                  </button>
-                </div>
-
-                <button
-                  className="mt-6 w-full py-2.5 flex items-center justify-center gap-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-sm font-semibold text-white transition-all"
-                  type="button"
-                  onClick={() => setIsEditProfileOpen(true)}
-                >
-                  <Edit2 size={14} />
-                  Edit Profile
-                </button>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            variants={itemVariants}
-            className="col-span-1 md:col-span-8 lg:col-span-9"
-          >
-            <StatsStrip
-              swapCredits={credits}
-              averageRating={averageRating}
-              totalReviews={totalReviews}
-              hasMinimumReviews={hasMinimumReviews}
-              totalSwaps={totalSwaps}
-            />
-          </motion.div>
-
-          <motion.div
-            variants={itemVariants}
-            className="col-span-1 md:col-span-4 lg:col-span-5 relative group overflow-hidden"
-          >
-            <div className="h-full bg-white rounded-3xl border border-gray-100 p-6 flex flex-col relative z-0 transition-all hover:border-gray-200 hover:shadow-lg hover:shadow-black/10">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
-                    <Zap size={18} fill="currentColor" />
-                  </div>
-                  <h3 className="font-heading font-bold text-lg text-gray-900">
-                    Offers
-                  </h3>
-                </div>
-                <button
-                  onClick={() => handleOpenModal(SkillType.Offer)}
-                  className="p-2 rounded-full bg-gray-50 text-emerald-600 shadow-sm border border-gray-100 hover:bg-emerald-50 transition-colors"
-                  type="button"
-                >
-                  <Plus size={20} />
-                </button>
-              </div>
-
-              {offers.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-gray-500 py-10">
-                  <Zap size={48} className="mb-2 opacity-20" />
-                  <p className="text-sm font-medium">No skills offered yet.</p>
-                </div>
-              ) : (
-                <div className="space-y-3 overflow-y-auto custom-scrollbar pr-2 max-h-[400px]">
-                  {offers.map((skill) => (
-                    <div
-                      key={skill.userSkillId}
-                      className="group/card bg-white p-4 rounded-2xl border border-emerald-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 relative"
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">
-                          {skill.category}
+                    ) : (
+                      <div className="w-20 h-20 rounded-xl border-4 border-white shadow-sm bg-zinc-100 flex items-center justify-center">
+                        <span className="font-heading font-bold text-xl text-zinc-400">
+                          {displayName.slice(0, 1).toUpperCase()}
                         </span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* User Info */}
+                  <div className="flex-1 pt-2 md:pt-0">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                      <div>
+                        <h2 className="text-xl font-heading font-bold text-zinc-900 flex items-center gap-2">
+                          {displayName}
+                          {userReputation && (
+                            <ReputationBadge
+                              averageRating={userReputation.averageRating}
+                              totalReviews={userReputation.totalReviews}
+                              hasMinimumReviews={userReputation.hasMinimumReviews}
+                              size="sm"
+                              showCount={true}
+                            />
+                          )}
+                        </h2>
+                        <p className="text-sm text-zinc-500">{handle}</p>
+                      </div>
+                      
+                      <button
+                        className="px-4 py-2 flex items-center justify-center gap-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-sm font-medium text-white transition-colors"
+                        type="button"
+                        onClick={() => setIsEditProfileOpen(true)}
+                      >
+                        <Edit2 size={14} />
+                        Edit Profile
+                      </button>
+                    </div>
+                    
+                    {bio && (
+                      <p className="text-zinc-600 text-sm mt-2 max-w-2xl">{bio}</p>
+                    )}
+                    
+                    {/* Meta info */}
+                    <div className="flex flex-wrap gap-4 mt-3 text-sm text-zinc-500">
+                      <div className="flex items-center gap-1.5">
+                        <MapPin size={14} />
+                        <span>Itahari, Sunsari</span>
+                      </div>
+                      <a href="#" className="flex items-center gap-1.5 hover:text-[#1D9E75] transition-colors">
+                        <LinkIcon size={14} />
+                        <span>shovan.com.np</span>
+                      </a>
+                      <button className="p-1.5 rounded-md hover:bg-zinc-100 text-zinc-500 hover:text-zinc-700 transition-colors" type="button">
+                        <Twitter size={14} />
+                      </button>
+                      <button className="p-1.5 rounded-md hover:bg-zinc-100 text-zinc-500 hover:text-zinc-700 transition-colors" type="button">
+                        <Github size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Stats Strip with dividers */}
+                <div className="mt-6 pt-4 border-t border-zinc-100 flex flex-wrap items-center gap-6">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-md bg-amber-100">
+                      <Coins size={14} className="text-amber-600" />
+                    </div>
+                    <div>
+                      <span className="font-semibold text-zinc-900">{credits}</span>
+                      <span className="text-xs text-zinc-500 ml-1">Credits</span>
+                    </div>
+                  </div>
+                  
+                  <div className="w-px h-6 bg-zinc-200" />
+                  
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-md bg-emerald-100">
+                      <Star size={14} className="text-emerald-600" />
+                    </div>
+                    <div>
+                      <span className="font-semibold text-zinc-900">
+                        {hasMinimumReviews ? `${averageRating.toFixed(1)}` : "New"}
+                      </span>
+                      {hasMinimumReviews && (
+                        <span className="text-xs text-zinc-500 ml-1">({totalReviews} reviews)</span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="w-px h-6 bg-zinc-200" />
+                  
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-md bg-violet-100">
+                      <ArrowRightLeft size={14} className="text-violet-600" />
+                    </div>
+                    <div>
+                      <span className="font-semibold text-zinc-900">{totalSwaps}</span>
+                      <span className="text-xs text-zinc-500 ml-1">Swaps</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Skills Sections - Side by Side */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Offers Section */}
+              <motion.div variants={itemVariants}>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 bg-emerald-100 text-[#1D9E75] rounded-md">
+                      <Zap size={16} fill="currentColor" />
+                    </div>
+                    <h3 className="font-semibold text-zinc-900">Skills I Offer</h3>
+                    <span className="text-xs text-zinc-400">({offers.length})</span>
+                  </div>
+                  <button
+                    onClick={() => handleOpenModal(SkillType.Offer)}
+                    className="p-1.5 rounded-md bg-zinc-100 text-zinc-600 hover:bg-zinc-200 transition-colors"
+                    type="button"
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
+                
+                {offers.length === 0 ? (
+                  <div className="bg-white border border-zinc-200 rounded-xl p-8 flex flex-col items-center justify-center text-center">
+                    <div className="p-3 rounded-full bg-zinc-100 mb-3">
+                      <Zap size={24} className="text-zinc-400" />
+                    </div>
+                    <p className="text-sm text-zinc-500">No skills offered yet</p>
+                    <button
+                      onClick={() => handleOpenModal(SkillType.Offer)}
+                      className="mt-3 text-sm text-[#1D9E75] hover:underline font-medium"
+                    >
+                      Add your first skill
+                    </button>
+                  </div>
+                ) : (
+                  <div className="bg-white border border-zinc-200 rounded-xl divide-y divide-zinc-100">
+                    {offers.map((skill) => (
+                      <div
+                        key={skill.userSkillId}
+                        className="px-4 py-3 flex items-center justify-between hover:bg-zinc-50 transition-colors group"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-medium text-zinc-900 truncate">
+                              {skill.skillName}
+                            </h4>
+                            <span className="text-xs font-medium text-[#1D9E75] bg-emerald-50 px-2 py-0.5 rounded">
+                              {skill.category}
+                            </span>
+                          </div>
+                          {skill.description && (
+                            <p className="text-sm text-zinc-500 truncate mt-0.5">
+                              {skill.description}
+                            </p>
+                          )}
+                        </div>
                         <button
-                          onClick={() =>
-                            deleteSkillMutation.mutate(skill.userSkillId)
-                          }
-                          className="text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover/card:opacity-100"
+                          onClick={() => deleteSkillMutation.mutate(skill.userSkillId)}
+                          className="p-1.5 text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded transition-all opacity-0 group-hover:opacity-100"
                           type="button"
                         >
                           <Trash2 size={14} />
                         </button>
                       </div>
-                      <h4 className="font-bold text-gray-800 text-lg mb-1">
-                        {skill.skillName}
-                      </h4>
-                      <p className="text-sm text-gray-500 leading-snug">
-                        {skill.description}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </motion.div>
-
-          <motion.div
-            variants={itemVariants}
-            className="col-span-1 md:col-span-4 lg:col-span-4 relative group overflow-hidden"
-          >
-            <div className="h-full bg-white rounded-3xl border border-gray-100 p-6 flex flex-col relative z-0 transition-all hover:border-gray-200 hover:shadow-lg hover:shadow-black/10">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 bg-orange-100 text-orange-600 rounded-lg">
-                    <Target size={18} />
+                    ))}
                   </div>
-                  <h3 className="font-heading font-bold text-lg text-gray-900">
-                    Wants
-                  </h3>
-                </div>
-                <button
-                  onClick={() => handleOpenModal(SkillType.Want)}
-                  className="p-2 rounded-full bg-gray-50 text-orange-600 shadow-sm border border-gray-100 hover:bg-orange-50 transition-colors"
-                  type="button"
-                >
-                  <Plus size={20} />
-                </button>
-              </div>
+                )}
+              </motion.div>
 
-              {wants.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-gray-500 py-10">
-                  <Target size={48} className="mb-2 opacity-20" />
-                  <p className="text-sm font-medium">No skills requested yet.</p>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-3 overflow-y-auto custom-scrollbar pr-2 max-h-[400px]">
-                  {wants.map((skill) => (
-                    <div
-                      key={skill.userSkillId}
-                      className="group/card bg-white p-3 rounded-xl border border-orange-100 shadow-sm hover:shadow-md hover:scale-[1.02] transition-all duration-300 flex items-center justify-between"
-                    >
-                      <div>
-                        <h4 className="font-semibold text-gray-800">
-                          {skill.skillName}
-                        </h4>
-                        <span className="text-xs text-orange-600 font-medium">
-                          {skill.category}
-                        </span>
-                      </div>
-                      <button
-                        onClick={() =>
-                          deleteSkillMutation.mutate(skill.userSkillId)
-                        }
-                        className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all opacity-0 group-hover/card:opacity-100"
-                        type="button"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+              {/* Wants Section */}
+              <motion.div variants={itemVariants}>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 bg-violet-100 text-[#3C2A8A] rounded-md">
+                      <Target size={16} />
                     </div>
-                  ))}
+                    <h3 className="font-semibold text-zinc-900">Skills I Want</h3>
+                    <span className="text-xs text-zinc-400">({wants.length})</span>
+                  </div>
+                  <button
+                    onClick={() => handleOpenModal(SkillType.Want)}
+                    className="p-1.5 rounded-md bg-zinc-100 text-zinc-600 hover:bg-zinc-200 transition-colors"
+                    type="button"
+                  >
+                    <Plus size={16} />
+                  </button>
                 </div>
-              )}
+                
+                {wants.length === 0 ? (
+                  <div className="bg-white border border-zinc-200 rounded-xl p-8 flex flex-col items-center justify-center text-center">
+                    <div className="p-3 rounded-full bg-zinc-100 mb-3">
+                      <Target size={24} className="text-zinc-400" />
+                    </div>
+                    <p className="text-sm text-zinc-500">No skills requested yet</p>
+                    <button
+                      onClick={() => handleOpenModal(SkillType.Want)}
+                      className="mt-3 text-sm text-[#3C2A8A] hover:underline font-medium"
+                    >
+                      Add a skill you want
+                    </button>
+                  </div>
+                ) : (
+                  <div className="bg-white border border-zinc-200 rounded-xl divide-y divide-zinc-100">
+                    {wants.map((skill) => (
+                      <div
+                        key={skill.userSkillId}
+                        className="px-4 py-3 flex items-center justify-between hover:bg-zinc-50 transition-colors group"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-medium text-zinc-900 truncate">
+                              {skill.skillName}
+                            </h4>
+                            <span className="text-xs font-medium text-[#3C2A8A] bg-violet-50 px-2 py-0.5 rounded">
+                              {skill.category}
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => deleteSkillMutation.mutate(skill.userSkillId)}
+                          className="p-1.5 text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded transition-all opacity-0 group-hover:opacity-100"
+                          type="button"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
             </div>
-          </motion.div>
 
-          {/* Reviews Section */}
-          {userReputation?.hasMinimumReviews && (
-            <motion.div
-              variants={itemVariants}
-              className="col-span-1 md:col-span-12 bg-emerald-900/30 rounded-3xl p-6 border border-emerald-800/50"
-            >
-              <h3 className="text-xl font-semibold mb-6 flex items-center gap-2 text-white">
-                <Star className="w-6 h-6 text-yellow-400 fill-yellow-400" />
-                Reviews ({userReputation.totalReviews})
-              </h3>
-              <ReviewList reviews={userReviews ?? []} isLoading={reviewsLoading} />
+            {/* Reviews Section */}
+            {userReputation?.hasMinimumReviews && (
+              <motion.div variants={itemVariants}>
+                <div className="flex items-center gap-2 mb-3">
+                  <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
+                  <h3 className="font-semibold text-zinc-900">Reviews</h3>
+                  <span className="text-xs text-zinc-400">({userReputation.totalReviews})</span>
+                </div>
+                <div className="bg-white border border-zinc-200 rounded-xl p-5">
+                  <ReviewList reviews={userReviews ?? []} isLoading={reviewsLoading} />
+                </div>
+              </motion.div>
+            )}
+
+            {/* Badges Section */}
+            <motion.div variants={itemVariants}>
+              <div className="flex items-center gap-2 mb-3">
+                <Award className="w-5 h-5 text-amber-500" />
+                <h3 className="font-semibold text-zinc-900">Badges & Achievements</h3>
+              </div>
+              <div className="bg-white border border-zinc-200 rounded-xl p-5">
+                <BadgeGrid badges={allBadges ?? []} isLoading={badgesLoading} />
+              </div>
             </motion.div>
-          )}
-
-          {/* Badges Section */}
-          <motion.div
-            variants={itemVariants}
-            className="col-span-1 md:col-span-12 bg-emerald-900/30 rounded-3xl p-6 border border-emerald-800/50"
-          >
-            <h3 className="text-xl font-semibold mb-6 flex items-center gap-2 text-white">
-              <Award className="w-6 h-6 text-amber-400" />
-              Badges &amp; Achievements
-            </h3>
-            <BadgeGrid badges={allBadges ?? []} isLoading={badgesLoading} />
           </motion.div>
-
-        </motion.div>
-
         )}
 
         {(skillsError || userError) && (
-          <div className="mt-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-200 text-center">
+          <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-center">
             Failed to load data. Please try again later.
           </div>
         )}
@@ -498,28 +523,28 @@ export default function ProfilePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="bg-white rounded-2xl p-8 shadow-xl"
+            className="bg-white border border-zinc-200 rounded-xl p-6"
           >
             <LinkedAccountsSettings />
 
-            {/* ⭐ Identity Verification Section */}
-            <div className="mt-8 pt-8 border-t border-gray-200">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Identity Verification</h3>
-              <p className="text-sm text-gray-600 mb-4">
+            {/* Identity Verification Section */}
+            <div className="mt-8 pt-8 border-t border-zinc-200">
+              <h3 className="text-lg font-semibold text-zinc-900 mb-2">Identity Verification</h3>
+              <p className="text-sm text-zinc-600 mb-4">
                 Get verified to increase trust on the platform and earn a special badge plus 25 credits.
               </p>
               <VerificationRequestForm />
             </div>
 
-            {/* ⭐ Logout Section */}
-            <div className="mt-8 pt-8 border-t border-gray-200">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Session Management</h3>
-              <p className="text-sm text-gray-600 mb-4">
+            {/* Logout Section */}
+            <div className="mt-8 pt-8 border-t border-zinc-200">
+              <h3 className="text-lg font-semibold text-zinc-900 mb-2">Session Management</h3>
+              <p className="text-sm text-zinc-600 mb-4">
                 Securely log out of your account. This will revoke your refresh token.
               </p>
               <button
                 onClick={() => accountApi.logout()}
-                className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-colors shadow-md hover:shadow-lg"
+                className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium text-sm transition-colors"
               >
                 Logout
               </button>

@@ -35,7 +35,7 @@ function getInitials(name: string): string {
 
 const statusColors: Record<string, string> = {
   Accepted: 'bg-emerald-100 text-emerald-700',
-  Completed: 'bg-blue-100 text-blue-700',
+  Completed: 'bg-zinc-100 text-zinc-700',
   Pending: 'bg-yellow-100 text-yellow-700',
   Declined: 'bg-red-100 text-red-700',
 };
@@ -54,21 +54,21 @@ export function ConversationList({ conversations, selectedId, onSelect }: Conver
   }
 
   return (
-    <div className="flex flex-col divide-y divide-gray-100 overflow-y-auto">
+    <div className="flex flex-col divide-y divide-zinc-200 overflow-y-auto bg-white">
       {conversations.map((conv) => {
         const isSelected = selectedId === conv.proposalId;
-        const statusColor = statusColors[conv.proposalStatus] ?? 'bg-gray-100 text-gray-600';
+        const statusColor = statusColors[conv.proposalStatus] ?? 'bg-zinc-100 text-zinc-600';
 
         return (
           <button
             key={conv.proposalId}
             onClick={() => onSelect(conv.proposalId)}
-            className={`w-full text-left px-4 py-4 hover:bg-gray-50 transition-colors flex items-start gap-3 relative ${
-              isSelected ? 'bg-emerald-50 border-l-4 border-emerald-500' : 'border-l-4 border-transparent'
+            className={`w-full text-left px-4 py-4 hover:bg-zinc-50 transition-colors flex items-start gap-3 relative ${
+              isSelected ? 'bg-zinc-100 border-l-4 border-[#1D9E75]' : 'border-l-4 border-transparent'
             }`}
           >
             {/* Avatar */}
-            <div className="flex-shrink-0 w-11 h-11 rounded-full overflow-hidden bg-emerald-100 flex items-center justify-center">
+            <div className="flex-shrink-0 w-11 h-11 rounded-full overflow-hidden bg-zinc-100 flex items-center justify-center">
               {conv.otherUserProfilePicture ? (
                 <img
                   src={conv.otherUserProfilePicture}
@@ -76,7 +76,7 @@ export function ConversationList({ conversations, selectedId, onSelect }: Conver
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="text-emerald-700 font-semibold text-sm">
+                <span className="text-zinc-600 font-semibold text-sm">
                   {getInitials(conv.otherUsername)}
                 </span>
               )}
@@ -85,22 +85,22 @@ export function ConversationList({ conversations, selectedId, onSelect }: Conver
             {/* Content */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-0.5">
-                <span className={`font-semibold text-sm truncate ${isSelected ? 'text-emerald-900' : 'text-gray-900'}`}>
+                <span className={`font-semibold text-sm truncate ${isSelected ? 'text-zinc-900' : 'text-zinc-900'}`}>
                   {conv.otherUsername}
                 </span>
-                <span className="text-xs text-gray-400 flex-shrink-0 ml-2">
+                <span className="text-xs text-zinc-400 flex-shrink-0 ml-2">
                   {timeAgo(conv.lastMessageAt)}
                 </span>
               </div>
 
               {/* Skill exchange */}
-              <p className="text-xs text-gray-500 truncate mb-1">
+              <p className="text-xs text-zinc-600 truncate mb-1">
                 {conv.offeringSkillName} ↔ {conv.receivingSkillName}
               </p>
 
               <div className="flex items-center justify-between gap-2">
                 {/* Last message preview */}
-                <p className="text-xs text-gray-500 truncate">
+                <p className="text-xs text-zinc-500 truncate">
                   {conv.lastMessage
                     ? conv.lastMessage.length > 55
                       ? conv.lastMessage.slice(0, 55) + '…'
@@ -110,7 +110,7 @@ export function ConversationList({ conversations, selectedId, onSelect }: Conver
 
                 {/* Unread badge */}
                 {conv.unreadCount > 0 && (
-                  <span className="flex-shrink-0 w-5 h-5 bg-blue-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                  <span className="flex-shrink-0 w-5 h-5 bg-[#1D9E75] text-white text-xs font-bold rounded-full flex items-center justify-center">
                     {conv.unreadCount > 9 ? '9+' : conv.unreadCount}
                   </span>
                 )}

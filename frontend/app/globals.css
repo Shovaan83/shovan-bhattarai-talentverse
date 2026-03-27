@@ -1,21 +1,120 @@
 @import "tailwindcss";
+@config "../tailwind.config.ts";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Brand Core */
+  --color-violet: #3c2a8a;
+  --color-violet-dark: #1d1340;
+  --color-violet-mid: #534ab7;
+  --color-violet-light: #eeedfe;
+  --color-violet-soft: #f5f4ff;
+
+  --color-teal: #1d9e75;
+  --color-teal-dark: #0f6e56;
+  --color-teal-light: #5dcaa5;
+  --color-teal-mint: #e1f5ee;
+
+  --color-gold: #fac775;
+  --color-gold-dark: #ef9f27;
+  --color-gold-light: #faeeda;
+  --color-gold-ink: #854f0b;
+
+  /* Surfaces */
+  --color-page-bg: #FAFAFA;
+  --color-surface: #ffffff;
+  --color-surface-2: #F4F4F5;
+  --color-surface-dark: #1d1340;
+
+  /* Text */
+  --color-text-primary: #18181B;
+  --color-text-muted: #6b7280;
+  --color-text-hint: #9ca3af;
+  --color-text-on-dark: #ffffff;
+  --color-text-on-dark-muted: rgba(255, 255, 255, 0.65);
+
+  /* Borders */
+  --color-border: #E4E4E7;
+  --color-border-focus: #1d9e75;
+
+  /* Semantic States */
+  --color-success: #1d9e75;
+  --color-success-bg: #e1f5ee;
+  --color-success-text: #0f6e56;
+  --color-error: #dc2626;
+  --color-error-bg: #fef2f2;
+  --color-error-text: #b91c1c;
+  --color-warning: #d97706;
+  --color-warning-bg: #fffbeb;
+
+  /* Proposal Status Colors */
+  --status-pending: #ef9f27;
+  --status-pending-bg: #faeeda;
+  --status-accepted: #1d9e75;
+  --status-accepted-bg: #e1f5ee;
+  --status-declined: #dc2626;
+  --status-declined-bg: #fef2f2;
+  --status-cancelled: #6b7280;
+  --status-cancelled-bg: #f3f4f6;
+  --status-completed: #3c2a8a;
+  --status-completed-bg: #eeedfe;
+
+  /* Skill Type Colors */
+  --skill-offer: #1d9e75;
+  --skill-offer-bg: #e1f5ee;
+  --skill-want: #534ab7;
+  --skill-want-bg: #eeedfe;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-heading: var(--font-heading);
+  --color-background: var(--color-page-bg);
+  --color-foreground: var(--color-text-primary);
+
+  --color-brand-violet-900: var(--color-violet-dark);
+  --color-brand-violet-600: var(--color-violet);
+  --color-brand-violet-500: var(--color-violet-mid);
+  --color-brand-violet-100: var(--color-violet-light);
+  --color-brand-violet-50: var(--color-page-bg);
+
+  --color-brand-teal-700: var(--color-teal-dark);
+  --color-brand-teal-500: var(--color-teal);
+  --color-brand-teal-300: var(--color-teal-light);
+  --color-brand-teal-50: var(--color-teal-mint);
+
+  --color-brand-gold-600: var(--color-gold-dark);
+  --color-brand-gold-500: var(--color-gold);
+  --color-brand-gold-800: var(--color-gold-ink);
+  --color-brand-gold-50: var(--color-gold-light);
+
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: "JetBrains Mono", monospace;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), sans-serif;
+  background: #FAFAFA;
+  color: var(--color-text-primary);
+  font-family: var(--font-body), sans-serif;
+}
+
+.elevation-0 {
+  background: var(--color-page-bg);
+}
+
+.elevation-1 {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.elevation-2 {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px -2px rgba(24, 24, 27, 0.06);
+}
+
+.elevation-float {
+  box-shadow: 0 12px 32px -8px rgba(24, 24, 27, 0.12);
 }
 
 /* Utility to hide scrollbars while keeping scroll functionality */
@@ -27,4 +126,71 @@ body {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+}
+
+/* ── Marquee Animations ── */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(-100% - var(--gap))); }
+}
+@keyframes marquee-reverse {
+  from { transform: translateX(calc(-100% - var(--gap))); }
+  to { transform: translateX(0); }
+}
+@keyframes marquee-vertical {
+  from { transform: translateY(0); }
+  to { transform: translateY(calc(-100% - var(--gap))); }
+}
+@keyframes marquee-vertical-reverse {
+  from { transform: translateY(calc(-100% - var(--gap))); }
+  to { transform: translateY(0); }
+}
+
+.animate-marquee {
+  animation: marquee var(--duration) linear infinite;
+}
+.animate-marquee-reverse {
+  animation: marquee-reverse var(--duration) linear infinite;
+}
+.animate-marquee-vertical {
+  animation: marquee-vertical var(--duration) linear infinite;
+}
+.animate-marquee-vertical-reverse {
+  animation: marquee-vertical-reverse var(--duration) linear infinite;
+}
+
+/* ── Sparkles Animation ── */
+@keyframes sparkle-spin {
+  0% { transform: scale(0) rotate(0deg); opacity: 0; }
+  50% { transform: scale(1) rotate(180deg); opacity: 1; }
+  100% { transform: scale(0) rotate(360deg); opacity: 0; }
+}
+.animate-sparkle-spin {
+  animation: sparkle-spin 2s ease-in-out infinite;
+}
+
+/* ── Gradient Border Rotation ── */
+@property --gradient-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes gradient-rotate {
+  to { --gradient-angle: 360deg; }
+}
+
+/* ── Toast Animation (Turn 8) ── */
+@keyframes toast-slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.toast-slide-in-right {
+  animation: toast-slide-in-right 0.25s ease-out;
 }

@@ -9,6 +9,7 @@ import { ArrowLeft, Mail, Loader2, CheckCircle, KeyRound } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import axiosInstance from "@/lib/axios";
 import AuthLayout from "../components/AuthLayout";
+import PasswordInput from "../components/PasswordInput";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -31,8 +32,6 @@ export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const emailForm = useForm<ForgotPasswordFormData>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -108,13 +107,13 @@ export default function ForgotPasswordPage() {
             <div className="mb-8">
               <Link
                 href="/login"
-                className="inline-flex items-center text-gray-500 hover:text-emerald-600 transition-colors group mb-6"
+                className="inline-flex items-center text-gray-500 hover:text-[#1D9E75] transition-colors group mb-6"
               >
                 <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
                 <span className="font-medium">Back to Login</span>
               </Link>
 
-              <h2 className="text-3xl md:text-4xl font-heading font-bold text-gray-900 mb-3">
+              <h2 className="text-3xl md:text-4xl font-display font-bold text-zinc-900 mb-3">
                 Forgot Password?
               </h2>
               <p className="text-gray-600">
@@ -141,16 +140,16 @@ export default function ForgotPasswordPage() {
                   Email Address
                 </label>
                 <div className="relative group">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-emerald-600 transition-colors" />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-[#1D9E75] transition-colors" />
                   <input
                     id="email"
                     type="email"
                     {...emailForm.register("email")}
-                    className={`w-full pl-12 pr-4 py-3.5 bg-gray-50 border ${
+                    className={`w-full pl-12 pr-4 py-3.5 bg-white border ${
                       emailForm.formState.errors.email
                         ? "border-red-300 focus:border-red-500 focus:ring-red-200"
-                        : "border-gray-200 focus:border-emerald-600 focus:ring-emerald-100"
-                    } rounded-xl focus:outline-none focus:ring-4 transition-all text-gray-900 placeholder-gray-400 font-medium`}
+                        : "border-zinc-200 focus:border-[#1D9E75] focus:ring-[#1D9E75]/10"
+                    } rounded-xl focus:outline-none focus:ring-4 transition-all text-zinc-900 placeholder-gray-400 font-medium`}
                     placeholder="your@example.com"
                   />
                 </div>
@@ -164,7 +163,7 @@ export default function ForgotPasswordPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-4 px-4 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl shadow-lg shadow-orange-600/20 hover:shadow-orange-600/30 focus:outline-none focus:ring-4 focus:ring-orange-100 disabled:opacity-70 disabled:cursor-not-allowed transition-all transform active:scale-[0.98] flex items-center justify-center gap-2"
+                className="w-full py-4 px-4 bg-[#1D9E75] hover:bg-[#178F68] text-white font-bold rounded-xl shadow-lg shadow-[#1D9E75]/20 hover:shadow-[#1D9E75]/30 focus:outline-none focus:ring-4 focus:ring-[#1D9E75]/20 disabled:opacity-70 disabled:cursor-not-allowed transition-all transform active:scale-[0.98] flex items-center justify-center gap-2"
               >
                 {isLoading ? (
                   <>
@@ -190,17 +189,17 @@ export default function ForgotPasswordPage() {
             <div className="mb-8">
               <button
                 onClick={() => setStep("email")}
-                className="inline-flex items-center text-gray-500 hover:text-emerald-600 transition-colors group mb-6"
+                className="inline-flex items-center text-gray-500 hover:text-[#1D9E75] transition-colors group mb-6"
               >
                 <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
                 <span className="font-medium">Back</span>
               </button>
 
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 rounded-full mb-4">
-                <Mail className="w-8 h-8 text-emerald-600" />
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-brand-teal-50 rounded-full mb-4">
+                <Mail className="w-8 h-8 text-brand-teal-600" />
               </div>
 
-              <h2 className="text-3xl md:text-4xl font-heading font-bold text-gray-900 mb-3">
+              <h2 className="text-3xl md:text-4xl font-display font-bold text-zinc-900 mb-3">
                 Check Your Email
               </h2>
               <p className="text-gray-600">
@@ -227,18 +226,18 @@ export default function ForgotPasswordPage() {
                   Reset Code
                 </label>
                 <div className="relative group">
-                  <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-emerald-600 transition-colors" />
+                  <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-[#1D9E75] transition-colors" />
                   <input
                     id="code"
                     type="text"
                     inputMode="numeric"
                     maxLength={6}
                     {...resetForm.register("code")}
-                    className={`w-full pl-12 pr-4 py-3.5 bg-gray-50 border ${
+                    className={`w-full pl-12 pr-4 py-3.5 bg-white border ${
                       resetForm.formState.errors.code
                         ? "border-red-300 focus:border-red-500 focus:ring-red-200"
-                        : "border-gray-200 focus:border-emerald-600 focus:ring-emerald-100"
-                    } rounded-xl focus:outline-none focus:ring-4 transition-all text-gray-900 placeholder-gray-400 font-medium`}
+                        : "border-zinc-200 focus:border-[#1D9E75] focus:ring-[#1D9E75]/10"
+                    } rounded-xl focus:outline-none focus:ring-4 transition-all text-zinc-900 placeholder-gray-400 font-medium`}
                     placeholder="Enter 6-digit code"
                   />
                 </div>
@@ -249,72 +248,26 @@ export default function ForgotPasswordPage() {
                 )}
               </div>
 
-              <div className="space-y-1.5">
-                <label htmlFor="newPassword" className="block text-sm font-semibold text-gray-700">
-                  New Password
-                </label>
-                <div className="relative group">
-                  <input
-                    id="newPassword"
-                    type={showPassword ? "text" : "password"}
-                    {...resetForm.register("newPassword")}
-                    className={`w-full pl-4 pr-12 py-3.5 bg-gray-50 border ${
-                      resetForm.formState.errors.newPassword
-                        ? "border-red-300 focus:border-red-500 focus:ring-red-200"
-                        : "border-gray-200 focus:border-emerald-600 focus:ring-emerald-100"
-                    } rounded-xl focus:outline-none focus:ring-4 transition-all text-gray-900 placeholder-gray-400 font-medium`}
-                    placeholder="Enter new password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showPassword ? "🙈" : "👁️"}
-                  </button>
-                </div>
-                {resetForm.formState.errors.newPassword && (
-                  <p className="text-sm text-red-600 font-medium pl-1">
-                    {resetForm.formState.errors.newPassword.message}
-                  </p>
-                )}
-              </div>
+              <PasswordInput
+                id="newPassword"
+                label="New Password"
+                placeholder="Enter new password"
+                registration={resetForm.register("newPassword")}
+                error={resetForm.formState.errors.newPassword?.message}
+              />
 
-              <div className="space-y-1.5">
-                <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700">
-                  Confirm Password
-                </label>
-                <div className="relative group">
-                  <input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    {...resetForm.register("confirmPassword")}
-                    className={`w-full pl-4 pr-12 py-3.5 bg-gray-50 border ${
-                      resetForm.formState.errors.confirmPassword
-                        ? "border-red-300 focus:border-red-500 focus:ring-red-200"
-                        : "border-gray-200 focus:border-emerald-600 focus:ring-emerald-100"
-                    } rounded-xl focus:outline-none focus:ring-4 transition-all text-gray-900 placeholder-gray-400 font-medium`}
-                    placeholder="Confirm new password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showConfirmPassword ? "🙈" : "👁️"}
-                  </button>
-                </div>
-                {resetForm.formState.errors.confirmPassword && (
-                  <p className="text-sm text-red-600 font-medium pl-1">
-                    {resetForm.formState.errors.confirmPassword.message}
-                  </p>
-                )}
-              </div>
+              <PasswordInput
+                id="confirmPassword"
+                label="Confirm Password"
+                placeholder="Confirm new password"
+                registration={resetForm.register("confirmPassword")}
+                error={resetForm.formState.errors.confirmPassword?.message}
+              />
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-4 px-4 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl shadow-lg shadow-orange-600/20 hover:shadow-orange-600/30 focus:outline-none focus:ring-4 focus:ring-orange-100 disabled:opacity-70 disabled:cursor-not-allowed transition-all transform active:scale-[0.98] flex items-center justify-center gap-2"
+                className="w-full py-4 px-4 bg-[#1D9E75] hover:bg-[#178F68] text-white font-bold rounded-xl shadow-lg shadow-[#1D9E75]/20 hover:shadow-[#1D9E75]/30 focus:outline-none focus:ring-4 focus:ring-[#1D9E75]/20 disabled:opacity-70 disabled:cursor-not-allowed transition-all transform active:scale-[0.98] flex items-center justify-center gap-2"
               >
                 {isLoading ? (
                   <>
@@ -336,10 +289,10 @@ export default function ForgotPasswordPage() {
             animate={{ opacity: 1, scale: 1 }}
             className="text-center py-8"
           >
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-emerald-100 rounded-full mb-6">
-              <CheckCircle className="w-10 h-10 text-emerald-600" />
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-brand-teal-50 rounded-full mb-6">
+              <CheckCircle className="w-10 h-10 text-brand-teal-600" />
             </div>
-            <h2 className="text-3xl font-heading font-bold text-gray-900 mb-3">
+            <h2 className="text-3xl font-display font-bold text-zinc-900 mb-3">
               Password Reset Successfully!
             </h2>
             <p className="text-gray-600 mb-8">
@@ -347,7 +300,7 @@ export default function ForgotPasswordPage() {
             </p>
             <Link
               href="/login"
-              className="inline-flex items-center justify-center px-8 py-4 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl shadow-lg shadow-orange-600/20 hover:shadow-orange-600/30 transition-all"
+              className="inline-flex items-center justify-center px-8 py-4 bg-[#1D9E75] hover:bg-[#178F68] text-white font-bold rounded-xl shadow-lg shadow-[#1D9E75]/20 hover:shadow-[#1D9E75]/30 transition-all"
             >
               Go to Login
             </Link>

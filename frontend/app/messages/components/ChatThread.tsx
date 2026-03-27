@@ -69,7 +69,7 @@ function MessageBubble({ message }: { message: Message }) {
   return (
     <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-3`}>
       {!isOwn && (
-        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-200 overflow-hidden mr-2 self-end">
+        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-zinc-200 overflow-hidden mr-2 self-end">
           {message.senderProfilePicture ? (
             <img
               src={message.senderProfilePicture}
@@ -77,7 +77,7 @@ function MessageBubble({ message }: { message: Message }) {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs font-bold">
+            <div className="w-full h-full flex items-center justify-center text-zinc-500 text-xs font-bold">
               {message.senderUsername.charAt(0).toUpperCase()}
             </div>
           )}
@@ -86,18 +86,18 @@ function MessageBubble({ message }: { message: Message }) {
 
       <div className="max-w-[70%]">
         {!isOwn && (
-          <p className="text-xs text-gray-500 mb-1 ml-1">{message.senderUsername}</p>
+          <p className="text-xs text-zinc-500 mb-1 ml-1">{message.senderUsername}</p>
         )}
         <div
           className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed break-words ${
             isOwn
-              ? 'bg-emerald-500 text-white rounded-br-sm'
-              : 'bg-white text-gray-800 border border-gray-100 rounded-bl-sm shadow-sm'
+              ? 'bg-zinc-900 text-white rounded-br-sm'
+              : 'bg-zinc-100 text-zinc-900 rounded-bl-sm'
           }`}
         >
           {message.messageContent}
         </div>
-        <p className={`text-xs text-gray-400 mt-1 ${isOwn ? 'text-right mr-1' : 'ml-1'}`}>
+        <p className={`text-xs text-zinc-400 mt-1 ${isOwn ? 'text-right mr-1' : 'ml-1'}`}>
           {time}
         </p>
       </div>
@@ -136,10 +136,10 @@ export function ChatThread({ proposalId, currentUserId, conversation }: ChatThre
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="p-4 border-b border-gray-100 bg-white flex-shrink-0">
+      <div className="p-4 border-b border-zinc-200 bg-white flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full overflow-hidden bg-emerald-100 flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-zinc-100 flex items-center justify-center flex-shrink-0">
               {conversation.otherUserProfilePicture ? (
                 <img
                   src={conversation.otherUserProfilePicture}
@@ -147,14 +147,14 @@ export function ChatThread({ proposalId, currentUserId, conversation }: ChatThre
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="text-emerald-700 font-semibold text-sm">
+                <span className="text-zinc-600 font-semibold text-sm">
                   {getInitials(conversation.otherUsername)}
                 </span>
               )}
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 text-sm">{conversation.otherUsername}</h3>
-              <p className="text-xs text-gray-500">
+              <h3 className="font-semibold text-zinc-900 text-sm">{conversation.otherUsername}</h3>
+              <p className="text-xs text-zinc-500">
                 {conversation.offeringSkillName} ↔ {conversation.receivingSkillName}
               </p>
             </div>
@@ -164,11 +164,11 @@ export function ChatThread({ proposalId, currentUserId, conversation }: ChatThre
             {/* Connection indicator */}
             <div className="flex items-center gap-1.5">
               {isConnected ? (
-                <Wifi className="w-3.5 h-3.5 text-emerald-500" />
+                <Wifi className="w-3.5 h-3.5 text-[#1D9E75]" />
               ) : (
-                <WifiOff className="w-3.5 h-3.5 text-gray-400" />
+                <WifiOff className="w-3.5 h-3.5 text-zinc-400" />
               )}
-              <span className={`text-xs ${isConnected ? 'text-emerald-600' : 'text-gray-400'}`}>
+              <span className={`text-xs ${isConnected ? 'text-[#1D9E75]' : 'text-zinc-400'}`}>
                 {isConnected ? 'Live' : 'Offline'}
               </span>
             </div>
@@ -176,7 +176,7 @@ export function ChatThread({ proposalId, currentUserId, conversation }: ChatThre
             {/* Link to proposal */}
             <Link
               href={`/proposals/${proposalId}`}
-              className="flex items-center gap-1 text-xs text-blue-500 hover:text-blue-700 transition-colors"
+              className="flex items-center gap-1 text-xs text-zinc-600 hover:text-zinc-900 transition-colors"
               title="View proposal"
             >
               <ExternalLink className="w-3.5 h-3.5" />
@@ -186,15 +186,15 @@ export function ChatThread({ proposalId, currentUserId, conversation }: ChatThre
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+      <div className="flex-1 overflow-y-auto p-4 bg-zinc-50">
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
-            <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
+            <Loader2 className="w-6 h-6 animate-spin text-[#1D9E75]" />
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <p className="text-gray-500 text-sm">No messages yet.</p>
-            <p className="text-gray-400 text-xs mt-1">Say hi to get the conversation started!</p>
+            <p className="text-zinc-500 text-sm">No messages yet.</p>
+            <p className="text-zinc-400 text-xs mt-1">Say hi to get the conversation started!</p>
           </div>
         ) : (
           <>
@@ -202,9 +202,9 @@ export function ChatThread({ proposalId, currentUserId, conversation }: ChatThre
               <div key={group.label}>
                 {/* Date separator */}
                 <div className="flex items-center gap-3 my-4">
-                  <div className="flex-1 h-px bg-gray-200" />
-                  <span className="text-xs text-gray-400 font-medium px-2">{group.label}</span>
-                  <div className="flex-1 h-px bg-gray-200" />
+                  <div className="flex-1 h-px bg-zinc-200" />
+                  <span className="text-xs text-zinc-400 font-medium px-2">{group.label}</span>
+                  <div className="flex-1 h-px bg-zinc-200" />
                 </div>
                 {group.messages.map((msg) => (
                   <MessageBubble key={msg.messageId} message={msg} />
@@ -217,14 +217,14 @@ export function ChatThread({ proposalId, currentUserId, conversation }: ChatThre
       </div>
 
       {/* Input */}
-      <div className="p-3 bg-white border-t border-gray-100 flex-shrink-0">
+      <div className="p-3 bg-white border-t border-zinc-200 flex-shrink-0">
         <form onSubmit={handleSubmit(onSubmit)} className="flex items-end gap-2">
           <div className="flex-1">
             <textarea
               {...register('content')}
               placeholder="Type a message…"
               rows={1}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent bg-gray-50"
+              className="w-full px-4 py-2.5 border border-zinc-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#1D9E75] focus:border-[#1D9E75] bg-white"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
@@ -239,7 +239,7 @@ export function ChatThread({ proposalId, currentUserId, conversation }: ChatThre
           <button
             type="submit"
             disabled={sendMessage.isPending}
-            className="p-2.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-xl transition-colors flex-shrink-0"
+            className="p-2.5 bg-[#1D9E75] hover:bg-[#0F6E56] disabled:opacity-50 text-white rounded-xl transition-colors flex-shrink-0"
           >
             {sendMessage.isPending ? (
               <Loader2 className="w-4 h-4 animate-spin" />

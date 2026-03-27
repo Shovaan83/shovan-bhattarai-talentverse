@@ -103,21 +103,21 @@ export default function ReviewModal({
               className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto"
             >
               {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-100">
+              <div className="flex items-center justify-between p-6 border-b border-zinc-200">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">
+                  <h2 className="text-2xl font-bold text-zinc-900">
                     Leave a Review
                   </h2>
-                  <p className="text-gray-600 mt-1">
+                  <p className="text-zinc-600 mt-1">
                     How was your experience with{" "}
                     <span className="font-semibold">{revieweeUsername}</span>?
                   </p>
                 </div>
                 <button
                   onClick={handleClose}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-zinc-100 rounded-lg transition-colors"
                 >
-                  <X className="w-5 h-5 text-gray-500" />
+                  <X className="w-5 h-5 text-zinc-500" />
                 </button>
               </div>
 
@@ -125,7 +125,7 @@ export default function ReviewModal({
               <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
                 {/* Star Rating */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-3">
+                  <label className="block text-sm font-semibold text-zinc-900 mb-3">
                     Rating <span className="text-red-500">*</span>
                   </label>
                   <div className="flex items-center gap-2">
@@ -136,19 +136,19 @@ export default function ReviewModal({
                         onClick={() => setValue("rating", star)}
                         onMouseEnter={() => setHoveredRating(star)}
                         onMouseLeave={() => setHoveredRating(0)}
-                        className="transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-emerald-500 rounded"
+                        className="transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-zinc-400 rounded"
                       >
                         <Star
                           className={`w-10 h-10 ${
                             star <= (hoveredRating || rating)
                               ? "fill-yellow-400 text-yellow-400"
-                              : "fill-gray-200 text-gray-200"
+                              : "fill-zinc-200 text-zinc-200"
                           } transition-colors`}
                         />
                       </button>
                     ))}
                     {rating > 0 && (
-                      <span className="ml-2 text-gray-600 font-medium">
+                      <span className="ml-2 text-zinc-600 font-medium">
                         {rating} / 5
                       </span>
                     )}
@@ -164,7 +164,7 @@ export default function ReviewModal({
                 <div>
                   <label
                     htmlFor="comment"
-                    className="block text-sm font-semibold text-gray-900 mb-2"
+                    className="block text-sm font-semibold text-zinc-900 mb-2"
                   >
                     Comment (Optional)
                   </label>
@@ -173,7 +173,7 @@ export default function ReviewModal({
                     {...register("comment")}
                     rows={4}
                     placeholder="Share your experience with this swap..."
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none text-gray-900 bg-white"
+                    className="w-full px-4 py-3 border border-zinc-200 rounded-lg focus:ring-2 focus:ring-zinc-400 focus:border-zinc-400 resize-none text-zinc-900 bg-white"
                     maxLength={500}
                   />
                   <div className="flex justify-between mt-2">
@@ -182,7 +182,7 @@ export default function ReviewModal({
                         {errors.comment.message}
                       </p>
                     )}
-                    <p className="text-sm text-gray-500 ml-auto">
+                    <p className="text-sm text-zinc-500 ml-auto">
                       {watch("comment")?.length || 0} / 500
                     </p>
                   </div>
@@ -193,14 +193,14 @@ export default function ReviewModal({
                   <button
                     type="button"
                     onClick={handleClose}
-                    className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex-1 px-6 py-3 bg-zinc-100 text-zinc-700 font-medium rounded-lg hover:bg-zinc-200 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={createReviewMutation.isPending}
-                    className="flex-1 px-6 py-3 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 px-6 py-3 bg-zinc-900 text-white font-medium rounded-lg hover:bg-zinc-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {createReviewMutation.isPending
                       ? "Submitting..."

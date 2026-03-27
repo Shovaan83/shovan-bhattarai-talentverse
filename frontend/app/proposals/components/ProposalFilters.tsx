@@ -65,13 +65,13 @@ export function ProposalFilters({
       className="flex flex-col gap-4 mb-6"
     >
       {/* Direction tabs */}
-      <div className="flex bg-white/10 backdrop-blur-sm rounded-xl p-1 border border-white/20">
+      <div className="flex bg-white rounded-xl p-1 border border-zinc-200">
         <button
           onClick={() => onDirectionChange("all")}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
             direction === "all"
-              ? "bg-white text-emerald-900 shadow-md"
-              : "text-emerald-100 hover:text-white hover:bg-white/10"
+              ? "bg-[#1D9E75] text-white shadow-md"
+              : "text-gray-500 hover:text-zinc-900 hover:bg-zinc-100"
           }`}
         >
           <Filter size={16} />
@@ -81,8 +81,8 @@ export function ProposalFilters({
           onClick={() => onDirectionChange("received")}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
             direction === "received"
-              ? "bg-white text-emerald-900 shadow-md"
-              : "text-emerald-100 hover:text-white hover:bg-white/10"
+              ? "bg-[#1D9E75] text-white shadow-md"
+              : "text-gray-500 hover:text-zinc-900 hover:bg-zinc-100"
           }`}
         >
           <Inbox size={16} />
@@ -92,8 +92,8 @@ export function ProposalFilters({
           onClick={() => onDirectionChange("sent")}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
             direction === "sent"
-              ? "bg-white text-emerald-900 shadow-md"
-              : "text-emerald-100 hover:text-white hover:bg-white/10"
+              ? "bg-[#1D9E75] text-white shadow-md"
+              : "text-gray-500 hover:text-zinc-900 hover:bg-zinc-100"
           }`}
         >
           <Send size={16} />
@@ -107,14 +107,14 @@ export function ProposalFilters({
         <div className="relative flex-1">
           <Search
             size={18}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"
           />
           <input
             type="text"
             value={localSearch}
             onChange={(e) => setLocalSearch(e.target.value)}
             placeholder="Search by username or skill..."
-            className="w-full bg-white/10 backdrop-blur-sm text-white placeholder-white/50 border border-white/20 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent"
+            className="w-full bg-white text-zinc-900 placeholder-gray-400 border border-zinc-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1D9E75] focus:border-transparent"
           />
         </div>
 
@@ -125,13 +125,13 @@ export function ProposalFilters({
             onChange={(e) =>
               onStatusChange(e.target.value as ProposalStatus | "all")
             }
-            className="appearance-none bg-white/10 backdrop-blur-sm text-white border border-white/20 rounded-xl px-4 py-2.5 pr-10 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent cursor-pointer hover:bg-white/20 transition-colors"
+            className="appearance-none bg-white text-zinc-900 border border-zinc-200 rounded-xl px-4 py-2.5 pr-10 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#1D9E75] focus:border-transparent cursor-pointer hover:bg-zinc-50 transition-colors"
           >
             {statusOptions.map((option) => (
               <option
                 key={option.value}
                 value={option.value}
-                className="bg-emerald-900 text-white"
+                className="bg-white text-zinc-900"
               >
                 {option.label}
               </option>
@@ -164,13 +164,13 @@ export function ProposalFilters({
                 sortOrder
               )
             }
-            className="appearance-none bg-white/10 backdrop-blur-sm text-white border border-white/20 rounded-xl px-4 py-2.5 pr-10 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent cursor-pointer hover:bg-white/20 transition-colors"
+            className="appearance-none bg-white text-zinc-900 border border-zinc-200 rounded-xl px-4 py-2.5 pr-10 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#1D9E75] focus:border-transparent cursor-pointer hover:bg-zinc-50 transition-colors"
           >
             {sortOptions.map((option) => (
               <option
                 key={option.value}
                 value={option.value}
-                className="bg-emerald-900 text-white"
+                className="bg-white text-zinc-900"
               >
                 {option.label}
               </option>
@@ -196,7 +196,7 @@ export function ProposalFilters({
         {/* Sort order toggle */}
         <button
           onClick={toggleSortOrder}
-          className="flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm text-white border border-white/20 rounded-xl px-4 py-2.5 text-sm font-medium hover:bg-white/20 transition-colors"
+          className="flex items-center justify-center gap-2 bg-white text-zinc-900 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm font-medium hover:bg-zinc-50 transition-colors"
           title={sortOrder === "asc" ? "Ascending" : "Descending"}
         >
           <ArrowUpDown size={16} />

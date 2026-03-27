@@ -6,10 +6,11 @@ import { z } from "zod";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Check, User, Mail, Lock, FileText, Loader2, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Check, User, Mail, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import axiosInstance from "@/lib/axios";
 import AuthLayout from "../components/AuthLayout";
+import PasswordInput from "../components/PasswordInput";
 
 const registerSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -27,7 +28,6 @@ export default function RegisterPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -102,7 +102,7 @@ export default function RegisterPage() {
       >
         {/* Back Button */}
         <div className="mb-6">
-          <Link href="/" className="inline-flex items-center text-gray-500 hover:text-emerald-600 transition-colors group">
+          <Link href="/" className="inline-flex items-center text-gray-500 hover:text-[#1D9E75] transition-colors group">
             <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
             <span className="font-medium">Back to Home</span>
           </Link>
@@ -110,12 +110,12 @@ export default function RegisterPage() {
 
         {/* Header Section */}
         <div className="mb-6">
-          <h2 className="text-2xl md:text-3xl font-heading font-bold text-gray-900 mb-2">
+          <h2 className="text-2xl md:text-3xl font-display font-bold text-zinc-900 mb-2">
             Create Account
           </h2>
           <p className="text-sm text-gray-600">
             Already have an account?{" "}
-            <Link href="/login" className="text-orange-600 hover:text-orange-700 font-bold transition-colors hover:underline">
+            <Link href="/login" className="text-[#1D9E75] hover:text-[#0F6E56] font-bold transition-colors hover:underline">
               Log In
             </Link>
           </p>
@@ -142,12 +142,12 @@ export default function RegisterPage() {
               Username
             </label>
             <div className="relative group">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-emerald-600 transition-colors" />
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[#1D9E75] transition-colors" />
               <input
                 id="username"
                 type="text"
                 {...register("username")}
-                className={`w-full pl-10 pr-3 py-2.5 bg-gray-50 border ${errors.username ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : 'border-gray-200 focus:border-emerald-600 focus:ring-emerald-100'} rounded-lg focus:outline-none focus:ring-2 transition-all text-sm text-gray-900 placeholder-gray-400 font-medium`}
+                className={`w-full pl-10 pr-3 py-2.5 bg-white border ${errors.username ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : 'border-zinc-200 focus:border-[#1D9E75] focus:ring-[#1D9E75]/10'} rounded-lg focus:outline-none focus:ring-2 transition-all text-sm text-zinc-900 placeholder-gray-400 font-medium`}
                 placeholder="Write a username"
               />
             </div>
@@ -164,12 +164,12 @@ export default function RegisterPage() {
               Email Address
             </label>
             <div className="relative group">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-emerald-600 transition-colors" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[#1D9E75] transition-colors" />
               <input
                 id="email"
                 type="email"
                 {...register("email")}
-                className={`w-full pl-10 pr-3 py-2.5 bg-gray-50 border ${errors.email ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : 'border-gray-200 focus:border-emerald-600 focus:ring-emerald-100'} rounded-lg focus:outline-none focus:ring-2 transition-all text-sm text-gray-900 placeholder-gray-400 font-medium`}
+                className={`w-full pl-10 pr-3 py-2.5 bg-white border ${errors.email ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : 'border-zinc-200 focus:border-[#1D9E75] focus:ring-[#1D9E75]/10'} rounded-lg focus:outline-none focus:ring-2 transition-all text-sm text-zinc-900 placeholder-gray-400 font-medium`}
                 placeholder="shovan@example.com"
               />
             </div>
@@ -181,37 +181,14 @@ export default function RegisterPage() {
           </div>
 
           {/* Password Field */}
-          <div className="space-y-1">
-            <label htmlFor="password" className="block text-xs font-semibold text-gray-700">
-              Password
-            </label>
-            <div className="relative group">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-emerald-600 transition-colors" />
-              <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                {...register("password")}
-                className={`w-full pl-10 pr-10 py-2.5 bg-gray-50 border ${errors.password ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : 'border-gray-200 focus:border-emerald-600 focus:ring-emerald-100'} rounded-lg focus:outline-none focus:ring-2 transition-all text-sm text-gray-900 placeholder-gray-400 font-medium`}
-                placeholder="Min. 8 characters with special character"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                {showPassword ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
-            </div>
-            {errors.password && (
-              <p className="text-xs text-red-600 font-medium pl-1">
-                {errors.password.message}
-              </p>
-            )}
-          </div>
+          <PasswordInput
+            id="password"
+            label="Password"
+            placeholder="Min. 8 characters with special character"
+            registration={register("password")}
+            error={errors.password?.message}
+            size="sm"
+          />
 
 
           {/* Terms Agreement */}
@@ -221,12 +198,12 @@ export default function RegisterPage() {
                 <input
                   type="checkbox"
                   {...register("agreeToTerms")}
-                  className="peer h-4 w-4 cursor-pointer appearance-none rounded border-2 border-gray-300 bg-white transition-all checked:border-emerald-600 checked:bg-emerald-600 hover:border-emerald-500"
+                  className="peer h-4 w-4 cursor-pointer appearance-none rounded border-2 border-gray-300 bg-white transition-all checked:border-zinc-900 checked:bg-zinc-900 hover:border-zinc-500"
                 />
                 <Check className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" strokeWidth={3} />
               </div>
               <span className="ml-2 text-xs font-medium text-gray-600 group-hover:text-gray-900 transition-colors">
-                I agree to the <span className="font-bold text-emerald-600">Terms of Service</span> and <span className="font-bold text-emerald-600">Privacy Policy</span>
+                I agree to the <span className="font-bold text-zinc-900">Terms of Service</span> and <span className="font-bold text-zinc-900">Privacy Policy</span>
               </span>
             </label>
             {errors.agreeToTerms && (
@@ -240,7 +217,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3 px-4 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-lg shadow-lg shadow-orange-600/20 hover:shadow-orange-600/30 focus:outline-none focus:ring-2 focus:ring-orange-100 disabled:opacity-70 disabled:cursor-not-allowed transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 text-sm"
+            className="w-full py-3 px-4 bg-zinc-900 hover:bg-zinc-800 text-white font-bold rounded-lg shadow-lg shadow-zinc-900/10 hover:shadow-zinc-900/20 focus:outline-none focus:ring-2 focus:ring-zinc-200 disabled:opacity-70 disabled:cursor-not-allowed transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 text-sm"
           >
             {isLoading ? (
               <>
@@ -258,7 +235,7 @@ export default function RegisterPage() {
               <div className="w-full border-t border-gray-200"></div>
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="px-2 bg-white text-gray-500 font-medium">Or sign up with</span>
+              <span className="px-2 bg-[#FAFAFA] text-gray-500 font-medium">Or sign up with</span>
             </div>
           </div>
 

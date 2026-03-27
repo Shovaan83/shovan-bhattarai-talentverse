@@ -23,23 +23,23 @@ export default function MessagesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#FAFAFA]">
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Page Header (visible on desktop, hidden on mobile when thread is open) */}
         <div className={`mb-6 ${selectedProposalId ? 'hidden md:block' : 'block'}`}>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-emerald-100 rounded-xl">
-              <MessageSquare className="w-6 h-6 text-emerald-600" />
+            <div className="p-2 bg-[#E1F5EE] rounded-xl">
+              <MessageSquare className="w-6 h-6 text-[#1D9E75]" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Messages</h1>
+              <h1 className="text-2xl font-display font-bold text-zinc-900">Messages</h1>
               <p className="text-gray-500 text-sm">Chat with your skill exchange partners</p>
             </div>
           </div>
         </div>
 
         {/* Split-panel layout */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden" style={{ height: 'calc(100vh - 200px)', minHeight: '500px' }}>
+        <div className="bg-white rounded-2xl shadow-sm border border-zinc-200 overflow-hidden" style={{ height: 'calc(100vh - 200px)', minHeight: '500px' }}>
           <div className="flex h-full">
             {/* Left panel - Conversation list */}
             <div
@@ -63,7 +63,7 @@ export default function MessagesPage() {
               {/* List */}
               {isLoading ? (
                 <div className="flex-1 flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-emerald-500 border-t-transparent" />
+                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-[#1D9E75] border-t-transparent" />
                 </div>
               ) : (
                 <div className="flex-1 overflow-y-auto">
@@ -104,8 +104,8 @@ export default function MessagesPage() {
                 </>
               ) : (
                 <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
-                  <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center mb-4">
-                    <MessageSquare className="w-8 h-8 text-emerald-400" />
+                  <div className="w-16 h-16 bg-[#E1F5EE] rounded-2xl flex items-center justify-center mb-4">
+                    <MessageSquare className="w-8 h-8 text-[#1D9E75]" />
                   </div>
                   <h3 className="font-semibold text-gray-700 text-lg mb-2">Select a conversation</h3>
                   <p className="text-gray-400 text-sm max-w-xs">

@@ -5,19 +5,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { User, Settings, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { Avatar } from '@/app/components/ui/Avatar';
 
 interface ProfileDropdownProps {
   username: string;
   profilePictureUrl?: string | null;
-  isScrolled?: boolean;
 }
 
-export function ProfileDropdown({ username, profilePictureUrl, isScrolled = true }: ProfileDropdownProps) {
+export function ProfileDropdown({ username, profilePictureUrl }: ProfileDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { logout } = useAuth();
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -44,26 +43,15 @@ export function ProfileDropdown({ username, profilePictureUrl, isScrolled = true
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-          isScrolled ? 'hover:bg-gray-100' : 'hover:bg-white/10'
-        }`}
+        className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/10 transition-colors"
       >
-        {/* Profile Picture */}
-        <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
-          {profilePictureUrl ? (
-            <img
-              src={profilePictureUrl}
-              alt={username}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <User className="w-5 h-5 text-gray-400" />
-          )}
-        </div>
-        {/* Username - Hidden on mobile */}
-        <span className={`hidden md:block text-sm font-medium transition-colors ${
-          isScrolled ? 'text-gray-700' : 'text-white'
-        }`}>
+        <Avatar
+          src={profilePictureUrl}
+          name={username}
+          size={32}
+          className="border-2 border-zinc-200/30"
+        />
+        <span className="hidden md:block text-sm font-medium text-white/70">
           {username}
         </span>
       </button>
@@ -76,22 +64,22 @@ export function ProfileDropdown({ username, profilePictureUrl, isScrolled = true
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-50"
+            className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-zinc-200 py-2 z-50"
           >
             {/* User Info */}
-            <div className="px-4 py-3 border-b border-gray-100">
-              <p className="text-sm font-semibold text-gray-900">{username}</p>
+            <div className="px-4 py-3 border-b border-zinc-200">
+              <p className="text-sm font-display font-semibold text-zinc-900">{username}</p>
               <p className="text-xs text-gray-500 mt-0.5">View and edit profile</p>
             </div>
 
             {/* Menu Items */}
-            <div className="py-2">
+            <div className="py-1">
               <Link href="/profile">
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-900 hover:bg-zinc-50 transition-colors"
                 >
-                  <User className="w-4 h-4" />
+                  <User className="w-4 h-4 text-zinc-600" />
                   View Profile
                 </button>
               </Link>
@@ -99,19 +87,19 @@ export function ProfileDropdown({ username, profilePictureUrl, isScrolled = true
               <Link href="/settings">
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-900 hover:bg-zinc-50 transition-colors"
                 >
-                  <Settings className="w-4 h-4" />
+                  <Settings className="w-4 h-4 text-zinc-600" />
                   Settings
                 </button>
               </Link>
             </div>
 
             {/* Logout */}
-            <div className="border-t border-gray-100 pt-2">
+            <div className="border-t border-zinc-200 pt-1">
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
               >
                 <LogOut className="w-4 h-4" />
                 Log Out

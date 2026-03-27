@@ -1,0 +1,822 @@
+{
+  "generatedAt": "2026-03-24T12:04:22.854Z",
+  "baseUrl": "http://localhost:3000",
+  "totalChecks": 28,
+  "failures": 0,
+  "overflowFindings": [],
+  "consoleErrorFindings": [
+    {
+      "route": "/login",
+      "viewport": "mobile-375",
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+      ]
+    },
+    {
+      "route": "/credits/cancel",
+      "viewport": "desktop-1440",
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+      ]
+    },
+    {
+      "route": "/setup-2fa",
+      "viewport": "desktop-1440",
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+      ]
+    },
+    {
+      "route": "/oauth-callback",
+      "viewport": "desktop-1440",
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+      ]
+    },
+    {
+      "route": "/admin/disputes",
+      "viewport": "desktop-1440",
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+      ]
+    },
+    {
+      "route": "/admin/verifications",
+      "viewport": "desktop-1440",
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+      ]
+    }
+  ],
+  "requestFailureFindings": [
+    {
+      "route": "/login",
+      "viewport": "mobile-375",
+      "requestFailures": [
+        "GET http://localhost:5249/api/proposals?direction=received&status=Pending&page=1&pageSize=1 :: net::ERR_CONNECTION_REFUSED",
+        "GET http://localhost:5249/api/messages/unread-count :: net::ERR_CONNECTION_REFUSED",
+        "GET http://localhost:5249/api/credits/wallet :: net::ERR_CONNECTION_REFUSED"
+      ]
+    },
+    {
+      "route": "/admin",
+      "viewport": "mobile-375",
+      "requestFailures": [
+        "GET http://localhost:3000/login?_rsc=1szk4 :: net::ERR_ABORTED"
+      ]
+    },
+    {
+      "route": "/admin/users",
+      "viewport": "mobile-375",
+      "requestFailures": [
+        "GET http://localhost:3000/login?_rsc=wkrq7 :: net::ERR_ABORTED"
+      ]
+    },
+    {
+      "route": "/admin/disputes",
+      "viewport": "mobile-375",
+      "requestFailures": [
+        "GET http://localhost:3000/login?_rsc=olw3s :: net::ERR_ABORTED"
+      ]
+    },
+    {
+      "route": "/credits/cancel",
+      "viewport": "desktop-1440",
+      "requestFailures": [
+        "GET http://localhost:5249/api/proposals?direction=received&status=Pending&page=1&pageSize=1 :: net::ERR_CONNECTION_REFUSED",
+        "GET http://localhost:5249/api/messages/unread-count :: net::ERR_CONNECTION_REFUSED",
+        "GET http://localhost:5249/api/credits/wallet :: net::ERR_CONNECTION_REFUSED"
+      ]
+    },
+    {
+      "route": "/setup-2fa",
+      "viewport": "desktop-1440",
+      "requestFailures": [
+        "GET http://localhost:3000/login?_rsc=hj5ff :: net::ERR_ABORTED",
+        "GET http://localhost:5249/api/proposals?direction=received&status=Pending&page=1&pageSize=1 :: net::ERR_CONNECTION_REFUSED"
+      ]
+    },
+    {
+      "route": "/oauth-callback",
+      "viewport": "desktop-1440",
+      "requestFailures": [
+        "GET http://localhost:5249/api/proposals?direction=received&status=Pending&page=1&pageSize=1 :: net::ERR_CONNECTION_REFUSED"
+      ]
+    },
+    {
+      "route": "/admin/disputes",
+      "viewport": "desktop-1440",
+      "requestFailures": [
+        "GET http://localhost:3000/login?_rsc=olw3s :: net::ERR_ABORTED",
+        "GET http://localhost:5249/api/proposals?direction=received&status=Pending&page=1&pageSize=1 :: net::ERR_CONNECTION_REFUSED",
+        "GET http://localhost:5249/api/messages/unread-count :: net::ERR_CONNECTION_REFUSED",
+        "GET http://localhost:5249/api/credits/wallet :: net::ERR_CONNECTION_REFUSED"
+      ]
+    },
+    {
+      "route": "/admin/verifications",
+      "viewport": "desktop-1440",
+      "requestFailures": [
+        "GET http://localhost:3000/login?_rsc=1rg7y :: net::ERR_ABORTED",
+        "GET http://localhost:5249/api/proposals?direction=received&status=Pending&page=1&pageSize=1 :: net::ERR_CONNECTION_REFUSED",
+        "GET http://localhost:5249/api/messages/unread-count :: net::ERR_CONNECTION_REFUSED",
+        "GET http://localhost:5249/api/credits/wallet :: net::ERR_CONNECTION_REFUSED"
+      ]
+    },
+    {
+      "route": "/admin/moderation",
+      "viewport": "desktop-1440",
+      "requestFailures": [
+        "GET http://localhost:3000/login?_rsc=dibjn :: net::ERR_ABORTED"
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "route": "/setup-2fa",
+      "viewport": "desktop-1440",
+      "finalPath": "/login"
+    },
+    {
+      "route": "/admin",
+      "viewport": "desktop-1440",
+      "finalPath": "/login"
+    },
+    {
+      "route": "/admin/users",
+      "viewport": "desktop-1440",
+      "finalPath": "/login"
+    },
+    {
+      "route": "/admin/disputes",
+      "viewport": "desktop-1440",
+      "finalPath": "/login"
+    },
+    {
+      "route": "/admin/verifications",
+      "viewport": "desktop-1440",
+      "finalPath": "/login"
+    },
+    {
+      "route": "/admin/moderation",
+      "viewport": "desktop-1440",
+      "finalPath": "/login"
+    }
+  ],
+  "results": [
+    {
+      "route": "/credits",
+      "viewport": "mobile-375",
+      "url": "http://localhost:3000/credits",
+      "finalPath": "/credits",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [
+          "div.lg:col-span-1",
+          "div#buy-credits.bg-white.rounded-2xl",
+          "a.block.mt-4",
+          "div.bg-linear-to-br.from-brand-violet-100",
+          "div.lg:col-span-2",
+          "div#transactions.bg-white.rounded-2xl"
+        ],
+        "title": "TalentVerse",
+        "h1": "Credits",
+        "path": "/credits"
+      },
+      "consoleErrors": [],
+      "requestFailures": [],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\mobile-375__credits.png"
+    },
+    {
+      "route": "/credits/success",
+      "viewport": "mobile-375",
+      "url": "http://localhost:3000/credits/success",
+      "finalPath": "/credits/success",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [],
+        "title": "TalentVerse",
+        "h1": "Payment Successful!",
+        "path": "/credits/success"
+      },
+      "consoleErrors": [],
+      "requestFailures": [],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\mobile-375__credits_success.png"
+    },
+    {
+      "route": "/credits/cancel",
+      "viewport": "mobile-375",
+      "url": "http://localhost:3000/credits/cancel",
+      "finalPath": "/credits/cancel",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [],
+        "title": "TalentVerse",
+        "h1": "Purchase Cancelled",
+        "path": "/credits/cancel"
+      },
+      "consoleErrors": [],
+      "requestFailures": [],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\mobile-375__credits_cancel.png"
+    },
+    {
+      "route": "/login",
+      "viewport": "mobile-375",
+      "url": "http://localhost:3000/login",
+      "finalPath": "/login",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [],
+        "title": "TalentVerse",
+        "h1": null,
+        "path": "/login"
+      },
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+      ],
+      "requestFailures": [
+        "GET http://localhost:5249/api/proposals?direction=received&status=Pending&page=1&pageSize=1 :: net::ERR_CONNECTION_REFUSED",
+        "GET http://localhost:5249/api/messages/unread-count :: net::ERR_CONNECTION_REFUSED",
+        "GET http://localhost:5249/api/credits/wallet :: net::ERR_CONNECTION_REFUSED"
+      ],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\mobile-375__login.png"
+    },
+    {
+      "route": "/register",
+      "viewport": "mobile-375",
+      "url": "http://localhost:3000/register",
+      "finalPath": "/register",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [],
+        "title": "TalentVerse",
+        "h1": null,
+        "path": "/register"
+      },
+      "consoleErrors": [],
+      "requestFailures": [],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\mobile-375__register.png"
+    },
+    {
+      "route": "/forgot-password",
+      "viewport": "mobile-375",
+      "url": "http://localhost:3000/forgot-password",
+      "finalPath": "/forgot-password",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [],
+        "title": "TalentVerse",
+        "h1": null,
+        "path": "/forgot-password"
+      },
+      "consoleErrors": [],
+      "requestFailures": [],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\mobile-375__forgot-password.png"
+    },
+    {
+      "route": "/setup-2fa",
+      "viewport": "mobile-375",
+      "url": "http://localhost:3000/setup-2fa",
+      "finalPath": "/setup-2fa",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [],
+        "title": "TalentVerse",
+        "h1": null,
+        "path": "/setup-2fa"
+      },
+      "consoleErrors": [],
+      "requestFailures": [],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\mobile-375__setup-2fa.png"
+    },
+    {
+      "route": "/onboarding",
+      "viewport": "mobile-375",
+      "url": "http://localhost:3000/onboarding",
+      "finalPath": "/onboarding",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [],
+        "title": "TalentVerse",
+        "h1": null,
+        "path": "/onboarding"
+      },
+      "consoleErrors": [],
+      "requestFailures": [],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\mobile-375__onboarding.png"
+    },
+    {
+      "route": "/oauth-callback",
+      "viewport": "mobile-375",
+      "url": "http://localhost:3000/oauth-callback",
+      "finalPath": "/oauth-callback",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [],
+        "title": "TalentVerse",
+        "h1": null,
+        "path": "/oauth-callback"
+      },
+      "consoleErrors": [],
+      "requestFailures": [],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\mobile-375__oauth-callback.png"
+    },
+    {
+      "route": "/admin",
+      "viewport": "mobile-375",
+      "url": "http://localhost:3000/admin",
+      "finalPath": "/admin",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [],
+        "title": "TalentVerse",
+        "h1": null,
+        "path": "/admin"
+      },
+      "consoleErrors": [],
+      "requestFailures": [
+        "GET http://localhost:3000/login?_rsc=1szk4 :: net::ERR_ABORTED"
+      ],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\mobile-375__admin.png"
+    },
+    {
+      "route": "/admin/users",
+      "viewport": "mobile-375",
+      "url": "http://localhost:3000/admin/users",
+      "finalPath": "/admin/users",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [],
+        "title": "TalentVerse",
+        "h1": null,
+        "path": "/admin/users"
+      },
+      "consoleErrors": [],
+      "requestFailures": [
+        "GET http://localhost:3000/login?_rsc=wkrq7 :: net::ERR_ABORTED"
+      ],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\mobile-375__admin_users.png"
+    },
+    {
+      "route": "/admin/disputes",
+      "viewport": "mobile-375",
+      "url": "http://localhost:3000/admin/disputes",
+      "finalPath": "/admin/disputes",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [],
+        "title": "TalentVerse",
+        "h1": null,
+        "path": "/admin/disputes"
+      },
+      "consoleErrors": [],
+      "requestFailures": [
+        "GET http://localhost:3000/login?_rsc=olw3s :: net::ERR_ABORTED"
+      ],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\mobile-375__admin_disputes.png"
+    },
+    {
+      "route": "/admin/verifications",
+      "viewport": "mobile-375",
+      "url": "http://localhost:3000/admin/verifications",
+      "finalPath": "/admin/verifications",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [],
+        "title": "TalentVerse",
+        "h1": null,
+        "path": "/admin/verifications"
+      },
+      "consoleErrors": [],
+      "requestFailures": [],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\mobile-375__admin_verifications.png"
+    },
+    {
+      "route": "/admin/moderation",
+      "viewport": "mobile-375",
+      "url": "http://localhost:3000/admin/moderation",
+      "finalPath": "/admin/moderation",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 375,
+        "innerWidth": 375,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [],
+        "title": "TalentVerse",
+        "h1": null,
+        "path": "/admin/moderation"
+      },
+      "consoleErrors": [],
+      "requestFailures": [],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\mobile-375__admin_moderation.png"
+    },
+    {
+      "route": "/credits",
+      "viewport": "desktop-1440",
+      "url": "http://localhost:3000/credits",
+      "finalPath": "/credits",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [],
+        "title": "TalentVerse",
+        "h1": "Credits",
+        "path": "/credits"
+      },
+      "consoleErrors": [],
+      "requestFailures": [],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\desktop-1440__credits.png"
+    },
+    {
+      "route": "/credits/success",
+      "viewport": "desktop-1440",
+      "url": "http://localhost:3000/credits/success",
+      "finalPath": "/credits/success",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [],
+        "title": "TalentVerse",
+        "h1": "Payment Successful!",
+        "path": "/credits/success"
+      },
+      "consoleErrors": [],
+      "requestFailures": [],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\desktop-1440__credits_success.png"
+    },
+    {
+      "route": "/credits/cancel",
+      "viewport": "desktop-1440",
+      "url": "http://localhost:3000/credits/cancel",
+      "finalPath": "/credits/cancel",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [],
+        "title": "TalentVerse",
+        "h1": "Purchase Cancelled",
+        "path": "/credits/cancel"
+      },
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+      ],
+      "requestFailures": [
+        "GET http://localhost:5249/api/proposals?direction=received&status=Pending&page=1&pageSize=1 :: net::ERR_CONNECTION_REFUSED",
+        "GET http://localhost:5249/api/messages/unread-count :: net::ERR_CONNECTION_REFUSED",
+        "GET http://localhost:5249/api/credits/wallet :: net::ERR_CONNECTION_REFUSED"
+      ],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\desktop-1440__credits_cancel.png"
+    },
+    {
+      "route": "/login",
+      "viewport": "desktop-1440",
+      "url": "http://localhost:3000/login",
+      "finalPath": "/login",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [],
+        "title": "TalentVerse",
+        "h1": null,
+        "path": "/login"
+      },
+      "consoleErrors": [],
+      "requestFailures": [],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\desktop-1440__login.png"
+    },
+    {
+      "route": "/register",
+      "viewport": "desktop-1440",
+      "url": "http://localhost:3000/register",
+      "finalPath": "/register",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [],
+        "title": "TalentVerse",
+        "h1": null,
+        "path": "/register"
+      },
+      "consoleErrors": [],
+      "requestFailures": [],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\desktop-1440__register.png"
+    },
+    {
+      "route": "/forgot-password",
+      "viewport": "desktop-1440",
+      "url": "http://localhost:3000/forgot-password",
+      "finalPath": "/forgot-password",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [],
+        "title": "TalentVerse",
+        "h1": null,
+        "path": "/forgot-password"
+      },
+      "consoleErrors": [],
+      "requestFailures": [],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\desktop-1440__forgot-password.png"
+    },
+    {
+      "route": "/setup-2fa",
+      "viewport": "desktop-1440",
+      "url": "http://localhost:3000/setup-2fa",
+      "finalPath": "/login",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [],
+        "title": "TalentVerse",
+        "h1": null,
+        "path": "/login"
+      },
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+      ],
+      "requestFailures": [
+        "GET http://localhost:3000/login?_rsc=hj5ff :: net::ERR_ABORTED",
+        "GET http://localhost:5249/api/proposals?direction=received&status=Pending&page=1&pageSize=1 :: net::ERR_CONNECTION_REFUSED"
+      ],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\desktop-1440__setup-2fa.png"
+    },
+    {
+      "route": "/onboarding",
+      "viewport": "desktop-1440",
+      "url": "http://localhost:3000/onboarding",
+      "finalPath": "/onboarding",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [],
+        "title": "TalentVerse",
+        "h1": null,
+        "path": "/onboarding"
+      },
+      "consoleErrors": [],
+      "requestFailures": [],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\desktop-1440__onboarding.png"
+    },
+    {
+      "route": "/oauth-callback",
+      "viewport": "desktop-1440",
+      "url": "http://localhost:3000/oauth-callback",
+      "finalPath": "/oauth-callback",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [],
+        "title": "TalentVerse",
+        "h1": null,
+        "path": "/oauth-callback"
+      },
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+      ],
+      "requestFailures": [
+        "GET http://localhost:5249/api/proposals?direction=received&status=Pending&page=1&pageSize=1 :: net::ERR_CONNECTION_REFUSED"
+      ],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\desktop-1440__oauth-callback.png"
+    },
+    {
+      "route": "/admin",
+      "viewport": "desktop-1440",
+      "url": "http://localhost:3000/admin",
+      "finalPath": "/login",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [],
+        "title": "TalentVerse",
+        "h1": null,
+        "path": "/login"
+      },
+      "consoleErrors": [],
+      "requestFailures": [],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\desktop-1440__admin.png"
+    },
+    {
+      "route": "/admin/users",
+      "viewport": "desktop-1440",
+      "url": "http://localhost:3000/admin/users",
+      "finalPath": "/login",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [],
+        "title": "TalentVerse",
+        "h1": null,
+        "path": "/admin/users"
+      },
+      "consoleErrors": [],
+      "requestFailures": [],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\desktop-1440__admin_users.png"
+    },
+    {
+      "route": "/admin/disputes",
+      "viewport": "desktop-1440",
+      "url": "http://localhost:3000/admin/disputes",
+      "finalPath": "/login",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [],
+        "title": "TalentVerse",
+        "h1": null,
+        "path": "/login"
+      },
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+      ],
+      "requestFailures": [
+        "GET http://localhost:3000/login?_rsc=olw3s :: net::ERR_ABORTED",
+        "GET http://localhost:5249/api/proposals?direction=received&status=Pending&page=1&pageSize=1 :: net::ERR_CONNECTION_REFUSED",
+        "GET http://localhost:5249/api/messages/unread-count :: net::ERR_CONNECTION_REFUSED",
+        "GET http://localhost:5249/api/credits/wallet :: net::ERR_CONNECTION_REFUSED"
+      ],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\desktop-1440__admin_disputes.png"
+    },
+    {
+      "route": "/admin/verifications",
+      "viewport": "desktop-1440",
+      "url": "http://localhost:3000/admin/verifications",
+      "finalPath": "/login",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [],
+        "title": "TalentVerse",
+        "h1": null,
+        "path": "/login"
+      },
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+        "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+      ],
+      "requestFailures": [
+        "GET http://localhost:3000/login?_rsc=1rg7y :: net::ERR_ABORTED",
+        "GET http://localhost:5249/api/proposals?direction=received&status=Pending&page=1&pageSize=1 :: net::ERR_CONNECTION_REFUSED",
+        "GET http://localhost:5249/api/messages/unread-count :: net::ERR_CONNECTION_REFUSED",
+        "GET http://localhost:5249/api/credits/wallet :: net::ERR_CONNECTION_REFUSED"
+      ],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\desktop-1440__admin_verifications.png"
+    },
+    {
+      "route": "/admin/moderation",
+      "viewport": "desktop-1440",
+      "url": "http://localhost:3000/admin/moderation",
+      "finalPath": "/login",
+      "httpStatus": 200,
+      "status": "ok",
+      "metrics": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "hasHorizontalOverflow": false,
+        "bodyOverflowX": "visible",
+        "overflowElements": [],
+        "title": "TalentVerse",
+        "h1": null,
+        "path": "/login"
+      },
+      "consoleErrors": [],
+      "requestFailures": [
+        "GET http://localhost:3000/login?_rsc=dibjn :: net::ERR_ABORTED"
+      ],
+      "screenshot": "D:\\Study Material\\Third Year\\FYP\\TalentVerse\\.qa\\turn7\\desktop-1440__admin_moderation.png"
+    }
+  ]
+}

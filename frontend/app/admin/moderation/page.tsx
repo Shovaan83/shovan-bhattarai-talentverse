@@ -13,6 +13,8 @@ import {
   AlertTriangle,
   X,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { fadeUp, scaleIn } from "@/app/components/motion/variants";
 import {
   useFlaggedContent,
   useAdminSkills,
@@ -23,6 +25,7 @@ import {
 } from "@/lib/hooks/useAdmin";
 import type { AdminSkillDto, AdminReviewDto } from "@/lib/types/admin";
 import { toast } from "react-hot-toast";
+import { AdminStatusBadge } from "@/app/components/ui/AdminStatusBadge";
 
 type Tab = "reports" | "skills" | "reviews";
 
@@ -101,24 +104,29 @@ export default function AdminModerationPage() {
 
   return (
     <>
-      <div className="space-y-6">
+      <motion.div
+        className="space-y-6"
+        initial={fadeUp.initial}
+        animate={fadeUp.animate}
+        transition={{ duration: 0.3 }}
+      >
         {/* Tabs */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-          <div className="flex border-b border-gray-200">
+        <div className="bg-zinc-50 rounded-xl border border-zinc-200 shadow-sm">
+          <div className="flex border-b border-zinc-200">
             {tabs.map((t) => (
               <button
                 key={t.key}
                 onClick={() => setTab(t.key)}
                 className={`flex-1 px-4 py-3 text-sm font-medium transition-colors relative ${
                   tab === t.key
-                    ? "text-indigo-700 border-b-2 border-indigo-600"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                    ? "text-zinc-900 border-b-2 border-[#1D9E75] bg-white"
+                    : "text-zinc-500 hover:text-zinc-900 hover:bg-white/70"
                 }`}
               >
                 {t.label}
                 {t.count !== undefined && t.count > 0 && (
                   <span className={`ml-2 px-1.5 py-0.5 text-xs rounded-full ${
-                    tab === t.key ? "bg-indigo-100 text-indigo-700" : "bg-gray-100 text-gray-600"
+                    tab === t.key ? "bg-zinc-100 text-zinc-700" : "bg-zinc-100 text-zinc-600"
                   }`}>
                     {t.count}
                   </span>
@@ -130,42 +138,40 @@ export default function AdminModerationPage() {
 
         {/* ── Reports Tab ── */}
         {tab === "reports" && (
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
             {flaggedContent.isLoading && (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+              <div className="p-5 space-y-3">
+                {Array.from({ length: 5 }).map((_, idx) => (
+                  <div key={idx} className="h-14 rounded-xl bg-zinc-100 animate-pulse" />
+                ))}
               </div>
             )}
             {flaggedContent.data && flaggedContent.data.reports.length === 0 && (
-              <div className="text-center py-12 text-gray-400">
-                <Flag className="w-10 h-10 mx-auto mb-2 opacity-40" />
-                <p>No pending reports</p>
+              <div className="text-center py-12">
+                <div className="w-12 h-12 rounded-full bg-[#E1F5EE] flex items-center justify-center mx-auto mb-3">
+                  <Flag className="w-6 h-6 text-[#1D9E75]" />
+                </div>
+                <p className="text-sm font-semibold text-zinc-900">No pending reports</p>
               </div>
             )}
             {flaggedContent.data && flaggedContent.data.reports.length > 0 && (
               <>
-                <div className="divide-y divide-gray-100">
+                <div className="divide-y divide-zinc-100">
                   {flaggedContent.data.reports.map((r) => (
-                    <div key={r.reportId} className="p-4 hover:bg-gray-50/50 transition-colors">
+                    <div key={r.reportId} className="p-4 hover:bg-zinc-50 transition-colors">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                              r.contentType === "Skill"
-                                ? "bg-emerald-100 text-emerald-700"
-                                : "bg-violet-100 text-violet-700"
-                            }`}>
-                              {r.contentType}
-                            </span>
-                            <span className="text-xs text-gray-500">
+                            <AdminStatusBadge status={r.contentType === "Skill" ? "Skill" : "Review"} />
+                            <span className="text-xs text-zinc-500">
                               Reported by <span className="font-medium">{r.reporterName}</span>
                             </span>
-                            <span className="text-xs text-gray-400">
+                            <span className="text-xs text-zinc-400">
                               {new Date(r.createdAt).toLocaleDateString()}
                             </span>
                           </div>
                           {r.contentPreview && (
-                            <p className="text-sm font-medium text-gray-900 mb-1">
+                            <p className="text-sm font-medium text-zinc-900 mb-1">
                               {r.contentPreview}
                               {r.rating && (
                                 <span className="ml-2 text-xs text-amber-600">
@@ -175,12 +181,12 @@ export default function AdminModerationPage() {
                             </p>
                           )}
                           {r.contentOwnerName && (
-                            <p className="text-xs text-gray-500 mb-1">
+                            <p className="text-xs text-zinc-500 mb-1">
                               By: {r.contentOwnerName}
                             </p>
                           )}
-                          <p className="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
-                            <span className="font-medium text-gray-700">Reason:</span> {r.reason}
+                          <p className="text-sm text-zinc-600 bg-zinc-50 rounded-lg px-3 py-2">
+                            <span className="font-medium text-zinc-700">Reason:</span> {r.reason}
                           </p>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
@@ -224,10 +230,12 @@ export default function AdminModerationPage() {
         {tab === "skills" && (
           <div className="space-y-4">
             <SearchBox value={skillSearch} onChange={handleSkillSearch} placeholder="Search by skill name or username..." />
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
               {adminSkills.isLoading && (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+                <div className="p-5 space-y-3">
+                  {Array.from({ length: 6 }).map((_, idx) => (
+                    <div key={idx} className="h-11 rounded-xl bg-zinc-100 animate-pulse" />
+                  ))}
                 </div>
               )}
               {adminSkills.data && (
@@ -235,34 +243,30 @@ export default function AdminModerationPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
-                        <tr className="border-b border-gray-200 bg-gray-50/80">
-                          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Skill</th>
-                          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">User</th>
-                          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Type</th>
-                          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Category</th>
-                          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Added</th>
-                          <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Action</th>
+                        <tr className="border-b border-zinc-200 bg-zinc-50">
+                          <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase">Skill</th>
+                          <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase">User</th>
+                          <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase">Type</th>
+                          <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase">Category</th>
+                          <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase">Added</th>
+                          <th className="text-right px-4 py-3 text-xs font-semibold text-zinc-500 uppercase">Action</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100">
-                        {adminSkills.data.skills.map((s: AdminSkillDto) => (
-                          <tr key={s.userSkillId} className="hover:bg-gray-50/50 transition-colors">
+                      <tbody className="divide-y divide-zinc-100">
+                        {adminSkills.data.skills.map((s: AdminSkillDto, index) => (
+                          <tr key={s.userSkillId} className={`${index % 2 === 0 ? "bg-zinc-50/50" : "bg-white"} hover:bg-zinc-50 transition-colors`}>
                             <td className="px-4 py-3">
-                              <p className="text-sm font-medium text-gray-900">{s.skillName}</p>
+                              <p className="text-sm font-medium text-zinc-900">{s.skillName}</p>
                               {s.description && (
-                                <p className="text-xs text-gray-500 truncate max-w-[200px]">{s.description}</p>
+                                <p className="text-xs text-zinc-500 truncate max-w-50">{s.description}</p>
                               )}
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-700">{s.userName}</td>
+                            <td className="px-4 py-3 text-sm text-zinc-700">{s.userName}</td>
                             <td className="px-4 py-3">
-                              <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                                s.type === 0 ? "bg-emerald-100 text-emerald-700" : "bg-orange-100 text-orange-700"
-                              }`}>
-                                {s.type === 0 ? "Offer" : "Want"}
-                              </span>
+                              <AdminStatusBadge status="Skill" className="capitalize" />
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-600">{s.category || "—"}</td>
-                            <td className="px-4 py-3 text-sm text-gray-600">{new Date(s.createdAt).toLocaleDateString()}</td>
+                            <td className="px-4 py-3 text-sm text-zinc-600">{s.category || "—"}</td>
+                            <td className="px-4 py-3 text-sm text-zinc-600">{new Date(s.createdAt).toLocaleDateString()}</td>
                             <td className="px-4 py-3 text-right">
                               <button
                                 onClick={() =>
@@ -278,7 +282,14 @@ export default function AdminModerationPage() {
                         ))}
                         {adminSkills.data.skills.length === 0 && (
                           <tr>
-                            <td colSpan={6} className="text-center py-12 text-gray-400">No skills found</td>
+                            <td colSpan={6} className="py-12">
+                              <div className="flex flex-col items-center gap-3 text-center">
+                                <div className="w-12 h-12 rounded-full bg-[#E1F5EE] flex items-center justify-center">
+                                  <Search className="w-6 h-6 text-[#1D9E75]" />
+                                </div>
+                                <p className="text-sm font-semibold text-zinc-900">No skills found</p>
+                              </div>
+                            </td>
                           </tr>
                         )}
                       </tbody>
@@ -295,10 +306,12 @@ export default function AdminModerationPage() {
         {tab === "reviews" && (
           <div className="space-y-4">
             <SearchBox value={reviewSearch} onChange={handleReviewSearch} placeholder="Search by username or comment..." />
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
               {adminReviews.isLoading && (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+                <div className="p-5 space-y-3">
+                  {Array.from({ length: 6 }).map((_, idx) => (
+                    <div key={idx} className="h-11 rounded-xl bg-zinc-100 animate-pulse" />
+                  ))}
                 </div>
               )}
               {adminReviews.data && (
@@ -306,30 +319,30 @@ export default function AdminModerationPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
-                        <tr className="border-b border-gray-200 bg-gray-50/80">
-                          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Reviewer</th>
-                          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Reviewee</th>
-                          <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Rating</th>
-                          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Comment</th>
-                          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Date</th>
-                          <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Action</th>
+                        <tr className="border-b border-zinc-200 bg-zinc-50">
+                          <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase">Reviewer</th>
+                          <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase">Reviewee</th>
+                          <th className="text-center px-4 py-3 text-xs font-semibold text-zinc-500 uppercase">Rating</th>
+                          <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase">Comment</th>
+                          <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase">Date</th>
+                          <th className="text-right px-4 py-3 text-xs font-semibold text-zinc-500 uppercase">Action</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100">
-                        {adminReviews.data.reviews.map((r: AdminReviewDto) => (
-                          <tr key={r.reviewId} className="hover:bg-gray-50/50 transition-colors">
-                            <td className="px-4 py-3 text-sm font-medium text-gray-900">{r.reviewerName}</td>
-                            <td className="px-4 py-3 text-sm text-gray-700">{r.revieweeName}</td>
+                      <tbody className="divide-y divide-zinc-100">
+                        {adminReviews.data.reviews.map((r: AdminReviewDto, index) => (
+                          <tr key={r.reviewId} className={`${index % 2 === 0 ? "bg-zinc-50/50" : "bg-white"} hover:bg-zinc-50 transition-colors`}>
+                            <td className="px-4 py-3 text-sm font-medium text-zinc-900">{r.reviewerName}</td>
+                            <td className="px-4 py-3 text-sm text-zinc-700">{r.revieweeName}</td>
                             <td className="px-4 py-3 text-center">
                               <div className="flex items-center justify-center gap-1">
                                 <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                                <span className="text-sm font-medium text-gray-900">{r.rating}</span>
+                                <span className="text-sm font-medium text-zinc-900">{r.rating}</span>
                               </div>
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-600 max-w-[250px] truncate">
-                              {r.comment || <span className="text-gray-400 italic">No comment</span>}
+                            <td className="px-4 py-3 text-sm text-zinc-600 max-w-62.5 truncate">
+                              {r.comment || <span className="text-zinc-400 italic">No comment</span>}
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-600">{new Date(r.createdAt).toLocaleDateString()}</td>
+                            <td className="px-4 py-3 text-sm text-zinc-600">{new Date(r.createdAt).toLocaleDateString()}</td>
                             <td className="px-4 py-3 text-right">
                               <button
                                 onClick={() =>
@@ -345,7 +358,14 @@ export default function AdminModerationPage() {
                         ))}
                         {adminReviews.data.reviews.length === 0 && (
                           <tr>
-                            <td colSpan={6} className="text-center py-12 text-gray-400">No reviews found</td>
+                            <td colSpan={6} className="py-12">
+                              <div className="flex flex-col items-center gap-3 text-center">
+                                <div className="w-12 h-12 rounded-full bg-[#E1F5EE] flex items-center justify-center">
+                                  <Star className="w-6 h-6 text-[#1D9E75]" />
+                                </div>
+                                <p className="text-sm font-semibold text-zinc-900">No reviews found</p>
+                              </div>
+                            </td>
                           </tr>
                         )}
                       </tbody>
@@ -357,27 +377,39 @@ export default function AdminModerationPage() {
             </div>
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* ── Remove Modal ── */}
-      {removeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 p-6">
+      <AnimatePresence>
+        {removeModal && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 p-6"
+              initial={scaleIn.initial}
+              animate={scaleIn.animate}
+              exit={scaleIn.initial}
+              transition={scaleIn.transition}
+            >
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-red-100 rounded-lg">
                   <AlertTriangle className="w-5 h-5 text-red-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-zinc-900">
                     Remove {removeModal.type === "skill" ? "Skill" : "Review"}
                   </h3>
-                  <p className="text-sm text-gray-500">{removeModal.label}</p>
+                  <p className="text-sm text-zinc-500">{removeModal.label}</p>
                 </div>
               </div>
               <button
                 onClick={() => { setRemoveModal(null); setRemoveReason(""); }}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-zinc-400 hover:text-zinc-600"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -390,20 +422,20 @@ export default function AdminModerationPage() {
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Reason *</label>
+              <label className="block text-sm font-medium text-zinc-700 mb-1.5">Reason *</label>
               <textarea
                 value={removeReason}
                 onChange={(e) => setRemoveReason(e.target.value)}
                 rows={3}
                 placeholder="Why is this content being removed?"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+                className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1D9E75] focus:border-transparent resize-none"
               />
             </div>
 
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => { setRemoveModal(null); setRemoveReason(""); }}
-                className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-zinc-900 border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-colors"
               >
                 Cancel
               </button>
@@ -419,9 +451,10 @@ export default function AdminModerationPage() {
                 )}
               </button>
             </div>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
@@ -430,15 +463,15 @@ export default function AdminModerationPage() {
 
 function SearchBox({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+    <div className="bg-white rounded-xl border border-zinc-200 p-4 shadow-sm">
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
         <input
           type="text"
           placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          className="w-full pl-10 pr-4 py-2.5 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1D9E75] focus:border-transparent"
         />
       </div>
     </div>
@@ -448,19 +481,19 @@ function SearchBox({ value, onChange, placeholder }: { value: string; onChange: 
 function Pagination({ page, totalPages, setPage }: { page: number; totalPages: number; setPage: (p: number) => void }) {
   if (totalPages <= 1) return null;
   return (
-    <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
+    <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-200">
       <button
         onClick={() => setPage(Math.max(1, page - 1))}
         disabled={page === 1}
-        className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-zinc-900 border border-zinc-200 rounded-lg hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         <ChevronLeft className="w-4 h-4" /> Previous
       </button>
-      <span className="text-sm text-gray-600">Page {page} of {totalPages}</span>
+      <span className="text-sm text-zinc-600">Page {page} of {totalPages}</span>
       <button
         onClick={() => setPage(Math.min(totalPages, page + 1))}
         disabled={page === totalPages}
-        className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-zinc-900 border border-zinc-200 rounded-lg hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         Next <ChevronRight className="w-4 h-4" />
       </button>

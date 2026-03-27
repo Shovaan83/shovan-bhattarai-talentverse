@@ -39,13 +39,13 @@ export function SearchFilters({ onSearch, currentParams }: SearchFiltersProps) {
       {/* Search Bar */}
       <form onSubmit={handleSearchSubmit} className="flex gap-3 mb-4">
         <div className="flex-1 relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-500" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by name or skill..."
-            className="w-full pl-12 pr-4 py-3 rounded-2xl bg-emerald-900/30 border border-emerald-800/50 text-white placeholder-emerald-600 focus:outline-none focus:border-emerald-600 transition-colors"
+            className="w-full pl-12 pr-4 py-3 rounded-xl bg-white border border-zinc-200 text-zinc-900 placeholder-gray-400 focus:outline-none focus:border-[#1D9E75] focus:ring-1 focus:ring-[#1D9E75]/20 transition-colors"
           />
           {searchQuery && (
             <button
@@ -54,7 +54,7 @@ export function SearchFilters({ onSearch, currentParams }: SearchFiltersProps) {
                 setSearchQuery('');
                 onSearch({ query: undefined });
               }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500 hover:text-emerald-300"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-zinc-900"
             >
               <X className="w-4 h-4" />
             </button>
@@ -62,17 +62,17 @@ export function SearchFilters({ onSearch, currentParams }: SearchFiltersProps) {
         </div>
         <button
           type="submit"
-          className="px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 transition-colors font-medium"
+          className="px-6 py-3 rounded-xl bg-[#1D9E75] hover:bg-[#0F6E56] text-white transition-colors font-medium"
         >
           Search
         </button>
         <button
           type="button"
           onClick={() => setShowFilters(!showFilters)}
-          className={`px-4 py-3 rounded-2xl border transition-colors ${
+          className={`px-4 py-3 rounded-xl border transition-colors ${
             showFilters
-              ? 'bg-emerald-600 border-emerald-600'
-              : 'bg-emerald-900/30 border-emerald-800/50 hover:border-emerald-600'
+              ? 'bg-zinc-900 border-zinc-900 text-white'
+              : 'bg-white border-zinc-200 text-zinc-600 hover:border-zinc-400'
           }`}
         >
           <SlidersHorizontal className="w-5 h-5" />
@@ -81,11 +81,11 @@ export function SearchFilters({ onSearch, currentParams }: SearchFiltersProps) {
 
       {/* Filter Panel */}
       {showFilters && (
-        <div className="bg-emerald-900/30 rounded-2xl p-4 border border-emerald-800/50 space-y-4">
+        <div className="bg-white rounded-xl p-4 border border-zinc-200 space-y-4">
           <div className="flex flex-wrap gap-4">
             {/* Skill Type Filter */}
             <div>
-              <label className="block text-sm font-medium text-emerald-400 mb-2">
+              <label className="block text-sm font-medium text-zinc-600 mb-2">
                 Skill Type
               </label>
               <div className="flex gap-2">
@@ -93,8 +93,8 @@ export function SearchFilters({ onSearch, currentParams }: SearchFiltersProps) {
                   onClick={() => handleSkillTypeChange(undefined)}
                   className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
                     !currentParams.skillType
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-emerald-900/50 text-emerald-300 hover:bg-emerald-900'
+                      ? 'bg-[#1D9E75] text-white'
+                      : 'bg-zinc-50 text-zinc-900 hover:bg-zinc-100 border border-zinc-200'
                   }`}
                 >
                   All
@@ -103,8 +103,8 @@ export function SearchFilters({ onSearch, currentParams }: SearchFiltersProps) {
                   onClick={() => handleSkillTypeChange('Offered')}
                   className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
                     currentParams.skillType === 'Offered'
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-emerald-900/50 text-emerald-300 hover:bg-emerald-900'
+                      ? 'bg-[#1D9E75] text-white'
+                      : 'bg-zinc-50 text-zinc-900 hover:bg-zinc-100 border border-zinc-200'
                   }`}
                 >
                   Offering
@@ -113,8 +113,8 @@ export function SearchFilters({ onSearch, currentParams }: SearchFiltersProps) {
                   onClick={() => handleSkillTypeChange('Wanted')}
                   className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
                     currentParams.skillType === 'Wanted'
-                      ? 'bg-orange-600 text-white'
-                      : 'bg-orange-900/50 text-orange-300 hover:bg-orange-900'
+                      ? 'bg-[#3C2A8A] text-white'
+                      : 'bg-zinc-50 text-zinc-900 hover:bg-zinc-100 border border-zinc-200'
                   }`}
                 >
                   Seeking
@@ -124,14 +124,14 @@ export function SearchFilters({ onSearch, currentParams }: SearchFiltersProps) {
 
             {/* Category Filter */}
             <div>
-              <label className="block text-sm font-medium text-emerald-400 mb-2">
+              <label className="block text-sm font-medium text-zinc-600 mb-2">
                 Category
               </label>
               <div className="relative">
                 <select
                   value={currentParams.category || ''}
                   onChange={(e) => handleCategoryChange(e.target.value || undefined)}
-                  className="appearance-none pl-3 pr-8 py-1.5 rounded-lg text-sm bg-emerald-900/50 text-emerald-300 border border-emerald-800/50 hover:border-emerald-600 focus:outline-none focus:border-emerald-600 transition-colors cursor-pointer min-w-[160px]"
+                  className="appearance-none pl-3 pr-8 py-1.5 rounded-lg text-sm bg-zinc-50 text-zinc-900 border border-zinc-200 hover:border-zinc-400 focus:outline-none focus:border-[#1D9E75] transition-colors cursor-pointer min-w-[160px]"
                 >
                   <option value="">All Categories</option>
                   {categories?.map((cat) => (
@@ -140,13 +140,13 @@ export function SearchFilters({ onSearch, currentParams }: SearchFiltersProps) {
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500 pointer-events-none" />
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
               </div>
             </div>
 
             {/* Proficiency Filter */}
             <div>
-              <label className="block text-sm font-medium text-emerald-400 mb-2">
+              <label className="block text-sm font-medium text-zinc-600 mb-2">
                 Minimum Proficiency
               </label>
               <div className="flex gap-2">
@@ -156,8 +156,8 @@ export function SearchFilters({ onSearch, currentParams }: SearchFiltersProps) {
                     onClick={() => handleProficiencyChange(level, 5)}
                     className={`w-8 h-8 rounded-lg text-sm transition-colors ${
                       currentParams.minProficiency === level
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-emerald-900/50 text-emerald-300 hover:bg-emerald-900'
+                        ? 'bg-[#1D9E75] text-white'
+                        : 'bg-zinc-50 text-zinc-900 hover:bg-zinc-100 border border-zinc-200'
                     }`}
                   >
                     {level}
@@ -171,7 +171,7 @@ export function SearchFilters({ onSearch, currentParams }: SearchFiltersProps) {
           {hasActiveFilters && (
             <button
               onClick={() => onSearch({ skillType: undefined, category: undefined, minProficiency: undefined, maxProficiency: undefined })}
-              className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
+              className="text-sm text-zinc-500 hover:text-zinc-900 transition-colors"
             >
               Clear all filters
             </button>

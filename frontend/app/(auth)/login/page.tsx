@@ -6,11 +6,12 @@ import { z } from "zod";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Check, Mail, Lock, Loader2, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Check, Mail, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import axiosInstance from "@/lib/axios";
 import AuthLayout from "../components/AuthLayout";
 import TwoFactorVerification from "../components/TwoFactorVerification";
+import PasswordInput from "../components/PasswordInput";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -27,7 +28,6 @@ export default function LoginPage() {
   const [show2FA, setShow2FA] = useState(false);
   const [userEmail, setUserEmail] = useState("");
   const [emailSent, setEmailSent] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -129,7 +129,7 @@ export default function LoginPage() {
       >
         {/* Back Button */}
         <div className="mb-8">
-          <Link href="/" className="inline-flex items-center text-gray-500 hover:text-emerald-600 transition-colors group">
+          <Link href="/" className="inline-flex items-center text-gray-500 hover:text-[#1D9E75] transition-colors group">
             <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
             <span className="font-medium">Back to Home</span>
           </Link>
@@ -137,12 +137,12 @@ export default function LoginPage() {
 
         {/* Header Section */}
         <div className="mb-8">
-          <h2 className="text-3xl md:text-4xl font-heading font-bold text-gray-900 mb-3">
+          <h2 className="text-3xl md:text-4xl font-display font-bold text-zinc-900 mb-3">
             Log in
           </h2>
           <p className="text-gray-600">
             Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-orange-600 hover:text-orange-700 font-bold transition-colors hover:underline">
+            <Link href="/register" className="text-[#1D9E75] hover:text-[#0F6E56] font-bold transition-colors hover:underline">
               Create an Account
             </Link>
           </p>
@@ -169,12 +169,12 @@ export default function LoginPage() {
               Email Address
             </label>
             <div className="relative group">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-emerald-600 transition-colors" />
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-[#1D9E75] transition-colors" />
               <input
                 id="email"
                 type="email"
                 {...register("email")}
-                className={`w-full pl-12 pr-4 py-3.5 bg-gray-50 border ${errors.email ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : 'border-gray-200 focus:border-emerald-600 focus:ring-emerald-100'} rounded-xl focus:outline-none focus:ring-4 transition-all text-gray-900 placeholder-gray-400 font-medium`}
+                className={`w-full pl-12 pr-4 py-3.5 bg-white border ${errors.email ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : 'border-zinc-200 focus:border-[#1D9E75] focus:ring-[#1D9E75]/10'} rounded-xl focus:outline-none focus:ring-4 transition-all text-zinc-900 placeholder-gray-400 font-medium`}
                 placeholder="shovan@example.com"
               />
             </div>
@@ -186,42 +186,14 @@ export default function LoginPage() {
           </div>
 
           {/* Password Field */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label htmlFor="password" className="block text-sm font-semibold text-gray-700">
-                Password
-              </label>
-              <Link href="/forgot-password" className="text-sm font-semibold text-orange-600 hover:text-orange-700 transition-colors">
-                Forgot Password?
-              </Link>
-            </div>
-            <div className="relative group">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-emerald-600 transition-colors" />
-              <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                {...register("password")}
-                className={`w-full pl-12 pr-12 py-3.5 bg-gray-50 border ${errors.password ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : 'border-gray-200 focus:border-emerald-600 focus:ring-emerald-100'} rounded-xl focus:outline-none focus:ring-4 transition-all text-gray-900 placeholder-gray-400 font-medium`}
-                placeholder="••••••••"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                {showPassword ? (
-                  <EyeOff className="w-5 h-5" />
-                ) : (
-                  <Eye className="w-5 h-5" />
-                )}
-              </button>
-            </div>
-            {errors.password && (
-              <p className="text-sm text-red-600 font-medium pl-1">
-                {errors.password.message}
-              </p>
-            )}
-          </div>
+          <PasswordInput
+            id="password"
+            label="Password"
+            placeholder="••••••••"
+            registration={register("password")}
+            error={errors.password?.message}
+            showForgotLink
+          />
 
           {/* Remember Me */}
           <div className="flex items-center pt-1">
@@ -230,7 +202,7 @@ export default function LoginPage() {
                 <input
                   type="checkbox"
                   {...register("rememberMe")}
-                  className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border-2 border-gray-300 bg-white transition-all checked:border-emerald-600 checked:bg-emerald-600 hover:border-emerald-500"
+                  className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border-2 border-gray-300 bg-white transition-all checked:border-zinc-900 checked:bg-zinc-900 hover:border-zinc-400"
                 />
                 <Check className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" strokeWidth={3} />
               </div>
@@ -244,7 +216,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-4 px-4 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl shadow-lg shadow-orange-600/20 hover:shadow-orange-600/30 focus:outline-none focus:ring-4 focus:ring-orange-100 disabled:opacity-70 disabled:cursor-not-allowed transition-all transform active:scale-[0.98] flex items-center justify-center gap-2"
+            className="w-full py-4 px-4 bg-zinc-900 hover:bg-zinc-800 text-white font-bold rounded-xl shadow-lg shadow-zinc-900/10 hover:shadow-zinc-900/20 focus:outline-none focus:ring-4 focus:ring-zinc-200 disabled:opacity-70 disabled:cursor-not-allowed transition-all transform active:scale-[0.98] flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>
@@ -262,7 +234,7 @@ export default function LoginPage() {
               <div className="w-full border-t border-gray-200"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-gray-500 font-medium">Or continue with</span>
+              <span className="px-4 bg-[#FAFAFA] text-gray-500 font-medium">Or continue with</span>
             </div>
           </div>
 

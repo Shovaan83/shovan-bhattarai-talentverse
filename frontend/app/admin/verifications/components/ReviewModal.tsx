@@ -73,7 +73,7 @@ export default function ReviewModal({ request, isOpen, onClose }: ReviewModalPro
             >
               <div className="flex items-center justify-between p-6 border-b border-gray-100">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">
+                  <h2 className="text-2xl font-display font-bold text-zinc-900">
                     Review Verification Request
                   </h2>
                   <p className="text-gray-600 mt-1">Request ID: {request.id}</p>
@@ -164,7 +164,7 @@ export default function ReviewModal({ request, isOpen, onClose }: ReviewModalPro
                     </button>
                     <button
                       onClick={() => setIsApproved(true)}
-                      className="flex-1 px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                      className="flex-1 px-6 py-3 bg-[#1D9E75] text-white font-medium rounded-lg hover:bg-[#15785A] transition-colors flex items-center justify-center gap-2"
                     >
                       <CheckCircle className="w-5 h-5" />
                       Approve
@@ -217,7 +217,7 @@ export default function ReviewModal({ request, isOpen, onClose }: ReviewModalPro
                         disabled={reviewMutation.isPending}
                         className={`flex-1 px-6 py-3 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
                           isApproved
-                            ? 'bg-green-600 text-white hover:bg-green-700'
+                              ? 'bg-[#1D9E75] text-white hover:bg-[#15785A]'
                             : 'bg-red-600 text-white hover:bg-red-700'
                         }`}
                       >

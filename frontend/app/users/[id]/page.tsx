@@ -79,32 +79,32 @@ function CreateProposalModal({ isOpen, onClose, targetUser, currentUserSkills }:
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="relative bg-emerald-900 rounded-3xl p-6 w-full max-w-lg border border-emerald-700"
+        className="relative bg-white rounded-3xl p-6 w-full max-w-lg border border-zinc-200 shadow-xl"
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-xl hover:bg-emerald-800 transition-colors"
+          className="absolute top-4 right-4 p-2 rounded-xl hover:bg-zinc-100 transition-colors text-zinc-500"
         >
           <X className="w-5 h-5" />
         </button>
 
-        <h2 className="text-xl font-bold mb-6">Propose a Skill Swap</h2>
-        <p className="text-emerald-400 mb-6">
-          Create a swap proposal with <span className="text-white font-medium">{targetUser.displayName}</span>
+        <h2 className="text-xl font-bold mb-6 text-zinc-900">Propose a Skill Swap</h2>
+        <p className="text-zinc-500 mb-6">
+          Create a swap proposal with <span className="text-zinc-900 font-medium">{targetUser.displayName}</span>
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Error Message Display */}
           {errorMessage && (
-            <div className="p-4 rounded-xl bg-red-900/50 border border-red-700/50 text-red-200 text-sm flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-500" />
               <p>{errorMessage}</p>
             </div>
           )}
 
           {/* My Skill Selection */}
           <div>
-            <label className="block text-sm font-medium text-emerald-400 mb-2">
+            <label className="block text-sm font-medium text-[#1D9E75] mb-2">
               I will teach (my skill)
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -115,8 +115,8 @@ function CreateProposalModal({ isOpen, onClose, targetUser, currentUserSkills }:
                   onClick={() => setSelectedMySkill(skill.id)}
                   className={`p-3 rounded-xl text-sm text-left transition-colors ${
                     selectedMySkill === skill.id
-                      ? 'bg-emerald-600 text-white border-emerald-500'
-                      : 'bg-emerald-800/50 text-emerald-200 border-emerald-700/50 hover:bg-emerald-800'
+                      ? 'bg-[#1D9E75] text-white border-[#1D9E75]'
+                      : 'bg-[#1D9E75]/10 text-[#1D9E75] border-[#1D9E75]/20 hover:bg-[#1D9E75]/20'
                   } border`}
                 >
                   {skill.skillName}
@@ -124,7 +124,7 @@ function CreateProposalModal({ isOpen, onClose, targetUser, currentUserSkills }:
               ))}
             </div>
             {myOfferedSkills.length === 0 && (
-              <p className="text-orange-400 text-sm">
+              <p className="text-amber-600 text-sm">
                 You need to add offered skills to your profile first.
               </p>
             )}
@@ -132,7 +132,7 @@ function CreateProposalModal({ isOpen, onClose, targetUser, currentUserSkills }:
 
           {/* Their Skill Selection */}
           <div>
-            <label className="block text-sm font-medium text-orange-400 mb-2">
+            <label className="block text-sm font-medium text-[#3C2A8A] mb-2">
               I want to learn (their skill)
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -143,8 +143,8 @@ function CreateProposalModal({ isOpen, onClose, targetUser, currentUserSkills }:
                   onClick={() => setSelectedTheirSkill(skill.id)}
                   className={`p-3 rounded-xl text-sm text-left transition-colors ${
                     selectedTheirSkill === skill.id
-                      ? 'bg-orange-600 text-white border-orange-500'
-                      : 'bg-orange-900/50 text-orange-200 border-orange-700/50 hover:bg-orange-800'
+                      ? 'bg-[#3C2A8A] text-white border-[#3C2A8A]'
+                      : 'bg-[#3C2A8A]/10 text-[#3C2A8A] border-[#3C2A8A]/20 hover:bg-[#3C2A8A]/20'
                   } border`}
                 >
                   {skill.skillName}
@@ -155,7 +155,7 @@ function CreateProposalModal({ isOpen, onClose, targetUser, currentUserSkills }:
 
           {/* Message */}
           <div>
-            <label className="block text-sm font-medium text-emerald-400 mb-2">
+            <label className="block text-sm font-medium text-zinc-700 mb-2">
               Message (optional)
             </label>
             <textarea
@@ -163,7 +163,7 @@ function CreateProposalModal({ isOpen, onClose, targetUser, currentUserSkills }:
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Introduce yourself and explain what you'd like to learn..."
               rows={3}
-              className="w-full px-4 py-3 rounded-xl bg-emerald-800/50 border border-emerald-700/50 text-white placeholder-emerald-600 focus:outline-none focus:border-emerald-600 resize-none"
+              className="w-full px-4 py-3 rounded-xl bg-white border border-zinc-200 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-[#1D9E75] focus:ring-1 focus:ring-[#1D9E75] resize-none"
             />
           </div>
 
@@ -171,7 +171,7 @@ function CreateProposalModal({ isOpen, onClose, targetUser, currentUserSkills }:
           <button
             type="submit"
             disabled={!selectedMySkill || !selectedTheirSkill || createProposal.isPending}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-3 rounded-xl bg-[#1D9E75] hover:bg-[#0F6E56] text-white transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {createProposal.isPending ? (
               'Sending...'
@@ -215,21 +215,21 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
 
   if (isLoading || isLoadingMySkills) {
     return (
-      <div className="min-h-screen bg-emerald-950 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-400"></div>
+      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1D9E75]"></div>
       </div>
     );
   }
 
   if (error || !user) {
     return (
-      <div className="min-h-screen bg-emerald-950 flex items-center justify-center text-white">
+      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center text-zinc-900">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-2">User not found</h2>
-          <p className="text-emerald-400 mb-4">The user you're looking for doesn't exist.</p>
+          <p className="text-zinc-500 mb-4">The user you're looking for doesn't exist.</p>
           <Link
             href="/marketplace"
-            className="text-emerald-400 hover:text-emerald-300 transition-colors"
+            className="text-[#1D9E75] hover:text-[#0F6E56] transition-colors"
           >
             ← Back to Marketplace
           </Link>
@@ -239,20 +239,20 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
   }
 
   return (
-    <div className="min-h-screen bg-emerald-950 text-white">
+    <div className="min-h-screen bg-[#FAFAFA] text-zinc-900">
       {/* Header */}
-      <div className="border-b border-emerald-900/50 bg-emerald-950/80 backdrop-blur-sm sticky top-0 z-10">
+      <div className="border-b border-zinc-200 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-6 py-4">
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.back()}
-              className="p-2 rounded-xl bg-emerald-900/50 hover:bg-emerald-900 transition-colors"
+              className="p-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 transition-colors text-zinc-600"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="text-xl font-bold">{user.displayName}</h1>
-              <p className="text-emerald-400 text-sm">@{user.userName}</p>
+              <h1 className="text-xl font-bold text-zinc-900">{user.displayName}</h1>
+              <p className="text-zinc-500 text-sm">@{user.userName}</p>
             </div>
           </div>
         </div>
@@ -263,11 +263,11 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-br from-emerald-900/40 to-emerald-900/20 rounded-3xl p-8 border border-emerald-800/50 mb-8"
+          className="bg-white rounded-3xl p-8 border border-zinc-200 shadow-sm mb-8"
         >
           <div className="flex flex-col md:flex-row gap-6">
             {/* Avatar */}
-            <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-emerald-600 to-emerald-800 flex items-center justify-center flex-shrink-0">
+            <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-[#1D9E75] to-[#0F6E56] flex items-center justify-center flex-shrink-0">
               {user.profilePictureUrl ? (
                 <img
                   src={user.profilePictureUrl}
@@ -275,7 +275,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                   className="w-full h-full rounded-3xl object-cover"
                 />
               ) : (
-                <User className="w-12 h-12 text-emerald-200" />
+                <User className="w-12 h-12 text-white" />
               )}
             </div>
 
@@ -284,10 +284,10 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-2xl font-bold">{user.displayName}</h2>
+                    <h2 className="text-2xl font-bold text-zinc-900">{user.displayName}</h2>
                     {user.isVerified && <VerifiedBadge size="md" />}
                   </div>
-                  <p className="text-emerald-400">@{user.userName}</p>
+                  <p className="text-zinc-500">@{user.userName}</p>
                   {/* Display reputation badge */}
                   {userReputation && (
                     <div className="mt-2">
@@ -304,16 +304,16 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
               </div>
 
               {user.bio && (
-                <p className="text-emerald-300/80 mb-4">{user.bio}</p>
+                <p className="text-zinc-600 mb-4">{user.bio}</p>
               )}
 
               <div className="flex flex-wrap gap-4 text-sm">
-                <div className="flex items-center gap-2 text-emerald-400">
-                  <ArrowRightLeft className="w-4 h-4" />
+                <div className="flex items-center gap-2 text-zinc-500">
+                  <ArrowRightLeft className="w-4 h-4 text-[#1D9E75]" />
                   <span>{user.completedSwaps} swaps completed</span>
                 </div>
-                <div className="flex items-center gap-2 text-emerald-400">
-                  <Calendar className="w-4 h-4" />
+                <div className="flex items-center gap-2 text-zinc-500">
+                  <Calendar className="w-4 h-4 text-[#1D9E75]" />
                   <span>Joined {new Date(user.joinedAt).toLocaleDateString()}</span>
                 </div>
               </div>
@@ -321,13 +321,13 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
           </div>
 
           {/* CTA Button */}
-          <div className="mt-6 pt-6 border-t border-emerald-800/50">
+          <div className="mt-6 pt-6 border-t border-zinc-200">
             {activeProposal ? (
-              <div className="flex items-center gap-3 px-6 py-4 rounded-xl bg-blue-900/30 border border-blue-700/50">
-                <Clock className="w-5 h-5 text-blue-400 flex-shrink-0" />
+              <div className="flex items-center gap-3 px-6 py-4 rounded-xl bg-blue-50 border border-blue-200">
+                <Clock className="w-5 h-5 text-blue-500 flex-shrink-0" />
                 <div>
-                  <p className="text-blue-200 font-medium">Proposal Pending</p>
-                  <p className="text-blue-400 text-sm">
+                  <p className="text-blue-700 font-medium">Proposal Pending</p>
+                  <p className="text-blue-600 text-sm">
                     You have an active proposal with this user. Check your proposals page for updates.
                   </p>
                 </div>
@@ -335,7 +335,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
             ) : (
               <button
                 onClick={() => setShowProposalModal(true)}
-                className="w-full md:w-auto px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 transition-all font-medium flex items-center justify-center gap-2"
+                className="w-full md:w-auto px-8 py-3 rounded-xl bg-[#1D9E75] hover:bg-[#0F6E56] text-white transition-all font-medium flex items-center justify-center gap-2"
               >
                 <MessageSquare className="w-5 h-5" />
                 Propose a Skill Swap
@@ -351,10 +351,10 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-emerald-900/30 rounded-3xl p-6 border border-emerald-800/50"
+            className="bg-white rounded-3xl p-6 border border-zinc-200 shadow-sm"
           >
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-zinc-900">
+              <span className="w-2 h-2 rounded-full bg-[#1D9E75]"></span>
               Skills Offered
             </h3>
             {user.offeredSkills.length > 0 ? (
@@ -362,31 +362,31 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                 {user.offeredSkills.map((skill) => (
                   <div
                     key={skill.id}
-                    className="p-4 rounded-2xl bg-emerald-800/30 border border-emerald-700/50"
+                    className="p-4 rounded-2xl bg-[#1D9E75]/10 border border-[#1D9E75]/20"
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium">{skill.skillName}</span>
+                      <span className="font-medium text-zinc-900">{skill.skillName}</span>
                       <div className="flex gap-0.5">
                         {[...Array(5)].map((_, i) => (
                           <div
                             key={i}
                             className={`w-2 h-2 rounded-full ${
                               i < skill.proficiencyLevel
-                                ? 'bg-emerald-400'
-                                : 'bg-emerald-800'
+                                ? 'bg-[#1D9E75]'
+                                : 'bg-zinc-200'
                             }`}
                           />
                         ))}
                       </div>
                     </div>
                     {skill.description && (
-                      <p className="text-emerald-400 text-sm">{skill.description}</p>
+                      <p className="text-[#1D9E75] text-sm">{skill.description}</p>
                     )}
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-emerald-500 text-sm">No skills offered yet</p>
+              <p className="text-zinc-500 text-sm">No skills offered yet</p>
             )}
           </motion.div>
 
@@ -395,10 +395,10 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-orange-900/30 rounded-3xl p-6 border border-orange-800/50"
+            className="bg-white rounded-3xl p-6 border border-zinc-200 shadow-sm"
           >
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-orange-400"></span>
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-zinc-900">
+              <span className="w-2 h-2 rounded-full bg-[#3C2A8A]"></span>
               Skills Wanted
             </h3>
             {user.wantedSkills.length > 0 ? (
@@ -406,31 +406,31 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                 {user.wantedSkills.map((skill) => (
                   <div
                     key={skill.id}
-                    className="p-4 rounded-2xl bg-orange-800/30 border border-orange-700/50"
+                    className="p-4 rounded-2xl bg-[#3C2A8A]/10 border border-[#3C2A8A]/20"
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium">{skill.skillName}</span>
+                      <span className="font-medium text-zinc-900">{skill.skillName}</span>
                       <div className="flex gap-0.5">
                         {[...Array(5)].map((_, i) => (
                           <div
                             key={i}
                             className={`w-2 h-2 rounded-full ${
                               i < skill.proficiencyLevel
-                                ? 'bg-orange-400'
-                                : 'bg-orange-800'
+                                ? 'bg-[#3C2A8A]'
+                                : 'bg-zinc-200'
                             }`}
                           />
                         ))}
                       </div>
                     </div>
                     {skill.description && (
-                      <p className="text-orange-400 text-sm">{skill.description}</p>
+                      <p className="text-[#3C2A8A] text-sm">{skill.description}</p>
                     )}
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-orange-500 text-sm">No skills wanted yet</p>
+              <p className="text-zinc-500 text-sm">No skills wanted yet</p>
             )}
           </motion.div>
         </div>
@@ -441,9 +441,9 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="mt-8 bg-emerald-900/30 rounded-3xl p-6 border border-emerald-800/50"
+            className="mt-8 bg-white rounded-3xl p-6 border border-zinc-200 shadow-sm"
           >
-            <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
+            <h3 className="text-xl font-semibold mb-6 flex items-center gap-2 text-zinc-900">
               <Star className="w-6 h-6 text-yellow-400 fill-yellow-400" />
               Reviews ({userReputation.totalReviews})
             </h3>

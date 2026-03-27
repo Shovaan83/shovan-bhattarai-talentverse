@@ -28,10 +28,10 @@ export const Navbar: React.FC = () => {
       <div className="container mx-auto px-6 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center gap-2 cursor-pointer group">
-          <div className="bg-emerald-600 p-1.5 rounded-lg text-white group-hover:rotate-12 transition-transform duration-300">
+          <div className="bg-[#1D9E75] p-1.5 rounded-lg text-white group-hover:rotate-12 transition-transform duration-300">
             {/* <Sparkles size={20} /> */}
           </div>
-          <span className={`font-heading font-bold text-xl tracking-tight ${isScrolled || mobileMenuOpen ? 'text-emerald-950' : 'text-white'}`}>
+          <span className={`font-heading font-bold text-xl tracking-tight ${isScrolled || mobileMenuOpen ? 'text-zinc-900' : 'text-white'}`}>
             TalentVerse
           </span>
         </div>
@@ -42,8 +42,8 @@ export const Navbar: React.FC = () => {
             <a
               key={item}
               href={`#${item.toLowerCase().replace(/\s/g, '-')}`}
-              className={`text-sm font-medium hover:text-orange-500 transition-colors ${
-                isScrolled ? 'text-gray-600' : 'text-emerald-50'
+              className={`text-sm font-medium hover:text-[#1D9E75] transition-colors ${
+                isScrolled ? 'text-zinc-600' : 'text-zinc-200'
               }`}
             >
               {item}
@@ -55,13 +55,13 @@ export const Navbar: React.FC = () => {
         <div className="hidden md:flex items-center space-x-4">
           <Link href="/login">
             <button className={`text-sm font-medium px-4 py-2 rounded-full transition-colors ${
-               isScrolled ? 'text-emerald-900 hover:bg-emerald-50' : 'text-white hover:bg-white/10'
+               isScrolled ? 'text-zinc-900 hover:bg-zinc-100' : 'text-white hover:bg-white/10'
             }`}>
               Log In
             </button>
           </Link>
           <Link href="/register">
-            <button className="bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-transform hover:scale-105 shadow-lg shadow-orange-600/20">
+            <button className="bg-[#1D9E75] hover:bg-[#0F6E56] text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-transform hover:scale-105 shadow-lg shadow-[#1D9E75]/20">
               Join Now
             </button>
           </Link>
@@ -98,12 +98,12 @@ export const Navbar: React.FC = () => {
             ))}
             <div className="pt-4 flex flex-col space-y-3">
               <Link href="/login">
-                <button className="w-full text-emerald-900 font-medium py-3 rounded-xl bg-gray-50">
+                <button className="w-full text-zinc-900 font-medium py-3 rounded-xl bg-zinc-50">
                   Log In
                 </button>
               </Link>
               <Link href="/register">
-                <button className="w-full bg-orange-600 text-white font-bold py-3 rounded-xl">
+                <button className="w-full bg-[#1D9E75] text-white font-bold py-3 rounded-xl">
                   Join Now
                 </button>
               </Link>

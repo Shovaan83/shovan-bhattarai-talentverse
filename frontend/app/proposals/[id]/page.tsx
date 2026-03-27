@@ -115,27 +115,27 @@ export default function ProposalDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-emerald-950 flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-500 rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-zinc-200 border-t-[#1D9E75] rounded-full animate-spin" />
       </div>
     );
   }
 
   if (isError || !proposal) {
     return (
-      <div className="min-h-screen bg-emerald-950 p-8">
+      <div className="min-h-screen bg-[#FAFAFA] p-8">
         <div className="max-w-2xl mx-auto">
-          <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+          <div className="bg-white border border-zinc-200 rounded-2xl p-8 text-center shadow-sm">
             <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-red-700 mb-2">
+            <h2 className="text-xl font-bold text-zinc-900 mb-2">
               Proposal not found
             </h2>
-            <p className="text-red-600 mb-4">
+            <p className="text-zinc-600 mb-4">
               This proposal doesn't exist or you don't have access to it.
             </p>
             <button
               onClick={() => router.push("/proposals")}
-              className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-xl font-medium transition-colors"
+              className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl font-medium transition-colors"
             >
               Back to Proposals
             </button>
@@ -154,11 +154,7 @@ export default function ProposalDetailPage() {
   // For now, we'll use the action flags from the API
 
   return (
-    <div className="relative min-h-screen p-4 md:p-8 bg-emerald-950 text-white overflow-hidden">
-      {/* Background */}
-      <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-emerald-900/50 to-transparent pointer-events-none" />
-      <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-emerald-800/20 rounded-full blur-3xl pointer-events-none" />
-
+    <div className="relative min-h-screen p-4 md:p-8 bg-[#FAFAFA] overflow-hidden">
       <div className="max-w-4xl mx-auto relative z-10">
         {/* Header */}
         <motion.header
@@ -168,12 +164,12 @@ export default function ProposalDetailPage() {
         >
           <button
             onClick={() => router.push("/proposals")}
-            className="flex items-center gap-2 text-emerald-200 hover:text-white transition-colors mb-4"
+            className="flex items-center gap-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-600 px-3 py-2 rounded-lg transition-colors mb-4"
           >
             <ArrowLeft size={20} />
             Back to Proposals
           </button>
-          <h1 className="text-3xl font-heading font-bold text-white">
+          <h1 className="text-3xl font-heading font-bold text-zinc-900">
             Proposal Details
           </h1>
         </motion.header>
@@ -214,9 +210,9 @@ export default function ProposalDetailPage() {
             </div>
 
             {/* Swap Details Card */}
-            <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
-              <div className="p-6 border-b border-gray-100">
-                <h2 className="font-heading font-bold text-xl text-gray-900">
+            <div className="bg-white border border-zinc-200 rounded-2xl shadow-sm overflow-hidden">
+              <div className="p-6 border-b border-zinc-200">
+                <h2 className="font-heading font-bold text-xl text-zinc-900">
                   Swap Exchange
                 </h2>
               </div>
@@ -224,7 +220,7 @@ export default function ProposalDetailPage() {
               <div className="p-6">
                 <div className="flex items-stretch gap-4">
                   {/* Proposer Skill */}
-                  <div className="flex-1 p-5 rounded-2xl bg-emerald-50 border border-emerald-100">
+                  <div className="flex-1 p-5 rounded-2xl bg-[#1D9E75]/10 border border-[#1D9E75]/20">
                     <div className="flex items-center gap-3 mb-4">
                       {proposal.proposerProfilePicture ? (
                         <img
@@ -233,28 +229,28 @@ export default function ProposalDetailPage() {
                           className="w-10 h-10 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold">
+                        <div className="w-10 h-10 rounded-full bg-[#1D9E75] flex items-center justify-center text-white font-bold">
                           {proposal.proposerUsername.charAt(0).toUpperCase()}
                         </div>
                       )}
                       <div>
-                        <p className="font-semibold text-gray-900">
+                        <p className="font-semibold text-zinc-900">
                           {proposal.proposerUsername}
                         </p>
-                        <p className="text-xs text-emerald-600">Proposer</p>
+                        <p className="text-xs text-[#1D9E75]">Proposer</p>
                       </div>
                     </div>
-                    <p className="text-xs uppercase tracking-wider text-emerald-600 font-semibold mb-1">
+                    <p className="text-xs uppercase tracking-wider text-[#1D9E75] font-semibold mb-1">
                       Offering
                     </p>
-                    <p className="font-bold text-lg text-emerald-800">
+                    <p className="font-bold text-lg text-[#1D9E75]">
                       {proposal.proposerSkillName}
                     </p>
-                    <span className="inline-block mt-2 text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full">
+                    <span className="inline-block mt-2 text-xs bg-[#1D9E75]/10 text-[#1D9E75] px-2 py-1 rounded-full">
                       {proposal.proposerSkillCategory}
                     </span>
                     {proposal.proposerSkillDescription && (
-                      <p className="mt-3 text-sm text-gray-600">
+                      <p className="mt-3 text-sm text-zinc-600">
                         {proposal.proposerSkillDescription}
                       </p>
                     )}
@@ -262,13 +258,13 @@ export default function ProposalDetailPage() {
 
                   {/* Arrow */}
                   <div className="flex items-center">
-                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-                      <ArrowRightLeft className="w-5 h-5 text-gray-500" />
+                    <div className="w-12 h-12 rounded-full bg-zinc-100 flex items-center justify-center">
+                      <ArrowRightLeft className="w-5 h-5 text-zinc-500" />
                     </div>
                   </div>
 
                   {/* Recipient Skill */}
-                  <div className="flex-1 p-5 rounded-2xl bg-orange-50 border border-orange-100">
+                  <div className="flex-1 p-5 rounded-2xl bg-[#3C2A8A]/10 border border-[#3C2A8A]/20">
                     <div className="flex items-center gap-3 mb-4">
                       {proposal.recipientProfilePicture ? (
                         <img
@@ -277,28 +273,28 @@ export default function ProposalDetailPage() {
                           className="w-10 h-10 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold">
+                        <div className="w-10 h-10 rounded-full bg-[#3C2A8A] flex items-center justify-center text-white font-bold">
                           {proposal.recipientUsername.charAt(0).toUpperCase()}
                         </div>
                       )}
                       <div>
-                        <p className="font-semibold text-gray-900">
+                        <p className="font-semibold text-zinc-900">
                           {proposal.recipientUsername}
                         </p>
-                        <p className="text-xs text-orange-600">Recipient</p>
+                        <p className="text-xs text-[#3C2A8A]">Recipient</p>
                       </div>
                     </div>
-                    <p className="text-xs uppercase tracking-wider text-orange-600 font-semibold mb-1">
+                    <p className="text-xs uppercase tracking-wider text-[#3C2A8A] font-semibold mb-1">
                       Offering
                     </p>
-                    <p className="font-bold text-lg text-orange-800">
+                    <p className="font-bold text-lg text-[#3C2A8A]">
                       {proposal.recipientSkillName}
                     </p>
-                    <span className="inline-block mt-2 text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full">
+                    <span className="inline-block mt-2 text-xs bg-[#3C2A8A]/10 text-[#3C2A8A] px-2 py-1 rounded-full">
                       {proposal.recipientSkillCategory}
                     </span>
                     {proposal.recipientSkillDescription && (
-                      <p className="mt-3 text-sm text-gray-600">
+                      <p className="mt-3 text-sm text-zinc-600">
                         {proposal.recipientSkillDescription}
                       </p>
                     )}
@@ -309,8 +305,8 @@ export default function ProposalDetailPage() {
 
             {/* Completion Progress (for Accepted proposals) */}
             {proposal.status === "Accepted" && (
-              <div className="bg-white rounded-2xl p-6 shadow-lg">
-                <h3 className="font-heading font-bold text-lg text-gray-900 mb-4">
+              <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
+                <h3 className="font-heading font-bold text-lg text-zinc-900 mb-4">
                   Completion Progress
                 </h3>
                 <div className="flex items-center gap-8">
@@ -318,17 +314,17 @@ export default function ProposalDetailPage() {
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center ${
                         proposal.proposerConfirmed
-                          ? "bg-emerald-500 text-white"
-                          : "bg-gray-200 text-gray-400"
+                          ? "bg-[#1D9E75] text-white"
+                          : "bg-zinc-200 text-zinc-400"
                       }`}
                     >
                       <Check size={20} />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-zinc-900">
                         {proposal.proposerUsername}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-zinc-500">
                         {proposal.proposerConfirmed
                           ? "Confirmed"
                           : "Not confirmed"}
@@ -336,9 +332,9 @@ export default function ProposalDetailPage() {
                     </div>
                   </div>
 
-                  <div className="flex-1 h-1 bg-gray-200 rounded-full">
+                  <div className="flex-1 h-1 bg-zinc-200 rounded-full">
                     <div
-                      className="h-full bg-emerald-500 rounded-full transition-all"
+                      className="h-full bg-[#1D9E75] rounded-full transition-all"
                       style={{
                         width: `${
                           ((proposal.proposerConfirmed ? 1 : 0) +
@@ -353,17 +349,17 @@ export default function ProposalDetailPage() {
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center ${
                         proposal.recipientConfirmed
-                          ? "bg-emerald-500 text-white"
-                          : "bg-gray-200 text-gray-400"
+                          ? "bg-[#1D9E75] text-white"
+                          : "bg-zinc-200 text-zinc-400"
                       }`}
                     >
                       <Check size={20} />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-zinc-900">
                         {proposal.recipientUsername}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-zinc-500">
                         {proposal.recipientConfirmed
                           ? "Confirmed"
                           : "Not confirmed"}
@@ -371,7 +367,7 @@ export default function ProposalDetailPage() {
                     </div>
                   </div>
                 </div>
-                <p className="mt-4 text-sm text-gray-500 text-center">
+                <p className="mt-4 text-sm text-zinc-500 text-center">
                   Both parties must confirm completion to finalize the swap.
                 </p>
               </div>
@@ -379,9 +375,9 @@ export default function ProposalDetailPage() {
 
             {/* Scheduled Meetings */}
             {(proposal.status === "Accepted" || proposal.status === "Completed") && (
-              <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-100">
-                  <h3 className="font-heading font-bold text-lg text-gray-900">Scheduled Meetings</h3>
+              <div className="bg-white border border-zinc-200 rounded-2xl shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-zinc-200">
+                  <h3 className="font-heading font-bold text-lg text-zinc-900">Scheduled Meetings</h3>
                 </div>
                 <div className="p-6">
                   <AppointmentsList proposalId={proposalId} />
@@ -398,8 +394,8 @@ export default function ProposalDetailPage() {
             className="space-y-6"
           >
             {/* Actions Card */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg">
-              <h3 className="font-heading font-bold text-lg text-gray-900 mb-4">
+            <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
+              <h3 className="font-heading font-bold text-lg text-zinc-900 mb-4">
                 Actions
               </h3>
 
@@ -408,7 +404,7 @@ export default function ProposalDetailPage() {
                   <button
                     onClick={() => handleAction("accept")}
                     disabled={isActioning}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-colors disabled:opacity-50"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#1D9E75] hover:bg-[#178a65] text-white font-semibold rounded-xl transition-colors disabled:opacity-50"
                   >
                     {isActioning ? (
                       <Loader2 size={20} className="animate-spin" />
@@ -438,7 +434,7 @@ export default function ProposalDetailPage() {
                   <button
                     onClick={() => handleAction("cancel")}
                     disabled={isActioning}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-xl transition-colors disabled:opacity-50"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-zinc-500 hover:bg-zinc-600 text-white font-semibold rounded-xl transition-colors disabled:opacity-50"
                   >
                     {isActioning ? (
                       <Loader2 size={20} className="animate-spin" />
@@ -468,7 +464,7 @@ export default function ProposalDetailPage() {
                   !proposal.canDecline &&
                   !proposal.canCancel &&
                   !proposal.canConfirmCompletion && (
-                    <p className="text-center text-gray-500 py-4">
+                    <p className="text-center text-zinc-500 py-4">
                       No actions available for this proposal.
                     </p>
                   )}
@@ -476,18 +472,18 @@ export default function ProposalDetailPage() {
             </div>
 
             {/* Timeline */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg">
-              <h3 className="font-heading font-bold text-lg text-gray-900 mb-4">
+            <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
+              <h3 className="font-heading font-bold text-lg text-zinc-900 mb-4">
                 Timeline
               </h3>
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                    <Calendar size={16} className="text-emerald-600" />
+                  <div className="w-8 h-8 rounded-full bg-[#1D9E75]/10 flex items-center justify-center flex-shrink-0">
+                    <Calendar size={16} className="text-[#1D9E75]" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">Created</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="font-medium text-zinc-900">Created</p>
+                    <p className="text-sm text-zinc-500">
                       {new Date(proposal.createdAt).toLocaleString()}
                     </p>
                   </div>
@@ -498,8 +494,8 @@ export default function ProposalDetailPage() {
                       <Clock size={16} className="text-blue-600" />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">Last Updated</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="font-medium text-zinc-900">Last Updated</p>
+                      <p className="text-sm text-zinc-500">
                         {new Date(proposal.updatedAt).toLocaleString()}
                       </p>
                     </div>
@@ -519,8 +515,8 @@ export default function ProposalDetailPage() {
 
             {/* Google Calendar - only show for accepted proposals */}
             {proposal.status === "Accepted" && (
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20">
-                <h3 className="font-heading font-bold text-sm text-white mb-3">
+              <div className="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm">
+                <h3 className="font-heading font-bold text-sm text-zinc-900 mb-3">
                   Google Calendar
                 </h3>
                 <ConnectGoogleCalendar />
@@ -528,15 +524,15 @@ export default function ProposalDetailPage() {
             )}
 
             {/* Quick Actions */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-              <h3 className="font-heading font-bold text-lg text-white mb-4">
+            <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
+              <h3 className="font-heading font-bold text-lg text-zinc-900 mb-4">
                 Chat & Schedule
               </h3>
               <div className="space-y-3">
                 {(proposal.status === "Accepted" || proposal.status === "Completed") ? (
                   <button
                     onClick={() => setIsChatOpen((prev) => !prev)}
-                    className="w-full flex items-center gap-3 px-4 py-3 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl transition-colors font-medium"
+                    className="w-full flex items-center gap-3 px-4 py-3 bg-[#1D9E75] hover:bg-[#178a65] text-white rounded-xl transition-colors font-medium"
                   >
                     <MessageSquare size={20} />
                     {isChatOpen ? "Close Chat" : "Open Chat"}
@@ -544,7 +540,7 @@ export default function ProposalDetailPage() {
                 ) : (
                   <button
                     disabled
-                    className="w-full flex items-center gap-3 px-4 py-3 bg-white/10 text-white/50 rounded-xl cursor-not-allowed"
+                    className="w-full flex items-center gap-3 px-4 py-3 bg-zinc-100 text-zinc-400 rounded-xl cursor-not-allowed"
                     title="Chat is available once the proposal is accepted"
                   >
                     <MessageSquare size={20} />
@@ -556,7 +552,7 @@ export default function ProposalDetailPage() {
                     onClick={() => setIsScheduleOpen(true)}
                     disabled={!calendarStatus?.isConnected || calendarStatus?.isRevoked}
                     title={!calendarStatus?.isConnected ? "Connect Google Calendar first" : undefined}
-                    className="w-full flex items-center gap-3 px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full flex items-center gap-3 px-4 py-3 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Calendar size={20} />
                     Schedule Meeting
@@ -564,7 +560,7 @@ export default function ProposalDetailPage() {
                 ) : (
                   <button
                     disabled
-                    className="w-full flex items-center gap-3 px-4 py-3 bg-white/10 text-white/50 rounded-xl cursor-not-allowed"
+                    className="w-full flex items-center gap-3 px-4 py-3 bg-zinc-100 text-zinc-400 rounded-xl cursor-not-allowed"
                     title="Schedule a meeting once the proposal is accepted"
                   >
                     <Calendar size={20} />

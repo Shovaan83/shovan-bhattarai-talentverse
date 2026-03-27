@@ -23,6 +23,7 @@ export function Providers({ children }: { children: ReactNode }) {
         position="top-right"
         toastOptions={{
           duration: 4000,
+          className: "toast-slide-in-right",
           style: {
             background: '#064e3b',
             color: '#fff',

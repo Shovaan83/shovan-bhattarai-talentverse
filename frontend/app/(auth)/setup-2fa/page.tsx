@@ -28,8 +28,8 @@ export default function Setup2FAPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
+        <div className="text-zinc-600 font-medium">Loading...</div>
       </div>
     );
   }
