@@ -18,6 +18,7 @@ RUN dotnet publish TalentVerse.WebAPI.csproj -c Release -o /app/publish /p:UseAp
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
-EXPOSE 5249
+EXPOSE 5000
+ENV ASPNETCORE_URLS=http://+:5000
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "TalentVerse.WebAPI.dll"]

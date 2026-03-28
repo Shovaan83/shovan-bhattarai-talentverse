@@ -28,8 +28,14 @@ project_structure.txt
 .context/CONVENTIONS.md
 .context/DB_SCHEMA.md
 .context/FEATURES.md
-.gitignore
 .github/copilot-instructions.md
 .context/oauth_scenarios.md
 .context/oauth_implementation_guide.md
 .github/CLAUDE.md
+
+# CRITICAL: Never commit files with production secrets
+.env.production
+.env.staging
+*.env.production
+*.env.staging
+

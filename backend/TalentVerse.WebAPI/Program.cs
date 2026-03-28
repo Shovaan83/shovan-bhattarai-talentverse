@@ -111,12 +111,19 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        // Allow local frontend dev servers on any port.
-        // NOTE: With credentials you cannot use AllowAnyOrigin, so we explicitly allow localhost/127.0.0.1.
+        // Get frontend URL from configuration
+        var frontendUrl = builder.Configuration["FrontendUrl"] ?? "http://localhost:3000";
+        
         policy.SetIsOriginAllowed(origin =>
               {
                   if (string.IsNullOrWhiteSpace(origin)) return false;
                   if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri)) return false;
+                  
+                  // Allow configured frontend URL
+                  if (origin.TrimEnd('/').Equals(frontendUrl.TrimEnd('/'), StringComparison.OrdinalIgnoreCase))
+                      return true;
+                  
+                  // Allow local development servers
                   return uri.Host is "localhost" or "127.0.0.1";
               })
               .AllowAnyHeader()

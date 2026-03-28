@@ -1,0 +1,39 @@
+# Local development overrides
+# This file is used when running docker-compose locally (not in production)
+# Production uses only docker-compose.yml with environment variables from .env
+
+version: '3.9'
+
+services:
+  # Override API for local development
+  api:
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=talentverse_dev;Username=tv_user;Password=localdevpassword"
+    ports:
+      - "5249:5000"  # Map local port 5249 to container port 5000
+  
+  # Override database for local development  
+  db:
+    environment:
+      POSTGRES_DB: talentverse_dev
+      POSTGRES_USER: tv_user
+      POSTGRES_PASSWORD: localdevpassword
+    ports:
+      - "5432:5432"
+  
+  # Add frontend service for local development only
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: talentverse_frontend
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:5249/api
+      - NEXT_PUBLIC_SIGNALR_URL=http://localhost:5249
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
+    networks:
+      - talentverse_net
