@@ -346,9 +346,9 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<ChatHub>("/hubs/chat");
 
-using (var scope = app.Services.CreateScope())
+using (var migrationscope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var db = migrationscope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.Migrate();
 }
 
