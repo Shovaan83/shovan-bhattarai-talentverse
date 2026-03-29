@@ -32,6 +32,14 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=talentverse;Username=tv_user;Password=${DB_PASSWORD};Pooling=true;Minimum Pool Size=1"
       JWT__TokenKey: ${JWT_TOKEN_KEY}
+      # App Configuration (optional - defaults in appsettings.json)
+      AppConfig__OtpLength: ${APP_CONFIG_OTP_LENGTH:-6}
+      AppConfig__OtpExpiryMinutes: ${APP_CONFIG_OTP_EXPIRY_MINUTES:-5}
+      AppConfig__MaxSkillsPerUser: ${APP_CONFIG_MAX_SKILLS_PER_USER:-10}
+      AppConfig__InitialCreditBalance: ${APP_CONFIG_INITIAL_CREDIT_BALANCE:-50}
+      # Rate Limiting (optional - defaults in appsettings.json)
+      RateLimiting__PermitLimit: ${RATE_LIMITING_PERMIT_LIMIT:-10}
+      RateLimiting__WindowMinutes: ${RATE_LIMITING_WINDOW_MINUTES:-1}
       # Email Configuration
       Email__SmtpHost: ${EMAIL_SMTP_HOST}
       Email__SmtpPort: ${EMAIL_SMTP_PORT}
