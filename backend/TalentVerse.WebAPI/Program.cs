@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.HttpOverrides;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.RateLimiting;
@@ -339,6 +340,11 @@ app.UseCookiePolicy(new CookiePolicyOptions
 app.UseCors("AllowFrontend");
 
 app.UseRateLimiter();
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 
 app.UseAuthentication();
 app.UseAuthorization();
