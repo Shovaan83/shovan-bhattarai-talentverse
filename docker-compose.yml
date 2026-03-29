@@ -56,10 +56,10 @@ services:
       Stripe__PublishableKey: ${STRIPE_PUBLISHABLE_KEY}
       Stripe__WebhookSecret: ${STRIPE_WEBHOOK_SECRET}
       # OAuth Configuration
-      Google__ClientId: ${GOOGLE_CLIENT_ID}
-      Google__ClientSecret: ${GOOGLE_CLIENT_SECRET}
-      GitHub__ClientId: ${GITHUB_CLIENT_ID}
-      GitHub__ClientSecret: ${GITHUB_CLIENT_SECRET}
+      Authentication__Google__ClientId: ${GOOGLE_CLIENT_ID}
+      Authentication__Google__ClientSecret: ${GOOGLE_CLIENT_SECRET}
+      Authentication__GitHub__ClientId: ${GITHUB_CLIENT_ID}
+      Authentication__GitHub__ClientSecret: ${GITHUB_CLIENT_SECRET}
       # Frontend Configuration
       FrontendUrl: ${FRONTEND_URL}
     ports:
