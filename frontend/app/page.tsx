@@ -131,7 +131,6 @@ export default function LandingPage() {
                 transition={{ duration: 0.5 }}
                 className="inline-flex items-center gap-2 bg-[#1D9E75]/10 border border-[#1D9E75]/30 rounded-full px-4 py-1.5 mb-8"
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-[#5DCAA5] animate-pulse" />
                 <span className="text-[#5DCAA5] text-sm font-medium">
                   Skill exchange, reimagined
                 </span>
