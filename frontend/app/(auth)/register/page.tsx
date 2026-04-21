@@ -60,7 +60,7 @@ export default function RegisterPage() {
         // Trigger auth state update
         window.dispatchEvent(new Event('auth-change'));
         
-        // ⭐ NEW FLOW: Email/password users go to 2FA setup first
+        //FLOW: Email/password users go to 2FA setup first
         const userData = response.data.data;
         
         if (!userData.isTwoFactorSetupComplete && userData.hasPassword) {

@@ -22,18 +22,7 @@ docs/
 # Ignore all .md files in root directory except README.md
 /*.md
 !README.md
-project_structure.txt
-.context/API_CONTRACT.md
-.context/ARCHITECTURE.md
-.context/CONVENTIONS.md
-.context/DB_SCHEMA.md
-.context/FEATURES.md
-.github/copilot-instructions.md
-.context/oauth_scenarios.md
-.context/oauth_implementation_guide.md
-.github/CLAUDE.md
 
-# CRITICAL: Never commit files with production secrets
 .env.production
 .env.staging
 *.env.production
