@@ -41,6 +41,7 @@ interface CreateProposalModalProps {
 function CreateProposalModal({ isOpen, onClose, targetUser, currentUserSkills }: CreateProposalModalProps) {
   const [selectedMySkill, setSelectedMySkill] = useState<number | null>(null);
   const [selectedTheirSkill, setSelectedTheirSkill] = useState<number | null>(null);
+  const [creditAmount, setCreditAmount] = useState('10');
   const [message, setMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const createProposal = useCreateProposal();
@@ -53,10 +54,17 @@ function CreateProposalModal({ isOpen, onClose, targetUser, currentUserSkills }:
 
     setErrorMessage(null); // Clear previous errors
 
+    const parsedCreditAmount = Number(creditAmount);
+    if (!Number.isFinite(parsedCreditAmount) || parsedCreditAmount <= 0) {
+      setErrorMessage('Credit amount must be greater than 0.');
+      return;
+    }
+
     try {
       await createProposal.mutateAsync({
         proposerUserSkillId: selectedMySkill,
         recipientUserSkillId: selectedTheirSkill,
+        creditAmount: parsedCreditAmount,
         message: message || undefined,
       });
       toast.success('Proposal sent successfully! Check your proposals page to track the status.');
@@ -151,6 +159,24 @@ function CreateProposalModal({ isOpen, onClose, targetUser, currentUserSkills }:
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Message */}
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 mb-2">
+              Proposed credits
+            </label>
+            <input
+              type="number"
+              min="0.01"
+              step="0.01"
+              value={creditAmount}
+              onChange={(e) => setCreditAmount(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl bg-white border border-zinc-200 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-[#1D9E75] focus:ring-1 focus:ring-[#1D9E75]"
+            />
+            <p className="mt-2 text-xs text-zinc-500">
+              Set the credit amount you want attached to this swap proposal.
+            </p>
           </div>
 
           {/* Message */}

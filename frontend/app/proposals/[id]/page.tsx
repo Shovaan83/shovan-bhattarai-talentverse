@@ -14,14 +14,16 @@ import {
   Calendar,
   MessageSquare,
   Loader2,
+  Send,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   useProposal,
   useAcceptProposal,
   useDeclineProposal,
   useCancelProposal,
   useConfirmCompletion,
+  useCounterofferProposal,
 } from "@/lib/hooks/useProposals";
 import { useAuth } from "@/lib/hooks/useAuth";
 import ChatPanel from "@/app/proposals/[id]/components/ChatPanel";
@@ -79,6 +81,8 @@ export default function ProposalDetailPage() {
   const [isActioning, setIsActioning] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
+  const [counterofferAmount, setCounterofferAmount] = useState("");
+  const [counterofferMessage, setCounterofferMessage] = useState("");
 
   const { user: currentUser } = useAuth();
   const { data: proposal, isLoading, isError } = useProposal(proposalId);
@@ -88,6 +92,13 @@ export default function ProposalDetailPage() {
   const declineMutation = useDeclineProposal();
   const cancelMutation = useCancelProposal();
   const confirmMutation = useConfirmCompletion();
+  const counterofferMutation = useCounterofferProposal();
+
+  useEffect(() => {
+    if (proposal) {
+      setCounterofferAmount(proposal.creditAmount.toString());
+    }
+  }, [proposal]);
 
   const handleAction = async (
     action: "accept" | "decline" | "cancel" | "confirm"
@@ -108,6 +119,29 @@ export default function ProposalDetailPage() {
           await confirmMutation.mutateAsync(proposalId);
           break;
       }
+    } finally {
+      setIsActioning(false);
+    }
+  };
+
+  const handleCounteroffer = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const parsedAmount = Number(counterofferAmount);
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      return;
+    }
+
+    setIsActioning(true);
+    try {
+      await counterofferMutation.mutateAsync({
+        proposalId,
+        payload: {
+          creditAmount: parsedAmount,
+          message: counterofferMessage || undefined,
+        },
+      });
+      setCounterofferMessage("");
     } finally {
       setIsActioning(false);
     }
@@ -215,6 +249,10 @@ export default function ProposalDetailPage() {
                 <h2 className="font-heading font-bold text-xl text-zinc-900">
                   Swap Exchange
                 </h2>
+                <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-1 text-sm text-zinc-700">
+                  <span className="font-medium">Proposed credits</span>
+                  <span className="font-semibold text-[#1D9E75]">{proposal.creditAmount}</span>
+                </div>
               </div>
 
               <div className="p-6">
@@ -300,6 +338,48 @@ export default function ProposalDetailPage() {
                     )}
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* Negotiation History */}
+            <div className="bg-white border border-zinc-200 rounded-2xl shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-zinc-200">
+                <h3 className="font-heading font-bold text-lg text-zinc-900">
+                  Negotiation History
+                </h3>
+              </div>
+              <div className="p-6 space-y-4">
+                {proposal.counteroffers.length === 0 ? (
+                  <p className="text-sm text-zinc-500">
+                    No counteroffers yet. The current amount is the original proposal amount.
+                  </p>
+                ) : (
+                  proposal.counteroffers.map((counteroffer) => (
+                    <div
+                      key={counteroffer.proposalCounterofferId}
+                      className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="font-semibold text-zinc-900">
+                            {counteroffer.offeredByUsername}
+                          </p>
+                          <p className="text-xs text-zinc-500">
+                            {new Date(counteroffer.createdAt).toLocaleString()}
+                          </p>
+                        </div>
+                        <div className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-[#1D9E75] border border-[#1D9E75]/20">
+                          {counteroffer.creditAmount} credits
+                        </div>
+                      </div>
+                      {counteroffer.message && (
+                        <p className="mt-3 text-sm text-zinc-600 whitespace-pre-wrap">
+                          {counteroffer.message}
+                        </p>
+                      )}
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 
@@ -470,6 +550,53 @@ export default function ProposalDetailPage() {
                   )}
               </div>
             </div>
+
+            {proposal.canCounteroffer && (
+              <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
+                <h3 className="font-heading font-bold text-lg text-zinc-900 mb-4">
+                  Counteroffer
+                </h3>
+                <form className="space-y-4" onSubmit={handleCounteroffer}>
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-700 mb-2">
+                      Updated credit amount
+                    </label>
+                    <input
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      value={counterofferAmount}
+                      onChange={(e) => setCounterofferAmount(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl bg-white border border-zinc-200 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-[#1D9E75] focus:ring-1 focus:ring-[#1D9E75]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-700 mb-2">
+                      Message (optional)
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={counterofferMessage}
+                      onChange={(e) => setCounterofferMessage(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl bg-white border border-zinc-200 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-[#1D9E75] focus:ring-1 focus:ring-[#1D9E75] resize-none"
+                      placeholder="Explain why you're changing the amount..."
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={isActioning}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#3C2A8A] hover:bg-[#32226d] text-white font-semibold rounded-xl transition-colors disabled:opacity-50"
+                  >
+                    {isActioning ? (
+                      <Loader2 size={20} className="animate-spin" />
+                    ) : (
+                      <Send size={20} />
+                    )}
+                    Send Counteroffer
+                  </button>
+                </form>
+              </div>
+            )}
 
             {/* Timeline */}
             <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">

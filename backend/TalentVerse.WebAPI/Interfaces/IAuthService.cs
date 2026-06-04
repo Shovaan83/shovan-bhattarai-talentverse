@@ -8,7 +8,7 @@ namespace TalentVerse.WebAPI.Interfaces
     public interface IAuthService
     {
         Task<ServiceResponse<UserDto>> RegisterAsync(RegisterDto registerDto);
-        Task<ServiceResponse<UserDto>> LoginAsync(LoginDto loginDto, string ipAddress); // ⭐ Added ipAddress
+        Task<ServiceResponse<UserDto>> LoginAsync(LoginDto loginDto, string ipAddress); // Added ipAddress
         
         Task<ServiceResponse<CurrentUserDto>> GetCurrentUserAsync(ClaimsPrincipal userPrincipal);
         Task<ServiceResponse<CurrentUserDto>> UpdateCurrentUserAsync(ClaimsPrincipal userPrincipal, UpdateProfileDto updateProfileDto);

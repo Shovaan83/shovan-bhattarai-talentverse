@@ -8,6 +8,7 @@ public class EmailService : IEmailService
 {
     private readonly IConfiguration _config;
     private readonly ILogger<EmailService> _logger;
+    private static readonly char[] WhitespaceChars = [' ', '\t', '\r', '\n'];
 
     public EmailService(IConfiguration config, ILogger<EmailService> logger)
     {
@@ -29,7 +30,7 @@ public class EmailService : IEmailService
             // Read configuration with fallback defaults
             var smtpHost = _config["Email:SmtpHost"];
             var smtpPortStr = _config["Email:SmtpPort"];
-            var smtpUser = _config["Email:SmtpUser"];
+            var smtpUser = _config["Email:SmtpUser"]?.Trim();
             var smtpPass = _config["Email:SmtpPassword"];
             var fromEmail = _config["Email:FromEmail"];
             var fromName = _config["Email:FromName"];
@@ -61,19 +62,28 @@ public class EmailService : IEmailService
             {
                 fromEmail = smtpUser;
             }
+            else
+            {
+                fromEmail = fromEmail.Trim();
+            }
 
             if (string.IsNullOrWhiteSpace(fromName))
             {
                 fromName = "TalentVerse";
             }
 
+            smtpPass = NormalizeSmtpPassword(smtpHost, smtpPass);
+
             using var client = new SmtpClient(smtpHost, smtpPort)
             {
+                DeliveryMethod = SmtpDeliveryMethod.Network,
+                UseDefaultCredentials = false,
                 Credentials = new NetworkCredential(smtpUser, smtpPass),
-                EnableSsl = true
+                EnableSsl = true,
+                Timeout = 10000
             };
 
-            var message = new MailMessage
+            using var message = new MailMessage
             {
                 From = new MailAddress(fromEmail, fromName),
                 Subject = subject,
@@ -85,12 +95,41 @@ public class EmailService : IEmailService
             await client.SendMailAsync(message);
             _logger.LogInformation("Email sent successfully to {Email}", toEmail);
         }
+        catch (SmtpException ex) when (IsLikelyGmailAuthenticationError(ex))
+        {
+            _logger.LogError(
+                ex,
+                "Gmail SMTP authentication failed for {Email}. Configure Email:SmtpUser as the full Gmail address and Email:SmtpPassword as a valid Google App Password, not the normal account password.",
+                toEmail);
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send email to {Email}", toEmail);
-            // Don't rethrow in development - allow app to continue even if email fails
-            // In production, you may want to rethrow or handle differently
+            throw;
         }
+    }
+
+    private string NormalizeSmtpPassword(string? smtpHost, string smtpPassword)
+    {
+        if (!IsGmailHost(smtpHost) || !smtpPassword.Any(char.IsWhiteSpace))
+            return smtpPassword;
+
+        _logger.LogWarning(
+            "Whitespace was removed from Email:SmtpPassword for Gmail SMTP. Google App Passwords should be configured as the 16-character password without spaces.");
+
+        return string.Concat(smtpPassword.Where(c => !WhitespaceChars.Contains(c)));
+    }
+
+    private static bool IsGmailHost(string? smtpHost)
+    {
+        return string.Equals(smtpHost, "smtp.gmail.com", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsLikelyGmailAuthenticationError(SmtpException ex)
+    {
+        return ex.Message.Contains("5.7.0", StringComparison.OrdinalIgnoreCase)
+            || ex.Message.Contains("Authentication Required", StringComparison.OrdinalIgnoreCase);
     }
 
     public async Task SendProposalCreatedAsync(

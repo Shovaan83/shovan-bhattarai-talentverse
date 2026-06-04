@@ -56,12 +56,22 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Only redirect on 401 for protected routes, not auth pages
+    // Only redirect on 401 for protected routes, not auth pages or auth endpoints
     const authPages = ['/login', '/register', '/forgot-password'];
+    const authEndpoints = [
+      '/account/login',
+      '/account/register',
+      '/account/forgot-password',
+      '/account/reset-password',
+      '/account/login-2fa',
+      '/account/refresh',
+      '/account/logout',
+    ];
     const isAuthPage = typeof window !== "undefined" && authPages.some(page => window.location.pathname.includes(page));
+    const isAuthEndpoint = authEndpoints.some(endpoint => originalRequest?.url?.includes(endpoint));
     
-    // If 401 and not already retrying and not on auth page
-    if (error.response?.status === 401 && !originalRequest._retry && !isAuthPage) {
+    // If 401 and not already retrying and not on auth page/endpoint
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthPage && !isAuthEndpoint) {
       if (isRefreshing) {
         // Another request is already refreshing, queue this one
         return new Promise((resolve, reject) => {
@@ -79,7 +89,17 @@ axiosInstance.interceptors.response.use(
 
       try {
         // ⭐ Attempt to refresh token
-        const response = await axiosInstance.post<{ success: boolean; data: string }>('/account/refresh');
+        const response = await axios.post<{ success: boolean; data: string }>(
+          '/account/refresh',
+          undefined,
+          {
+            baseURL: axiosInstance.defaults.baseURL,
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
 
         if (response.data.success) {
           const newToken = response.data.data;

@@ -6,6 +6,7 @@ namespace TalentVerse.WebAPI.DTO.Proposals
     public class ProposalDto
     {
         public int ProposalId { get; set; }
+        public decimal CreditAmount { get; set; }
 
         // Proposer info
         public string ProposerId { get; set; } = string.Empty;
@@ -43,5 +44,8 @@ namespace TalentVerse.WebAPI.DTO.Proposals
         public bool CanDecline { get; set; }
         public bool CanCancel { get; set; }
         public bool CanConfirmCompletion { get; set; }
+        public bool CanCounteroffer { get; set; }
+
+        public List<ProposalCounterofferDto> Counteroffers { get; set; } = new();
     }
 }

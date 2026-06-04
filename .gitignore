@@ -13,6 +13,11 @@ docs/
 *.user
 *.suo
 
+**/.idea/
+backend/.idea/
+
+**/keys/
+
 .env
 .env.*.local
 **/appsettings.json
@@ -22,7 +27,7 @@ docs/
 # Ignore all .md files in root directory except README.md
 /*.md
 !README.md
-
+.context/
 .env.production
 .env.staging
 *.env.production

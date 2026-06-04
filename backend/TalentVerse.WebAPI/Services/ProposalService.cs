@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using TalentVerse.WebAPI.Common;
 using TalentVerse.WebAPI.Data.Entities;
 using TalentVerse.WebAPI.Data.Enums;
 using TalentVerse.WebAPI.DTO.Proposals;
+using TalentVerse.WebAPI.Hubs;
 using TalentVerse.WebAPI.Interfaces;
 
 namespace TalentVerse.WebAPI.Services
@@ -15,6 +17,7 @@ namespace TalentVerse.WebAPI.Services
         private readonly IEmailQueueService _emailQueue;
         private readonly ICreditService _creditService;
         private readonly IBadgeService _badgeService;
+        private readonly IHubContext<ChatHub> _hubContext;
 
         public ProposalService(
             IProposalRepository proposalRepo, 
@@ -22,7 +25,8 @@ namespace TalentVerse.WebAPI.Services
             ILogger<ProposalService> logger,
             IEmailQueueService emailQueue,
             ICreditService creditService,
-            IBadgeService badgeService)
+            IBadgeService badgeService,
+            IHubContext<ChatHub> hubContext)
         {
             _proposalRepo = proposalRepo;
             _userManager = userManager;
@@ -30,6 +34,7 @@ namespace TalentVerse.WebAPI.Services
             _emailQueue = emailQueue;
             _creditService = creditService;
             _badgeService = badgeService;
+            _hubContext = hubContext;
         }
 
         public async Task<ServiceResponse<ProposalDto>> CreateProposalAsync(string userId, CreateProposalDto dto)
@@ -46,6 +51,9 @@ namespace TalentVerse.WebAPI.Services
 
                 if (dto == null)
                     return ServiceResponse<ProposalDto>.FailureResponse("Proposal data is required.");
+
+                if (dto.CreditAmount <= 0)
+                    return ServiceResponse<ProposalDto>.FailureResponse(AppConstant.ErrorMessages.InvalidCreditAmount);
 
                 // 2. Check profile completeness (soft-lock)
                 var user = await _userManager.FindByIdAsync(userId);
@@ -100,6 +108,7 @@ namespace TalentVerse.WebAPI.Services
                     RecipientId = recipientId,
                     ProposerUserSkillId = dto.ProposerUserSkillId,
                     RecipientUserSkillId = dto.RecipientUserSkillId,
+                    CreditAmount = dto.CreditAmount,
                     Status = ProposalStatus.Pending,
                     ProposerConfirmed = false,
                     RecipientConfirmed = false,
@@ -128,8 +137,8 @@ namespace TalentVerse.WebAPI.Services
                 proposalDto.CanConfirmCompletion = false;
 
                 _logger.LogInformation(
-                    "Proposal {ProposalId} created by {ProposerId} for {RecipientId}",
-                    created.ProposalId, userId, recipientId);
+                    "Proposal {ProposalId} created by {ProposerId} for {RecipientId} with credit amount {CreditAmount}",
+                    created.ProposalId, userId, recipientId, dto.CreditAmount);
 
                 // Queue email notification to recipient (fire-and-forget)
                 var recipient = await _userManager.FindByIdAsync(recipientId);
@@ -143,8 +152,16 @@ namespace TalentVerse.WebAPI.Services
                             proposalDto.ProposerUsername,
                             proposalDto.ProposerSkillName,
                             proposalDto.RecipientSkillName,
+                            proposalDto.CreditAmount,
                             dto.Message));
                 }
+
+                await BroadcastProposalActivityAsync(
+                    proposalDto,
+                    userId,
+                    "Created",
+                    $"New proposal from {proposalDto.ProposerUsername}",
+                    $"{proposalDto.ProposerUsername} offered {proposalDto.CreditAmount:0.##} credits for {proposalDto.RecipientSkillName}.");
 
                 return ServiceResponse<ProposalDto>.SuccessResponse(
                     proposalDto,
@@ -153,6 +170,80 @@ namespace TalentVerse.WebAPI.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating proposal for user {UserId}", userId);
+                return ServiceResponse<ProposalDto>.FailureResponse(AppConstant.ErrorMessages.GenericError);
+            }
+        }
+
+        public async Task<ServiceResponse<ProposalDto>> CounterofferProposalAsync(string userId, int proposalId, CreateCounterofferDto dto)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(userId))
+                    return ServiceResponse<ProposalDto>.FailureResponse("User ID is required.");
+
+                if (dto == null)
+                    return ServiceResponse<ProposalDto>.FailureResponse("Counteroffer data is required.");
+
+                if (dto.CreditAmount <= 0)
+                    return ServiceResponse<ProposalDto>.FailureResponse(AppConstant.ErrorMessages.InvalidCreditAmount);
+
+                var proposal = await _proposalRepo.GetEntityByIdAsync(proposalId);
+                if (proposal == null)
+                    return ServiceResponse<ProposalDto>.FailureResponse(AppConstant.ErrorMessages.ProposalNotFound);
+
+                var isParticipant = proposal.ProposerId == userId || proposal.RecipientId == userId;
+                if (!isParticipant)
+                    return ServiceResponse<ProposalDto>.FailureResponse(AppConstant.ErrorMessages.UnauthorizedProposalAction);
+
+                if (proposal.Status != ProposalStatus.Pending)
+                    return ServiceResponse<ProposalDto>.FailureResponse(AppConstant.ErrorMessages.CounterofferNotAllowed);
+
+                var counteroffer = new ProposalCounteroffer
+                {
+                    ProposalId = proposalId,
+                    OfferedByUserId = userId,
+                    CreditAmount = dto.CreditAmount,
+                    Message = dto.Message?.Trim(),
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                var saved = await _proposalRepo.CreateCounterofferAsync(counteroffer);
+                if (!saved)
+                    return ServiceResponse<ProposalDto>.FailureResponse("Failed to create counteroffer.");
+
+                var updatedProposal = await _proposalRepo.GetByIdAsync(proposalId);
+                if (updatedProposal == null)
+                    return ServiceResponse<ProposalDto>.FailureResponse("Counteroffer saved but failed to load proposal.");
+
+                SetActionFlags(updatedProposal, userId);
+
+                var otherUserId = proposal.ProposerId == userId ? proposal.RecipientId : proposal.ProposerId;
+                var otherUser = await _userManager.FindByIdAsync(otherUserId);
+                if (otherUser != null && !string.IsNullOrWhiteSpace(otherUser.Email))
+                {
+                    _ = _emailQueue.QueueEmailAsync(
+                        otherUser.Email,
+                        "New Counteroffer on Your Skill Swap Proposal",
+                        BuildProposalCounterofferedEmailBody(
+                            otherUser.UserName ?? "User",
+                            updatedProposal.ProposerUsername,
+                            updatedProposal.RecipientUsername,
+                            updatedProposal.CreditAmount,
+                            dto.Message));
+                }
+
+                await BroadcastProposalActivityAsync(
+                    updatedProposal,
+                    userId,
+                    "Counteroffered",
+                    $"Counteroffer on proposal #{proposalId}",
+                    $"{GetActorName(updatedProposal, userId)} offered {dto.CreditAmount:0.##} credits.");
+
+                return ServiceResponse<ProposalDto>.SuccessResponse(updatedProposal, AppConstant.SuccessMessages.CounterofferSent);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating counteroffer for proposal {ProposalId} by user {UserId}", proposalId, userId);
                 return ServiceResponse<ProposalDto>.FailureResponse(AppConstant.ErrorMessages.GenericError);
             }
         }
@@ -256,6 +347,16 @@ namespace TalentVerse.WebAPI.Services
                 if (updatedProposal != null)
                     SetActionFlags(updatedProposal, userId);
 
+                if (updatedProposal != null)
+                {
+                    await BroadcastProposalActivityAsync(
+                        updatedProposal,
+                        userId,
+                        "Accepted",
+                        $"Proposal #{proposalId} accepted",
+                        $"{GetActorName(updatedProposal, userId)} accepted the proposal.");
+                }
+
                 _logger.LogInformation(
                     "Proposal {ProposalId} accepted by {UserId}",
                     proposalId, userId);
@@ -318,6 +419,16 @@ namespace TalentVerse.WebAPI.Services
                 if (updatedProposal != null)
                     SetActionFlags(updatedProposal, userId);
 
+                if (updatedProposal != null)
+                {
+                    await BroadcastProposalActivityAsync(
+                        updatedProposal,
+                        userId,
+                        "Declined",
+                        $"Proposal #{proposalId} declined",
+                        $"{GetActorName(updatedProposal, userId)} declined the proposal.");
+                }
+
                 _logger.LogInformation(
                     "Proposal {ProposalId} declined by {UserId}",
                     proposalId, userId);
@@ -379,6 +490,16 @@ namespace TalentVerse.WebAPI.Services
                 var updatedProposal = await _proposalRepo.GetByIdAsync(proposalId);
                 if (updatedProposal != null)
                     SetActionFlags(updatedProposal, userId);
+
+                if (updatedProposal != null)
+                {
+                    await BroadcastProposalActivityAsync(
+                        updatedProposal,
+                        userId,
+                        "Cancelled",
+                        $"Proposal #{proposalId} cancelled",
+                        $"{GetActorName(updatedProposal, userId)} cancelled the proposal.");
+                }
 
                 _logger.LogInformation(
                     "Proposal {ProposalId} cancelled by {UserId}",
@@ -453,6 +574,20 @@ namespace TalentVerse.WebAPI.Services
                 if (updatedProposal != null)
                     SetActionFlags(updatedProposal, userId);
 
+                if (updatedProposal != null)
+                {
+                    await BroadcastProposalActivityAsync(
+                        updatedProposal,
+                        userId,
+                        updatedProposal.Status == "Completed" ? "Completed" : "CompletionConfirmed",
+                        updatedProposal.Status == "Completed"
+                            ? $"Proposal #{proposalId} completed"
+                            : $"Completion confirmed for proposal #{proposalId}",
+                        updatedProposal.Status == "Completed"
+                            ? $"{GetActorName(updatedProposal, userId)} completed the swap."
+                            : $"{GetActorName(updatedProposal, userId)} confirmed completion.");
+                }
+
                 var message = updatedProposal?.Status == "Completed"
                     ? "Swap completed successfully! Both parties have confirmed."
                     : "Your completion has been confirmed. Waiting for the other party to confirm.";
@@ -496,7 +631,7 @@ namespace TalentVerse.WebAPI.Services
                 if (updatedProposal?.Status == "Completed")
                 {
                     await _creditService.AwardSwapRewardAsync(
-                        proposal.ProposerId, proposal.RecipientId, proposalId);
+                        proposal.ProposerId, proposal.RecipientId, proposalId, proposal.CreditAmount);
 
                     await _badgeService.EvaluateOnSwapCompletedAsync(proposal.ProposerId);
                     await _badgeService.EvaluateOnSwapCompletedAsync(proposal.RecipientId);
@@ -513,11 +648,57 @@ namespace TalentVerse.WebAPI.Services
 
         #region Email Body Builders
 
+        private async Task BroadcastProposalActivityAsync(
+            ProposalDto proposal,
+            string actorUserId,
+            string eventType,
+            string title,
+            string message)
+        {
+            var payload = new ProposalRealtimeEventDto
+            {
+                ProposalId = proposal.ProposalId,
+                ProposerId = proposal.ProposerId,
+                RecipientId = proposal.RecipientId,
+                ProposerUsername = proposal.ProposerUsername,
+                RecipientUsername = proposal.RecipientUsername,
+                ProposerProfilePicture = proposal.ProposerProfilePicture ?? string.Empty,
+                RecipientProfilePicture = proposal.RecipientProfilePicture ?? string.Empty,
+                OfferingSkillName = proposal.ProposerSkillName,
+                ReceivingSkillName = proposal.RecipientSkillName,
+                CreditAmount = proposal.CreditAmount,
+                EventType = eventType,
+                Status = proposal.Status,
+                Title = title,
+                Message = message,
+                ActorUserId = actorUserId,
+                ActorUsername = GetActorName(proposal, actorUserId),
+                OccurredAt = DateTime.UtcNow
+            };
+
+            await _hubContext.Clients.Group($"user_{proposal.ProposerId}")
+                .SendAsync(AppConstant.SignalREvents.ProposalActivityUpdated, payload);
+
+            if (!string.Equals(proposal.RecipientId, proposal.ProposerId, StringComparison.OrdinalIgnoreCase))
+            {
+                await _hubContext.Clients.Group($"user_{proposal.RecipientId}")
+                    .SendAsync(AppConstant.SignalREvents.ProposalActivityUpdated, payload);
+            }
+        }
+
+        private static string GetActorName(ProposalDto proposal, string userId)
+        {
+            return string.Equals(proposal.ProposerId, userId, StringComparison.OrdinalIgnoreCase)
+                ? proposal.ProposerUsername
+                : proposal.RecipientUsername;
+        }
+
         private static string BuildProposalCreatedEmailBody(
             string recipientName,
             string proposerName,
             string offeredSkill,
             string requestedSkill,
+            decimal creditAmount,
             string? message)
         {
             return $@"Hello {recipientName},
@@ -527,6 +708,7 @@ You have received a new skill swap proposal from {proposerName}!
 Proposal Details:
 • {proposerName} offers to teach: {offeredSkill}
 • {proposerName} wants to learn: {requestedSkill}
+• Proposed credits: {creditAmount:0.##}
 
 {(string.IsNullOrWhiteSpace(message) ? "" : $@"Message from {proposerName}:
 ""{message}""
@@ -536,6 +718,29 @@ Proposal Details:
 Best regards,
 TalentVerse Team";
         }
+
+    private static string BuildProposalCounterofferedEmailBody(
+        string recipientName,
+        string proposerName,
+        string otherPartyName,
+        decimal creditAmount,
+        string? message)
+    {
+        return $@"Hello {recipientName},
+
+{otherPartyName} has submitted a counteroffer on your skill swap proposal.
+
+Counteroffer Details:
+• Current proposed credits: {creditAmount:0.##}
+
+{(string.IsNullOrWhiteSpace(message) ? "" : $@"Message from {otherPartyName}:
+""{message}""
+")}
+Please review the updated proposal in your dashboard.
+
+Best regards,
+TalentVerse Team";
+    }
 
         private static string BuildProposalAcceptedEmailBody(
             string proposerName,
@@ -636,6 +841,7 @@ TalentVerse Team";
             proposal.CanDecline = false;
             proposal.CanCancel = false;
             proposal.CanConfirmCompletion = false;
+            proposal.CanCounteroffer = false;
 
             switch (proposal.Status)
             {
@@ -644,10 +850,12 @@ TalentVerse Team";
                     {
                         proposal.CanAccept = true;
                         proposal.CanDecline = true;
+                        proposal.CanCounteroffer = true;
                     }
                     if (isProposer)
                     {
                         proposal.CanCancel = true;
+                        proposal.CanCounteroffer = true;
                     }
                     break;
 

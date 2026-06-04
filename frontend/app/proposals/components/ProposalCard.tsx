@@ -109,6 +109,9 @@ export function ProposalCard({
             {theirSkill}
           </span>
         </div>
+        <div className="mt-1.5 text-xs text-zinc-500">
+          Credits: <span className="font-semibold text-zinc-700">{proposal.creditAmount}</span>
+        </div>
 
         {/* Completion indicators for Accepted proposals */}
         {proposal.status === "Accepted" && (

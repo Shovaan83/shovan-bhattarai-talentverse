@@ -318,21 +318,22 @@ public class CreditService : ICreditService
         }
     }
 
-    public async Task AwardSwapRewardAsync(string proposerId, string recipientId, long proposalId)
+    public async Task AwardSwapRewardAsync(string proposerId, string recipientId, long proposalId, decimal creditAmount)
     {
         try
         {
-            const decimal rewardAmount = 10m;
+            if (creditAmount <= 0)
+                return;
 
             // Award proposer
             var proposerBalance = await _creditRepository.GetBalanceAsync(proposerId);
-            var newProposerBalance = proposerBalance + rewardAmount;
+            var newProposerBalance = proposerBalance + creditAmount;
             await _creditRepository.UpdateBalanceAsync(proposerId, newProposerBalance);
             await _creditRepository.AddTransactionAsync(new Data.Entities.CreditTransaction
             {
                 UserId = proposerId,
                 Type = TransactionType.SwapReward,
-                Amount = rewardAmount,
+                Amount = creditAmount,
                 BalanceAfter = newProposerBalance,
                 Description = "Earned credits for completing a skill swap",
                 TransactionDate = DateTime.UtcNow,
@@ -342,13 +343,13 @@ public class CreditService : ICreditService
 
             // Award recipient
             var recipientBalance = await _creditRepository.GetBalanceAsync(recipientId);
-            var newRecipientBalance = recipientBalance + rewardAmount;
+            var newRecipientBalance = recipientBalance + creditAmount;
             await _creditRepository.UpdateBalanceAsync(recipientId, newRecipientBalance);
             await _creditRepository.AddTransactionAsync(new Data.Entities.CreditTransaction
             {
                 UserId = recipientId,
                 Type = TransactionType.SwapReward,
-                Amount = rewardAmount,
+                Amount = creditAmount,
                 BalanceAfter = newRecipientBalance,
                 Description = "Earned credits for completing a skill swap",
                 TransactionDate = DateTime.UtcNow,
@@ -358,7 +359,7 @@ public class CreditService : ICreditService
 
             _logger.LogInformation(
                 "Awarded swap reward of {Amount} credits to proposer {ProposerId} and recipient {RecipientId} for proposal {ProposalId}",
-                rewardAmount, proposerId, recipientId, proposalId);
+                creditAmount, proposerId, recipientId, proposalId);
         }
         catch (Exception ex)
         {

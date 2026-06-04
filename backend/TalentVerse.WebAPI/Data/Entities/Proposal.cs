@@ -30,6 +30,10 @@ namespace TalentVerse.WebAPI.Data.Entities
         public virtual UserSkill RecipientUserSkill { get; set; }
 
         [Required]
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal CreditAmount { get; set; }
+
+        [Required]
         public ProposalStatus Status { get; set; } = ProposalStatus.Pending;
 
         // Dual completion confirmation flags
@@ -43,5 +47,6 @@ namespace TalentVerse.WebAPI.Data.Entities
         public virtual ICollection<Message> Messages { get; set; } = new List<Message>();
         public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
         public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
+        public virtual ICollection<ProposalCounteroffer> Counteroffers { get; set; } = new List<ProposalCounteroffer>();
     }
 }

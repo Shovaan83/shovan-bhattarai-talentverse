@@ -894,7 +894,7 @@ namespace TalentVerse.Tests.Services
                 .ReturnsAsync(new CreditTransaction { TransactionId = 1 });
 
             // Act
-            await _sut.AwardSwapRewardAsync(proposerId, recipientId, proposalId);
+            await _sut.AwardSwapRewardAsync(proposerId, recipientId, proposalId, rewardAmount);
 
             // Assert
             _mockCreditRepo.Verify(r => r.UpdateBalanceAsync(proposerId, 100m + rewardAmount), Times.Once);
@@ -922,7 +922,7 @@ namespace TalentVerse.Tests.Services
                 .ReturnsAsync(new CreditTransaction { TransactionId = 2 });
 
             // Act
-            await _sut.AwardSwapRewardAsync(proposerId, recipientId, proposalId);
+            await _sut.AwardSwapRewardAsync(proposerId, recipientId, proposalId, 10m);
 
             // Assert
             proposerTransactions.Should().ContainSingle();
@@ -947,7 +947,7 @@ namespace TalentVerse.Tests.Services
 
             // Act - should not throw
             var exception = await Record.ExceptionAsync(() =>
-                _sut.AwardSwapRewardAsync(proposerId, recipientId, proposalId));
+                _sut.AwardSwapRewardAsync(proposerId, recipientId, proposalId, 10m));
 
             // Assert
             exception.Should().BeNull();
@@ -1206,7 +1206,7 @@ namespace TalentVerse.Tests.Services
                 .ReturnsAsync(new CreditTransaction { TransactionId = 1 });
 
             // Act
-            await _sut.AwardSwapRewardAsync(userId, userId, proposalId);
+            await _sut.AwardSwapRewardAsync(userId, userId, proposalId, 10m);
 
             // Assert - both calls happen even if same user
             _mockCreditRepo.Verify(r => r.GetBalanceAsync(userId), Times.Exactly(2));
@@ -1300,7 +1300,7 @@ namespace TalentVerse.Tests.Services
                 .ReturnsAsync(new CreditTransaction { TransactionId = 1 });
 
             // Act
-            await _sut.AwardSwapRewardAsync(proposerId, recipientId, proposalId);
+            await _sut.AwardSwapRewardAsync(proposerId, recipientId, proposalId, 10m);
 
             // Assert
             _mockLogger.Verify(

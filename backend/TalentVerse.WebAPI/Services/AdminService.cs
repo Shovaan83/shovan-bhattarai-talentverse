@@ -352,7 +352,7 @@ public class AdminService : IAdminService
                 {
                     try
                     {
-                        await _creditService.AwardSwapRewardAsync(proposal.ProposerId, proposal.RecipientId, proposalId);
+                        await _creditService.AwardSwapRewardAsync(proposal.ProposerId, proposal.RecipientId, proposalId, proposal.CreditAmount);
                         await _badgeService.EvaluateOnSwapCompletedAsync(proposal.ProposerId);
                         await _badgeService.EvaluateOnSwapCompletedAsync(proposal.RecipientId);
                     }

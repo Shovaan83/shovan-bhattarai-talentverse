@@ -57,6 +57,44 @@ namespace TalentVerse.WebAPI.Controllers
         }
 
         /// <summary>
+        /// Submit a counteroffer on an existing proposal
+        /// </summary>
+        [HttpPost("{id:int}/counteroffer")]
+        [EnableRateLimiting("fixed")]
+        [ProducesResponseType(typeof(ServiceResponse<ProposalDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ServiceResponse<ProposalDto>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult<ServiceResponse<ProposalDto>>> CounterofferProposal(int id, [FromBody] CreateCounterofferDto dto)
+        {
+            if (dto == null)
+                return BadRequest(ServiceResponse<ProposalDto>.FailureResponse("Request body is required."));
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                return BadRequest(ServiceResponse<ProposalDto>.FailureResponse("Validation failed.", errors));
+            }
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(ServiceResponse<ProposalDto>.FailureResponse("User authentication failed."));
+
+            var result = await _proposalService.CounterofferProposalAsync(userId, id, dto);
+
+            if (!result.Success)
+            {
+                if (result.Message.Contains("not found", StringComparison.OrdinalIgnoreCase))
+                    return NotFound(result);
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
+
+        /// <summary>
         /// Get paginated list of user's proposals
         /// </summary>
         [HttpGet]

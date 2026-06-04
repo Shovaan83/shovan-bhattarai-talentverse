@@ -14,7 +14,7 @@ namespace TalentVerse.WebAPI.Interfaces
 
         // Internal methods called by other services
         Task AwardSignupBonusAsync(string userId);
-        Task AwardSwapRewardAsync(string proposerId, string recipientId, long proposalId);
+        Task AwardSwapRewardAsync(string proposerId, string recipientId, long proposalId, decimal creditAmount);
         Task AwardBadgeRewardAsync(string userId, decimal amount, string badgeName);
         Task<decimal> GetBalanceAsync(string userId);
     }

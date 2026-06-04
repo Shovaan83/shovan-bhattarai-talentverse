@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { proposalsApi } from "@/lib/api/proposals";
-import type { ProposalFilter, ProposalListItem } from "@/lib/types/proposals";
+import type { ProposalFilter, ProposalListItem, CreateCounterofferPayload } from "@/lib/types/proposals";
 
 export const PROPOSALS_QUERY_KEY = ["proposals"] as const;
 
@@ -9,8 +9,6 @@ export function useProposals(filter?: ProposalFilter) {
   return useQuery({
     queryKey: [...PROPOSALS_QUERY_KEY, filter],
     queryFn: () => proposalsApi.getProposals(filter),
-    refetchInterval: 5000, // Poll every 5 seconds for new proposals
-    refetchIntervalInBackground: true, // Continue polling even when tab is not focused
   });
 }
 
@@ -29,6 +27,19 @@ export function useCreateProposal() {
 
   return useMutation({
     mutationFn: proposalsApi.createProposal,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PROPOSALS_QUERY_KEY });
+    },
+  });
+}
+
+// Hook to submit a counteroffer
+export function useCounterofferProposal() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ proposalId, payload }: { proposalId: number; payload: CreateCounterofferPayload }) =>
+      proposalsApi.counterofferProposal(proposalId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PROPOSALS_QUERY_KEY });
     },

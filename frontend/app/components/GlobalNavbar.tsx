@@ -17,7 +17,7 @@ export function GlobalNavbar() {
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const { user, isAuthenticated, isLoading } = useAuth();
-  const { count: notificationCount } = useProposalNotifications();
+  const { count: notificationCount } = useProposalNotifications(user?.id);
   const { data: unreadMessageCount = 0 } = useUnreadCount();
   const { data: wallet } = useWallet();
 
@@ -98,7 +98,7 @@ export function GlobalNavbar() {
                         <link.icon className="w-4 h-4" />
                         {link.label}
                         {link.badge !== undefined && link.badge > 0 && (
-                          <span className={`ml-1 px-1.5 py-0.5 text-xs font-bold rounded-full flex items-center justify-center min-w-[20px] ${
+                            <span className={`ml-1 px-1.5 py-0.5 text-xs font-bold rounded-full flex items-center justify-center min-w-5 ${
                             link.isGold
                               ? 'bg-[#EF9F27] text-white'
                               : 'bg-[#1D9E75] text-white'

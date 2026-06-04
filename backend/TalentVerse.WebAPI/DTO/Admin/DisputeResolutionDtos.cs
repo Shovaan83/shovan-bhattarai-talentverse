@@ -4,6 +4,7 @@ namespace TalentVerse.WebAPI.DTO.Admin;
 public class AdminProposalDto
 {
     public int ProposalId { get; set; }
+    public decimal CreditAmount { get; set; }
     public string ProposerName { get; set; } = string.Empty;
     public string ProposerId { get; set; } = string.Empty;
     public string RecipientName { get; set; } = string.Empty;

@@ -4,6 +4,7 @@ import type {
   ProposalListResponse,
   ProposalFilter,
   CreateProposalPayload,
+  CreateCounterofferPayload,
 } from "@/lib/types/proposals";
 
 // API response wrapper type matching backend ServiceResponse<T>
@@ -19,6 +20,18 @@ export const proposalsApi = {
   createProposal: async (payload: CreateProposalPayload): Promise<ServiceResponse<Proposal>> => {
     const response = await axiosInstance.post<ServiceResponse<Proposal>>(
       "/proposals",
+      payload
+    );
+    return response.data;
+  },
+
+  // Submit a counteroffer on an existing proposal
+  counterofferProposal: async (
+    id: number,
+    payload: CreateCounterofferPayload
+  ): Promise<ServiceResponse<Proposal>> => {
+    const response = await axiosInstance.post<ServiceResponse<Proposal>>(
+      `/proposals/${id}/counteroffer`,
       payload
     );
     return response.data;

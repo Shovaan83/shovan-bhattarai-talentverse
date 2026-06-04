@@ -11,6 +11,11 @@ namespace TalentVerse.WebAPI.Interfaces
         Task<ServiceResponse<ProposalDto>> CreateProposalAsync(string userId, CreateProposalDto dto);
 
         /// <summary>
+        /// Submit a counteroffer against an existing proposal
+        /// </summary>
+        Task<ServiceResponse<ProposalDto>> CounterofferProposalAsync(string userId, int proposalId, CreateCounterofferDto dto);
+
+        /// <summary>
         /// Get a single proposal by ID (with authorization check)
         /// </summary>
         Task<ServiceResponse<ProposalDto>> GetProposalAsync(string userId, int proposalId);

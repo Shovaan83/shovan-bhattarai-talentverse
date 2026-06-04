@@ -24,5 +24,11 @@ namespace TalentVerse.WebAPI.DTO.Proposals
         /// </summary>
         [MaxLength(1000, ErrorMessage = "Message cannot exceed 1000 characters")]
         public string? Message { get; set; }
+
+        /// <summary>
+        /// Credits proposed for the swap
+        /// </summary>
+        [Range(typeof(decimal), "0.01", "999999.99", ErrorMessage = "Credit amount must be greater than 0.")]
+        public decimal CreditAmount { get; set; }
     }
 }

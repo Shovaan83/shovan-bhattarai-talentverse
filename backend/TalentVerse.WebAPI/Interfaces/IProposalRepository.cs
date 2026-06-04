@@ -12,9 +12,19 @@ namespace TalentVerse.WebAPI.Interfaces
         Task<Proposal?> CreateAsync(Proposal proposal);
 
         /// <summary>
+        /// Create a new counteroffer and update the proposal amount
+        /// </summary>
+        Task<bool> CreateCounterofferAsync(ProposalCounteroffer counteroffer);
+
+        /// <summary>
         /// Get a proposal by ID with all related data
         /// </summary>
         Task<ProposalDto?> GetByIdAsync(int proposalId);
+
+        /// <summary>
+        /// Get all counteroffers for a proposal
+        /// </summary>
+        Task<List<ProposalCounterofferDto>> GetCounteroffersAsync(int proposalId);
 
         /// <summary>
         /// Get the raw proposal entity by ID (for updates)

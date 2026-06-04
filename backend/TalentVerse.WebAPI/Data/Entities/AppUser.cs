@@ -41,16 +41,16 @@ namespace TalentVerse.WebAPI.Data.Entities
 
     public DateTime? DeletedAt { get; set; }
 
-    // ⭐ Refresh Token fields for cookie-based authentication
+    // Refresh Token fields for cookie-based authentication
     [MaxLength(500)]
     public string? RefreshToken { get; set; }
     
     public DateTime? RefreshTokenExpiresAt { get; set; }
 
-    // ⭐ Tracks if user has completed 2FA setup wizard (for email/password users)
+    // Tracks if user has completed 2FA setup wizard (for email/password users)
     public bool IsTwoFactorSetupComplete { get; set; } = false;
 
-    // ⭐ Identity Verification fields
+    // Identity Verification fields
     public bool IsIdentityVerified { get; set; } = false;
     public DateTime? VerifiedAt { get; set; }
 

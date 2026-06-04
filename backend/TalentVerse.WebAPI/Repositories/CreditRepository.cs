@@ -1,6 +1,7 @@
 using Dapper;
 using TalentVerse.WebAPI.Data;
 using TalentVerse.WebAPI.Data.Entities;
+using TalentVerse.WebAPI.Data.Enums;
 using TalentVerse.WebAPI.DTO.Credits;
 using TalentVerse.WebAPI.Interfaces;
 
@@ -68,11 +69,13 @@ public class CreditRepository : ICreditRepository
             conditions.Add(@"""Type"" = @Type");
             parameters.Add("Type", typeInt);
         }
+
         if (filter.From.HasValue)
         {
             conditions.Add(@"""TransactionDate"" >= @From");
             parameters.Add("From", filter.From.Value);
         }
+
         if (filter.To.HasValue)
         {
             conditions.Add(@"""TransactionDate"" <= @To");
@@ -86,11 +89,11 @@ public class CreditRepository : ICreditRepository
 
         var countSql = $@"SELECT COUNT(1) FROM ""CreditTransactions"" WHERE {where}";
         var dataSql = $@"
-            SELECT ""TransactionId"", ""UserId"", ""Type"", ""Amount"", ""BalanceAfter"",
-                   ""TransactionDate"", ""Description"", ""ReferenceId"", ""ReferenceType""
-            FROM ""CreditTransactions""
+                 SELECT ""TransactionId"", ""UserId"", ""Type"", ""Amount"", ""BalanceAfter"",
+                     ""TransactionDate"", ""Description"", ""ReferenceId"", ""ReferenceType""
+                 FROM ""CreditTransactions""
             WHERE {where}
-            ORDER BY ""TransactionDate"" DESC
+                 ORDER BY ""TransactionDate"" DESC
             LIMIT @Limit OFFSET @Offset";
 
         var totalCount = await connection.ExecuteScalarAsync<int>(countSql, parameters);
@@ -100,8 +103,8 @@ public class CreditRepository : ICreditRepository
         {
             TransactionId = r.TransactionId,
             UserId = r.UserId,
-            Type = (Data.Enums.TransactionType)r.Type,
-            TypeLabel = ((Data.Enums.TransactionType)r.Type).ToString(),
+            Type = (TransactionType)r.Type,
+            TypeLabel = ((TransactionType)r.Type).ToString(),
             Amount = r.Amount,
             BalanceAfter = r.BalanceAfter,
             TransactionDate = r.TransactionDate,
@@ -165,11 +168,11 @@ public class CreditRepository : ICreditRepository
     public async Task<int> GetCompletedSwapCountAsync(string userId)
     {
         using var connection = _dapperContext.CreateConnection();
-        var sql = @"
-            SELECT COUNT(*)
-            FROM ""Proposals""
-            WHERE (""ProposerId"" = @UserId OR ""RecipientId"" = @UserId)
-              AND ""Status"" = 3";
+                var sql = @"
+                        SELECT COUNT(*)
+                        FROM ""Proposals""
+                        WHERE (""ProposerId"" = @UserId OR ""RecipientId"" = @UserId)
+                            AND ""Status"" = 3";
         return await connection.ExecuteScalarAsync<int>(sql, new { UserId = userId });
     }
 
@@ -198,12 +201,11 @@ public class CreditRepository : ICreditRepository
     {
         using var connection = _dapperContext.CreateConnection();
         var sql = @"SELECT COUNT(1) FROM ""CreditTransactions""
-                    WHERE ""ReferenceType"" = @ReferenceType AND ""Description"" LIKE '%' || @ReferenceId || '%'";
+                WHERE ""ReferenceType"" = @ReferenceType AND ""Description"" LIKE '%' || @ReferenceId || '%'";
         var count = await connection.ExecuteScalarAsync<int>(sql, new { ReferenceType = referenceType, ReferenceId = referenceId });
         return count > 0;
     }
 
-    // Internal helper — raw row shape matching DB columns (Type stored as int)
     private class CreditTransactionRaw
     {
         public long TransactionId { get; set; }

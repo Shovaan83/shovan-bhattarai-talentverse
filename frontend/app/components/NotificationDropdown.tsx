@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, ArrowRightLeft, Clock } from 'lucide-react';
+import { Bell, BellRing, ArrowRightLeft, CheckCircle2, Clock, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { proposalsApi } from '@/lib/api/proposals';
@@ -53,12 +53,28 @@ export function NotificationDropdown({ count }: NotificationDropdownProps) {
     return `${Math.floor(diffInSeconds / 86400)}d ago`;
   };
 
+  const getNotificationIcon = (status: string) => {
+    switch (status) {
+      case 'Pending':
+        return <BellRing className="w-5 h-5 text-[#1D9E75]" />;
+      case 'Accepted':
+      case 'Completed':
+        return <CheckCircle2 className="w-5 h-5 text-emerald-600" />;
+      case 'Declined':
+      case 'Cancelled':
+        return <XCircle className="w-5 h-5 text-rose-500" />;
+      default:
+        return <ArrowRightLeft className="w-5 h-5 text-[#1D9E75]" />;
+    }
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
       {/* Bell Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+        aria-label="Open notifications"
+        className="relative p-2 rounded-lg text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 transition-colors"
       >
         <Bell className="w-5 h-5" />
         {count > 0 && (
@@ -80,7 +96,10 @@ export function NotificationDropdown({ count }: NotificationDropdownProps) {
           >
             {/* Header */}
             <div className="px-4 py-3 border-b border-zinc-200">
-              <h3 className="text-sm font-display font-semibold text-zinc-900">Notifications</h3>
+              <div className="flex items-center gap-2">
+                <Bell className="w-4 h-4 text-[#1D9E75]" />
+                <h3 className="text-sm font-display font-semibold text-zinc-900">Notifications</h3>
+              </div>
               <p className="text-xs text-gray-500 mt-0.5">
                 {count === 0 ? 'No new notifications' : `${count} pending proposal${count === 1 ? '' : 's'}`}
               </p>
@@ -98,8 +117,8 @@ export function NotificationDropdown({ count }: NotificationDropdownProps) {
                     <div className="px-4 py-3 hover:bg-zinc-50 transition-colors border-b border-zinc-100 cursor-pointer">
                       <div className="flex items-start gap-3">
                         {/* Icon */}
-                        <div className="w-10 h-10 rounded-full bg-[#E1F5EE] flex items-center justify-center shrink-0">
-                          <ArrowRightLeft className="w-5 h-5 text-[#1D9E75]" />
+                        <div className="w-10 h-10 rounded-full bg-[#E1F5EE] flex items-center justify-center shrink-0 ring-1 ring-[#1D9E75]/10">
+                          {getNotificationIcon(proposal.status)}
                         </div>
 
                         {/* Content */}
@@ -122,7 +141,7 @@ export function NotificationDropdown({ count }: NotificationDropdownProps) {
               ) : (
                 <div className="px-4 py-8 text-center">
                   <div className="w-12 h-12 rounded-full bg-[#E1F5EE] flex items-center justify-center mx-auto mb-3">
-                    <Bell className="w-6 h-6 text-[#1D9E75]" />
+                      <BellRing className="w-6 h-6 text-[#1D9E75]" />
                   </div>
                   <p className="text-sm font-medium text-zinc-900">No new notifications</p>
                   <p className="text-xs text-gray-500 mt-1">

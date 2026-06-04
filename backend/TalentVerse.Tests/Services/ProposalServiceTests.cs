@@ -122,6 +122,7 @@ namespace TalentVerse.Tests.Services
             {
                 ProposerUserSkillId = ProposerSkillId,
                 RecipientUserSkillId = RecipientSkillId,
+                CreditAmount = 10m,
                 Message = "Let's swap skills!"
             };
 
@@ -178,7 +179,8 @@ namespace TalentVerse.Tests.Services
             var dto = new CreateProposalDto
             {
                 ProposerUserSkillId = ProposerSkillId,
-                RecipientUserSkillId = RecipientSkillId
+                RecipientUserSkillId = RecipientSkillId,
+                CreditAmount = 10m
             };
 
             // Act
@@ -196,7 +198,8 @@ namespace TalentVerse.Tests.Services
             var dto = new CreateProposalDto
             {
                 ProposerUserSkillId = ProposerSkillId,
-                RecipientUserSkillId = RecipientSkillId
+                RecipientUserSkillId = RecipientSkillId,
+                CreditAmount = 10m
             };
 
             // Act
@@ -225,7 +228,8 @@ namespace TalentVerse.Tests.Services
             var dto = new CreateProposalDto
             {
                 ProposerUserSkillId = ProposerSkillId,
-                RecipientUserSkillId = RecipientSkillId
+                RecipientUserSkillId = RecipientSkillId,
+                CreditAmount = 10m
             };
 
             _userManagerMock
@@ -247,7 +251,8 @@ namespace TalentVerse.Tests.Services
             var dto = new CreateProposalDto
             {
                 ProposerUserSkillId = ProposerSkillId,
-                RecipientUserSkillId = RecipientSkillId
+                RecipientUserSkillId = RecipientSkillId,
+                CreditAmount = 10m
             };
 
             var proposer = CreateTestUser(ProposerId, isProfileComplete: false);
@@ -270,7 +275,8 @@ namespace TalentVerse.Tests.Services
             var dto = new CreateProposalDto
             {
                 ProposerUserSkillId = ProposerSkillId,
-                RecipientUserSkillId = RecipientSkillId
+                RecipientUserSkillId = RecipientSkillId,
+                CreditAmount = 10m
             };
 
             var proposer = CreateTestUser(ProposerId, isProfileComplete: true);
@@ -297,7 +303,8 @@ namespace TalentVerse.Tests.Services
             var dto = new CreateProposalDto
             {
                 ProposerUserSkillId = ProposerSkillId,
-                RecipientUserSkillId = RecipientSkillId
+                RecipientUserSkillId = RecipientSkillId,
+                CreditAmount = 10m
             };
 
             var proposer = CreateTestUser(ProposerId, isProfileComplete: true);
@@ -328,7 +335,8 @@ namespace TalentVerse.Tests.Services
             var dto = new CreateProposalDto
             {
                 ProposerUserSkillId = ProposerSkillId,
-                RecipientUserSkillId = RecipientSkillId
+                RecipientUserSkillId = RecipientSkillId,
+                CreditAmount = 10m
             };
 
             var proposer = CreateTestUser(ProposerId, isProfileComplete: true);
@@ -363,7 +371,8 @@ namespace TalentVerse.Tests.Services
             var dto = new CreateProposalDto
             {
                 ProposerUserSkillId = ProposerSkillId,
-                RecipientUserSkillId = RecipientSkillId
+                RecipientUserSkillId = RecipientSkillId,
+                CreditAmount = 10m
             };
 
             var proposer = CreateTestUser(ProposerId, isProfileComplete: true);
@@ -402,7 +411,8 @@ namespace TalentVerse.Tests.Services
             var dto = new CreateProposalDto
             {
                 ProposerUserSkillId = ProposerSkillId,
-                RecipientUserSkillId = RecipientSkillId
+                RecipientUserSkillId = RecipientSkillId,
+                CreditAmount = 10m
             };
 
             var proposer = CreateTestUser(ProposerId, isProfileComplete: true);
@@ -445,7 +455,8 @@ namespace TalentVerse.Tests.Services
             var dto = new CreateProposalDto
             {
                 ProposerUserSkillId = ProposerSkillId,
-                RecipientUserSkillId = RecipientSkillId
+                RecipientUserSkillId = RecipientSkillId,
+                CreditAmount = 10m
             };
 
             _userManagerMock
@@ -468,6 +479,7 @@ namespace TalentVerse.Tests.Services
             {
                 ProposerUserSkillId = ProposerSkillId,
                 RecipientUserSkillId = RecipientSkillId,
+                CreditAmount = 10m,
                 Message = "Let's learn together!"
             };
 
@@ -1497,7 +1509,7 @@ namespace TalentVerse.Tests.Services
             // Assert
             result.Success.Should().BeTrue();
             _creditServiceMock.Verify(
-                x => x.AwardSwapRewardAsync(ProposerId, RecipientId, ProposalId),
+                x => x.AwardSwapRewardAsync(ProposerId, RecipientId, ProposalId, It.IsAny<decimal>()),
                 Times.Once);
         }
 
@@ -1880,7 +1892,7 @@ namespace TalentVerse.Tests.Services
         public async Task CreateProposalAsync_WhitespaceOnlyUserId_TreatedAsEmpty()
         {
             // Arrange
-            var dto = new CreateProposalDto { ProposerUserSkillId = 1, RecipientUserSkillId = 2 };
+            var dto = new CreateProposalDto { ProposerUserSkillId = 1, RecipientUserSkillId = 2, CreditAmount = 10m };
 
             // Act
             var result = await _sut.CreateProposalAsync("   \t\n  ", dto);
@@ -1962,7 +1974,7 @@ namespace TalentVerse.Tests.Services
 
             // Assert
             result.Success.Should().BeTrue();
-            _creditServiceMock.Verify(x => x.AwardSwapRewardAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long>()), Times.Never);
+            _creditServiceMock.Verify(x => x.AwardSwapRewardAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long>(), It.IsAny<decimal>()), Times.Never);
             _badgeServiceMock.Verify(x => x.EvaluateOnSwapCompletedAsync(It.IsAny<string>()), Times.Never);
         }
 

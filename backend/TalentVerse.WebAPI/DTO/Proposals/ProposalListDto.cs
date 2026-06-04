@@ -6,6 +6,7 @@ namespace TalentVerse.WebAPI.DTO.Proposals
     public class ProposalListDto
     {
         public int ProposalId { get; set; }
+        public decimal CreditAmount { get; set; }
 
         // Other party info (the person you're swapping with)
         public string OtherUserId { get; set; } = string.Empty;

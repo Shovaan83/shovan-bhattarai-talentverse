@@ -4,6 +4,7 @@ export type ProposalStatus = "Pending" | "Accepted" | "Rejected" | "Completed" |
 // Full proposal details for single proposal view
 export interface Proposal {
   proposalId: number;
+  creditAmount: number;
   
   // Proposer info
   proposerId: string;
@@ -41,11 +42,15 @@ export interface Proposal {
   canDecline: boolean;
   canCancel: boolean;
   canConfirmCompletion: boolean;
+  canCounteroffer: boolean;
+
+  counteroffers: ProposalCounteroffer[];
 }
 
 // Lightweight proposal for list views
 export interface ProposalListItem {
   proposalId: number;
+  creditAmount: number;
   
   // Other party info
   otherUserId: string;
@@ -97,5 +102,21 @@ export interface ProposalFilter {
 export interface CreateProposalPayload {
   proposerUserSkillId: number;
   recipientUserSkillId: number;
+  creditAmount: number;
   message?: string;
+}
+
+export interface CreateCounterofferPayload {
+  creditAmount: number;
+  message?: string;
+}
+
+export interface ProposalCounteroffer {
+  proposalCounterofferId: number;
+  proposalId: number;
+  offeredByUserId: string;
+  offeredByUsername: string;
+  creditAmount: number;
+  message?: string;
+  createdAt: string;
 }

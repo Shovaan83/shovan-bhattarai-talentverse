@@ -30,6 +30,7 @@ namespace TalentVerse.WebAPI.Repositories
                         ""RecipientId"", 
                         ""ProposerUserSkillId"", 
                         ""RecipientUserSkillId"", 
+                        ""CreditAmount"",
                         ""Status"", 
                         ""ProposerConfirmed"",
                         ""RecipientConfirmed"",
@@ -41,6 +42,7 @@ namespace TalentVerse.WebAPI.Repositories
                         @RecipientId, 
                         @ProposerUserSkillId, 
                         @RecipientUserSkillId, 
+                        @CreditAmount,
                         @Status,
                         @ProposerConfirmed,
                         @RecipientConfirmed,
@@ -55,6 +57,7 @@ namespace TalentVerse.WebAPI.Repositories
                     proposal.RecipientId,
                     proposal.ProposerUserSkillId,
                     proposal.RecipientUserSkillId,
+                    proposal.CreditAmount,
                     Status = (int)proposal.Status,
                     proposal.ProposerConfirmed,
                     proposal.RecipientConfirmed,
@@ -65,6 +68,65 @@ namespace TalentVerse.WebAPI.Repositories
                 proposal.ProposalId = proposalId;
                 transaction.Commit();
                 return proposal;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
+        public async Task<bool> CreateCounterofferAsync(ProposalCounteroffer counteroffer)
+        {
+            using var connection = _context.CreateConnection();
+            connection.Open();
+            using var transaction = connection.BeginTransaction();
+
+            try
+            {
+                var insertSql = @"
+                    INSERT INTO ""ProposalCounteroffers"" (
+                        ""ProposalId"",
+                        ""OfferedByUserId"",
+                        ""CreditAmount"",
+                        ""Message"",
+                        ""CreatedAt""
+                    )
+                    VALUES (
+                        @ProposalId,
+                        @OfferedByUserId,
+                        @CreditAmount,
+                        @Message,
+                        @CreatedAt
+                    )
+                    RETURNING ""ProposalCounterofferId""";
+
+                var counterofferId = await connection.QuerySingleAsync<long>(insertSql, new
+                {
+                    counteroffer.ProposalId,
+                    counteroffer.OfferedByUserId,
+                    counteroffer.CreditAmount,
+                    counteroffer.Message,
+                    counteroffer.CreatedAt
+                }, transaction);
+
+                counteroffer.ProposalCounterofferId = counterofferId;
+
+                var updateSql = @"
+                    UPDATE ""Proposals""
+                    SET ""CreditAmount"" = @CreditAmount,
+                        ""UpdatedAt"" = @UpdatedAt
+                    WHERE ""ProposalId"" = @ProposalId";
+
+                var rowsAffected = await connection.ExecuteAsync(updateSql, new
+                {
+                    counteroffer.ProposalId,
+                    counteroffer.CreditAmount,
+                    UpdatedAt = DateTime.UtcNow
+                }, transaction);
+
+                transaction.Commit();
+                return rowsAffected > 0;
             }
             catch
             {
@@ -94,6 +156,7 @@ namespace TalentVerse.WebAPI.Repositories
                     recipientSkill.""SkillName"" AS ""RecipientSkillName"",
                     recipientSkill.""Category"" AS ""RecipientSkillCategory"",
                     recipientUserSkill.""Description"" AS ""RecipientSkillDescription"",
+                    p.""CreditAmount"",
                     p.""Status"",
                     p.""ProposerConfirmed"",
                     p.""RecipientConfirmed"",
@@ -131,11 +194,13 @@ namespace TalentVerse.WebAPI.Repositories
                 RecipientSkillName = result.RecipientSkillName,
                 RecipientSkillCategory = result.RecipientSkillCategory,
                 RecipientSkillDescription = result.RecipientSkillDescription,
+                CreditAmount = result.CreditAmount,
                 Status = status.ToString(),
                 ProposerConfirmed = result.ProposerConfirmed,
                 RecipientConfirmed = result.RecipientConfirmed,
                 CreatedAt = result.CreatedAt,
-                UpdatedAt = result.UpdatedAt
+                UpdatedAt = result.UpdatedAt,
+                Counteroffers = await GetCounteroffersAsync(proposalId)
             };
         }
 
@@ -150,6 +215,7 @@ namespace TalentVerse.WebAPI.Repositories
                     ""RecipientId"",
                     ""ProposerUserSkillId"",
                     ""RecipientUserSkillId"",
+                    ""CreditAmount"",
                     ""Status"",
                     ""ProposerConfirmed"",
                     ""RecipientConfirmed"",
@@ -272,6 +338,7 @@ namespace TalentVerse.WebAPI.Repositories
                     recipient.""ProfilePictureURL"" AS ""RecipientProfilePicture"",
                     proposerSkill.""SkillName"" AS ""ProposerSkillName"",
                     recipientSkill.""SkillName"" AS ""RecipientSkillName"",
+                    p.""CreditAmount"",
                     p.""Status"",
                     p.""ProposerConfirmed"",
                     p.""RecipientConfirmed"",
@@ -301,6 +368,7 @@ namespace TalentVerse.WebAPI.Repositories
                     OtherProfilePicture = isProposer ? row.RecipientProfilePicture : row.ProposerProfilePicture,
                     OfferingSkillName = isProposer ? row.ProposerSkillName : row.RecipientSkillName,
                     ReceivingSkillName = isProposer ? row.RecipientSkillName : row.ProposerSkillName,
+                    CreditAmount = row.CreditAmount,
                     Status = ((ProposalStatus)row.Status).ToString(),
                     ProposerConfirmed = row.ProposerConfirmed,
                     RecipientConfirmed = row.RecipientConfirmed,
@@ -311,6 +379,38 @@ namespace TalentVerse.WebAPI.Repositories
             }).ToList();
 
             return (proposals, totalCount);
+        }
+
+        public async Task<List<ProposalCounterofferDto>> GetCounteroffersAsync(int proposalId)
+        {
+            using var connection = _context.CreateConnection();
+
+            var sql = @"
+                SELECT
+                    pc.""ProposalCounterofferId"",
+                    pc.""ProposalId"",
+                    pc.""OfferedByUserId"",
+                    u.""UserName"" AS ""OfferedByUsername"",
+                    pc.""CreditAmount"",
+                    pc.""Message"",
+                    pc.""CreatedAt""
+                FROM ""ProposalCounteroffers"" pc
+                INNER JOIN ""AspNetUsers"" u ON pc.""OfferedByUserId"" = u.""Id""
+                WHERE pc.""ProposalId"" = @ProposalId
+                ORDER BY pc.""CreatedAt"" ASC";
+
+            var rows = await connection.QueryAsync<ProposalCounterofferQueryResult>(sql, new { ProposalId = proposalId });
+
+            return rows.Select(row => new ProposalCounterofferDto
+            {
+                ProposalCounterofferId = row.ProposalCounterofferId,
+                ProposalId = row.ProposalId,
+                OfferedByUserId = row.OfferedByUserId,
+                OfferedByUsername = row.OfferedByUsername,
+                CreditAmount = row.CreditAmount,
+                Message = row.Message,
+                CreatedAt = row.CreatedAt
+            }).ToList();
         }
 
         public async Task<bool> UpdateStatusAsync(int proposalId, ProposalStatus newStatus)
@@ -498,6 +598,7 @@ namespace TalentVerse.WebAPI.Repositories
         public string RecipientSkillName { get; set; } = string.Empty;
         public string RecipientSkillCategory { get; set; } = string.Empty;
         public string? RecipientSkillDescription { get; set; }
+        public decimal CreditAmount { get; set; }
         public int Status { get; set; }
         public bool ProposerConfirmed { get; set; }
         public bool RecipientConfirmed { get; set; }
@@ -517,11 +618,23 @@ namespace TalentVerse.WebAPI.Repositories
         public string? RecipientProfilePicture { get; set; }
         public string ProposerSkillName { get; set; } = string.Empty;
         public string RecipientSkillName { get; set; } = string.Empty;
+        public decimal CreditAmount { get; set; }
         public int Status { get; set; }
         public bool ProposerConfirmed { get; set; }
         public bool RecipientConfirmed { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+    }
+
+    internal class ProposalCounterofferQueryResult
+    {
+        public long ProposalCounterofferId { get; set; }
+        public int ProposalId { get; set; }
+        public string OfferedByUserId { get; set; } = string.Empty;
+        public string OfferedByUsername { get; set; } = string.Empty;
+        public decimal CreditAmount { get; set; }
+        public string? Message { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 
     // Internal DTO for confirmation check

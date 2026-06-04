@@ -2,6 +2,11 @@
 {
     public class AppConstant
     {
+        public static class SignalREvents
+        {
+            public const string ProposalActivityUpdated = "ProposalActivityUpdated";
+        }
+
         public static class Roles
         {
             public const string Admin = "Admin";
@@ -22,6 +27,7 @@
         public const string ProposalCancelled = "Proposal cancelled successfully.";
         public const string ProposalCompleted = "Swap completed successfully! Both parties have confirmed.";
         public const string CompletionConfirmed = "Your completion has been confirmed. Waiting for the other party to confirm.";
+            public const string CounterofferSent = "Counteroffer sent successfully.";
         public const string ReviewSubmitted = "Review submitted successfully.";
         public const string ProfilePictureUploaded = "Profile picture uploaded successfully.";
         public const string OnboardingCompleted = "Welcome to TalentVerse! Your profile is now complete.";
@@ -52,6 +58,8 @@
 
             public const string ProposalNotFound = "Proposal not found.";
             public const string InvalidStateTransition = "This action is not allowed in the current proposal state.";
+            public const string InvalidCreditAmount = "Credit amount must be greater than 0.";
+            public const string CounterofferNotAllowed = "Counteroffers can only be sent for pending proposals.";
             public const string SelfSwapError = "You cannot send a proposal to yourself.";
             public const string DuplicateProposalError = "You already have an active proposal for these skills.";
             public const string UnauthorizedProposalAction = "You are not authorized to perform this action on this proposal.";

@@ -10,6 +10,7 @@ public class AppDbContext : IdentityDbContext<AppUser>
     public DbSet<Skill> Skills { get; set; }
     public DbSet<UserSkill> UserSkills { get; set; }
     public DbSet<Proposal> Proposals { get; set; }
+    public DbSet<ProposalCounteroffer> ProposalCounteroffers { get; set; }
     public DbSet<Message> Messages { get; set; }
     public DbSet<Review> Reviews { get; set; }
     public DbSet<Appointment> Appointments { get; set; }
@@ -61,6 +62,26 @@ public class AppDbContext : IdentityDbContext<AppUser>
             .WithMany(u => u.ReceivedProposals)
             .HasForeignKey(p => p.RecipientId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<Proposal>()
+            .Property(p => p.CreditAmount)
+            .HasColumnType("decimal(18, 2)");
+
+        builder.Entity<ProposalCounteroffer>()
+            .HasOne(c => c.Proposal)
+            .WithMany(p => p.Counteroffers)
+            .HasForeignKey(c => c.ProposalId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<ProposalCounteroffer>()
+            .HasOne(c => c.OfferedByUser)
+            .WithMany()
+            .HasForeignKey(c => c.OfferedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<ProposalCounteroffer>()
+            .Property(c => c.CreditAmount)
+            .HasColumnType("decimal(18, 2)");
 
 
         builder.Entity<Review>()
