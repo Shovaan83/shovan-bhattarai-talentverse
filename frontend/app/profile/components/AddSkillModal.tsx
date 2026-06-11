@@ -17,6 +17,10 @@ const skillSchema = z.object({
     .string()
     .min(2, "Category must be at least 2 characters")
     .max(30, "Category must be less than 30 characters"),
+  proficiencyLevel: z
+    .number()
+    .min(1, "Proficiency level must be between 1 and 5")
+    .max(5, "Proficiency level must be between 1 and 5"),
   description: z
     .string()
     .max(200, "Description must be less than 200 characters")
@@ -55,6 +59,9 @@ export function AddSkillModal({
     formState: { errors },
   } = useForm<SkillFormData>({
     resolver: zodResolver(skillSchema),
+    defaultValues: {
+      proficiencyLevel: 3,
+    },
   });
 
   const handleFormSubmit = (data: SkillFormData) => {
@@ -62,6 +69,7 @@ export function AddSkillModal({
       skillName: data.skillName,
       category: data.category,
       type: isOffer ? 0 : 1,
+      proficiencyLevel: data.proficiencyLevel,
       description: data.description || "",
     });
     reset();
@@ -85,6 +93,7 @@ export function AddSkillModal({
     "Cooking",
     "Fitness",
   ];
+  const proficiencyLabels = ["Beginner", "Novice", "Intermediate", "Advanced", "Expert"];
 
   return (
     <AnimatePresence>
@@ -232,6 +241,38 @@ export function AddSkillModal({
                     {errors.category && (
                       <p className="mt-1.5 text-sm text-red-500">
                         {errors.category.message}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Proficiency */}
+                  <div>
+                    <label
+                      htmlFor="proficiencyLevel"
+                      className="block text-sm font-medium text-gray-700 mb-1.5"
+                    >
+                      {isOffer ? "Proficiency Level" : "Desired Level"}
+                    </label>
+                    <select
+                      id="proficiencyLevel"
+                      {...register("proficiencyLevel", { valueAsNumber: true })}
+                      className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 outline-none ${
+                        errors.proficiencyLevel
+                          ? "border-red-300 focus:border-red-500"
+                          : isOffer
+                          ? "border-gray-200 focus:border-emerald-500"
+                          : "border-gray-200 focus:border-orange-500"
+                      }`}
+                    >
+                      {proficiencyLabels.map((label, index) => (
+                        <option key={label} value={index + 1}>
+                          {index + 1} - {label}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.proficiencyLevel && (
+                      <p className="mt-1.5 text-sm text-red-500">
+                        {errors.proficiencyLevel.message}
                       </p>
                     )}
                   </div>

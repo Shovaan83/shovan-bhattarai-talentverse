@@ -19,8 +19,13 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "TalentVerse",
-  description: "Connect, Collaborate, and Showcase Your Talents",
+  title: "Barterly",
+  description: "Trade skills, earn credits, and grow through trusted swaps.",
+  icons: {
+    icon: "/brand/favicon-nobg.png",
+    shortcut: "/brand/favicon-nobg.png",
+    apple: "/brand/favicon-nobg.png",
+  },
 };
 
 const stripInjectedAttrsScript = `(function () {
@@ -50,6 +55,50 @@ const stripInjectedAttrsScript = `(function () {
   };
 
   cleanTree();
+  if (document.addEventListener) {
+    document.addEventListener("DOMContentLoaded", cleanTree, { once: true });
+  }
+
+  if (typeof MutationObserver !== "undefined") {
+    var observer = new MutationObserver(function (mutations) {
+      for (var i = 0; i < mutations.length; i++) {
+        var mutation = mutations[i];
+        if (mutation.type === "attributes") {
+          cleanNode(mutation.target);
+          continue;
+        }
+
+        if (mutation.type === "childList") {
+          for (var j = 0; j < mutation.addedNodes.length; j++) {
+            var node = mutation.addedNodes[j];
+            cleanNode(node);
+            if (node && node.nodeType === 1 && node.getElementsByTagName) {
+              var children = node.getElementsByTagName("*");
+              for (var k = 0; k < children.length; k++) {
+                cleanNode(children[k]);
+              }
+            }
+          }
+        }
+      }
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      childList: true,
+      subtree: true
+    });
+
+    setTimeout(function () {
+      observer.disconnect();
+      cleanTree();
+    }, 5000);
+  }
+
+  var retryDelays = [0, 16, 50, 100, 250, 500, 1000, 2000];
+  for (var delayIndex = 0; delayIndex < retryDelays.length; delayIndex++) {
+    setTimeout(cleanTree, retryDelays[delayIndex]);
+  }
 })();`;
 
 export default function RootLayout({

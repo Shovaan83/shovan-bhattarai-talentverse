@@ -28,15 +28,9 @@ export default function Enable2FA({ onSuccess, onSkip }: Enable2FAProps) {
     setEmailStatus("sending");
 
     try {
-      const token = localStorage.getItem("token");
       const response = await axiosInstance.post(
         "/account/request-2fa-code",
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        {}
       );
 
       if (response.data.success) {
@@ -114,15 +108,9 @@ export default function Enable2FA({ onSuccess, onSkip }: Enable2FAProps) {
     setError(null);
 
     try {
-      const token = localStorage.getItem("token");
       const response = await axiosInstance.post(
         "/account/enable-2fa",
-        { code: verificationCode },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { code: verificationCode }
       );
 
       if (response.data.success) {

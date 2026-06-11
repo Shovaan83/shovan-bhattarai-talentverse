@@ -7,6 +7,7 @@ namespace TalentVerse.WebAPI.Interfaces
     public interface ICreditRepository
     {
         Task<decimal> GetBalanceAsync(string userId);
+        Task<decimal?> GetLatestTransactionBalanceAsync(string userId);
         Task<CreditTransaction> AddTransactionAsync(CreditTransaction transaction);
         Task<bool> UpdateBalanceAsync(string userId, decimal newBalance);
         Task<TransactionListResponseDto> GetTransactionsAsync(string userId, TransactionFilterDto filter);

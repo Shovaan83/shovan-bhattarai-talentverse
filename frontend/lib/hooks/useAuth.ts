@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { accountApi } from '@/lib/api/account';
 import type { CurrentUser } from '@/lib/types/account';
+import { clearAuthSession, ensureAuthToken } from '@/lib/utils/auth';
 
 /**
  * Centralized authentication state management hook
@@ -16,22 +17,54 @@ export function useAuth() {
 
   // Check token on client-side only to avoid SSR issues
   useEffect(() => {
-    const checkToken = () => {
-      setHasToken(!!localStorage.getItem('token'));
+    let isMounted = true;
+
+    const syncAuthState = async () => {
+      const token = await ensureAuthToken();
+      if (!isMounted) {
+        return;
+      }
+
+      setHasToken(!!token);
+      setIsInitialized(true);
+
+      if (token) {
+        queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+        queryClient.invalidateQueries({ queryKey: ['credits'] });
+        queryClient.invalidateQueries({ queryKey: ['unread-count'] });
+      } else {
+        queryClient.removeQueries({ queryKey: ['currentUser'] });
+        queryClient.removeQueries({ queryKey: ['credits'] });
+        queryClient.removeQueries({ queryKey: ['unread-count'] });
+      }
+    };
+
+    const initializeAuth = async () => {
+      const token = await ensureAuthToken();
+      if (!isMounted) {
+        return;
+      }
+
+      setHasToken(!!token);
       setIsInitialized(true);
     };
     
-    checkToken();
+    initializeAuth();
+
+    const handleAuthChange = () => {
+      void syncAuthState();
+    };
     
     // Listen for storage changes (cross-tab) and custom events
-    window.addEventListener('storage', checkToken);
-    window.addEventListener('auth-change', checkToken);
+    window.addEventListener('storage', handleAuthChange);
+    window.addEventListener('auth-change', handleAuthChange);
     
     return () => {
-      window.removeEventListener('storage', checkToken);
-      window.removeEventListener('auth-change', checkToken);
+      isMounted = false;
+      window.removeEventListener('storage', handleAuthChange);
+      window.removeEventListener('auth-change', handleAuthChange);
     };
-  }, []);
+  }, [queryClient]);
 
   // Fetch current user data
   const { data: user, isLoading, error } = useQuery<CurrentUser>({
@@ -47,18 +80,14 @@ export function useAuth() {
     try {
       await accountApi.logout();
       // Clear React Query cache
-      localStorage.removeItem('token');
+      clearAuthSession();
       queryClient.clear();
-      // Dispatch auth change event
-      window.dispatchEvent(new Event('auth-change'));
       router.push('/login');
     } catch (error) {
       console.error('Logout failed:', error);
       // Force logout client-side even if API call fails
-      localStorage.removeItem('token');
+      clearAuthSession();
       queryClient.clear();
-      // Dispatch auth change event
-      window.dispatchEvent(new Event('auth-change'));
       router.push('/login');
     }
   };

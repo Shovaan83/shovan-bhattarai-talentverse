@@ -22,6 +22,10 @@ namespace TalentVerse.WebAPI.Data.Entities
         [Required]
         public SkillType Type { get; set; }
 
+        [Required]
+        [Range(1, 5)]
+        public int ProficiencyLevel { get; set; }
+
         public string? Description { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

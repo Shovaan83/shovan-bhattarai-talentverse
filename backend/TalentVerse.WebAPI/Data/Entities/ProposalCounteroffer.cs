@@ -22,6 +22,14 @@ namespace TalentVerse.WebAPI.Data.Entities
         [Column(TypeName = "decimal(18, 2)")]
         public decimal CreditAmount { get; set; }
 
+        [Required]
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal ProposerCreditAmount { get; set; }
+
+        [Required]
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal RecipientCreditAmount { get; set; }
+
         [MaxLength(1000)]
         public string? Message { get; set; }
 

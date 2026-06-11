@@ -7,10 +7,11 @@ export const CREDITS_QUERY_KEY = ["credits"] as const;
 /**
  * Get the current user's wallet (balance, totals, swap count)
  */
-export function useWallet() {
+export function useWallet(enabled = true) {
   return useQuery({
     queryKey: [...CREDITS_QUERY_KEY, "wallet"],
     queryFn: creditsApi.getWallet,
+    enabled,
   });
 }
 

@@ -32,8 +32,8 @@ namespace TalentVerse.WebAPI.Data
                     new AppUser
                     {
                         UserName = "shovan",
-                        Email = "shovan@talentverse.com",
-                        Bio = "I am Shovan, the creator of TalentVerse.",
+                        Email = "shovan@barterly.com",
+                        Bio = "I am Shovan, the creator of Barterly.",
                         ProfilePictureURL = "https://instagram.fbir1-1.fna.fbcdn.net/v/t51.2885-19/586687629_18355552537207369_677735766952371488_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fbir1-1.fna.fbcdn.net&_nc_cat=101&_nc_oc=Q6cZ2QFMRPJC7p3xVXY1TGd36CVEGTVaPjfDMqyZ2idz-ZUv6jgJSTOjuMSCFA70BqJ-pO3Pk-LbPS-3sCyyReZZN2AR&_nc_ohc=bb8RXCg_X70Q7kNvwHFecCC&_nc_gid=q5RCd0S6jGdeNvJKUOjECA&edm=AP4sbd4BAAAA&ccb=7-5&oh=00_AfjitFTvsqPbXvLSrj9DCE-PzcDGZPpyIHF5GZMQ-_we2A&oe=692A2E55&_nc_sid=7a9f4b"
                     }
                 };
@@ -58,8 +58,8 @@ namespace TalentVerse.WebAPI.Data
                 var admin = new AppUser
                 {
                     UserName = "admin",
-                    Email = "admin@talentverse.com",
-                    Bio = "I am the admin of TalentVerse."
+                    Email = "admin@barterly.com",
+                    Bio = "I am the admin of Barterly."
                 };
 
                 var adminResult = await userManager.CreateAsync(admin, "adminofTalentVerse@123");
@@ -88,7 +88,7 @@ namespace TalentVerse.WebAPI.Data
                     new Badge
                     {
                         Name = "Welcome Aboard",
-                        Description = "Joined TalentVerse and started your skill-swap journey.",
+                        Description = "Joined Barterly and started your skill-swap journey.",
                         IconKey = "welcome",
                         Tier = "Bronze",
                         Category = "Milestone",
@@ -169,7 +169,7 @@ namespace TalentVerse.WebAPI.Data
                     new Badge
                     {
                         Name = "Verified",
-                        Description = "Identity has been verified by TalentVerse.",
+                        Description = "Identity has been verified by Barterly.",
                         IconKey = "verified",
                         Tier = "Gold",
                         Category = "Milestone",

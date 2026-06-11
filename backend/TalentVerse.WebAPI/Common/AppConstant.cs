@@ -16,7 +16,7 @@
 
         public static class SuccessMessages
         {
-        public const string RegistrationSuccessful = "Registration successful. Welcome to TalentVerse!";
+        public const string RegistrationSuccessful = "Registration successful. Welcome to Barterly!";
         public const string LoginSuccessful = "Login successful.";
         public const string OtpSent = "OTP has been sent to your email.";
         public const string TwofaEnabled = "2FA has been successfully enabled.";
@@ -30,7 +30,7 @@
             public const string CounterofferSent = "Counteroffer sent successfully.";
         public const string ReviewSubmitted = "Review submitted successfully.";
         public const string ProfilePictureUploaded = "Profile picture uploaded successfully.";
-        public const string OnboardingCompleted = "Welcome to TalentVerse! Your profile is now complete.";
+        public const string OnboardingCompleted = "Welcome to Barterly! Your profile is now complete.";
 
         public const string MessageSent = "Message sent successfully.";
         public const string MessagesFetched = "Messages fetched successfully.";
@@ -58,7 +58,7 @@
 
             public const string ProposalNotFound = "Proposal not found.";
             public const string InvalidStateTransition = "This action is not allowed in the current proposal state.";
-            public const string InvalidCreditAmount = "Credit amount must be greater than 0.";
+            public const string InvalidCreditAmount = "Credit amounts cannot be negative, and at least one side must have a positive credit value.";
             public const string CounterofferNotAllowed = "Counteroffers can only be sent for pending proposals.";
             public const string SelfSwapError = "You cannot send a proposal to yourself.";
             public const string DuplicateProposalError = "You already have an active proposal for these skills.";

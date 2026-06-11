@@ -33,7 +33,7 @@ export default function CreditsPurchaseSuccessPage() {
         </h1>
         <p className="text-zinc-500 mb-8">
           Your credits have been added to your wallet. Start using them to unlock
-          new opportunities on TalentVerse.
+          new opportunities on Barterly.
         </p>
         <div className="flex flex-col gap-3">
           <Link

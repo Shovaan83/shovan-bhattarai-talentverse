@@ -9,6 +9,7 @@ import Link from "next/link";
 import { ArrowLeft, Check, Mail, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import axiosInstance from "@/lib/axios";
+import { setAuthToken } from "@/lib/utils/auth";
 import AuthLayout from "../components/AuthLayout";
 import TwoFactorVerification from "../components/TwoFactorVerification";
 import PasswordInput from "../components/PasswordInput";
@@ -72,17 +73,14 @@ export default function LoginPage() {
           setShow2FA(true);
         } else if (userData?.token) {
           // Handle Remember Me
+          setAuthToken(userData.token);
           if (data.rememberMe) {
-            localStorage.setItem("token", userData.token);
             localStorage.setItem("rememberMe", "true");
             localStorage.setItem("userEmail", data.email);
           } else {
-            localStorage.setItem("token", userData.token);
             localStorage.removeItem("rememberMe");
             localStorage.removeItem("userEmail");
           }
-          // Trigger auth state update
-          window.dispatchEvent(new Event('auth-change'));
           router.push("/profile");
         }
       } else {

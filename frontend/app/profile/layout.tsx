@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { ensureAuthenticatedUser } from "@/lib/utils/auth";
 
 export default function ProfileLayout({
   children,
@@ -13,13 +14,32 @@ export default function ProfileLayout({
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is authenticated
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/login");
-    } else {
+    let isMounted = true;
+
+    const verifySession = async () => {
+      const user = await ensureAuthenticatedUser();
+      if (!isMounted) {
+        return;
+      }
+
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+
+      if (!user.isProfileComplete) {
+        router.push("/onboarding");
+        return;
+      }
+
       setIsLoading(false);
-    }
+    };
+
+    verifySession();
+
+    return () => {
+      isMounted = false;
+    };
   }, [router]);
 
   if (isLoading) {

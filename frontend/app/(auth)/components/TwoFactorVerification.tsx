@@ -6,6 +6,7 @@ import { Shield, Loader2, ArrowLeft } from "lucide-react";
 import axiosInstance from "@/lib/axios";
 import { useRouter } from "next/navigation";
 import EmailStatusNotification from "./EmailStatusNotification";
+import { setAuthToken } from "@/lib/utils/auth";
 
 interface TwoFactorVerificationProps {
   email: string;
@@ -81,9 +82,7 @@ export default function TwoFactorVerification({ email, onBack, emailSent = true 
       });
 
       if (response.data.success && response.data.data?.token) {
-        localStorage.setItem("token", response.data.data.token);
-        // Trigger auth state update
-        window.dispatchEvent(new Event('auth-change'));
+        setAuthToken(response.data.data.token);
         router.push("/profile");
       } else {
         setError(response.data.message || "Verification failed");

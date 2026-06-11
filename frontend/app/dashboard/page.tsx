@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
+import { ensureAuthenticatedUser } from '@/lib/utils/auth';
 
 /**
  * Dashboard redirect page
@@ -13,16 +14,27 @@ export default function DashboardPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Check if user is authenticated
-    const token = localStorage.getItem('token');
-    
-    if (token) {
-      // Redirect to marketplace as the main dashboard
-      router.replace('/marketplace');
-    } else {
-      // Not authenticated, redirect to login
-      router.replace('/login');
-    }
+    let isMounted = true;
+
+    const redirectAfterSessionCheck = async () => {
+      const user = await ensureAuthenticatedUser();
+      if (!isMounted) {
+        return;
+      }
+
+      if (!user) {
+        router.replace('/login');
+        return;
+      }
+
+      router.replace(user.isProfileComplete ? '/marketplace' : '/onboarding');
+    };
+
+    redirectAfterSessionCheck();
+
+    return () => {
+      isMounted = false;
+    };
   }, [router]);
 
   return (

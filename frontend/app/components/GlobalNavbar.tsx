@@ -11,6 +11,7 @@ import { ProfileDropdown } from './ProfileDropdown';
 import { NotificationDropdown } from './NotificationDropdown';
 import { useUnreadCount } from '@/lib/hooks/useMessages';
 import { useWallet } from '@/lib/hooks/useCredits';
+import { BrandLogo } from './BrandLogo';
 
 export function GlobalNavbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -18,8 +19,8 @@ export function GlobalNavbar() {
   const pathname = usePathname();
   const { user, isAuthenticated, isLoading } = useAuth();
   const { count: notificationCount } = useProposalNotifications(user?.id);
-  const { data: unreadMessageCount = 0 } = useUnreadCount();
-  const { data: wallet } = useWallet();
+  const { data: unreadMessageCount = 0 } = useUnreadCount(isAuthenticated);
+  const { data: wallet } = useWallet(isAuthenticated);
 
   useEffect(() => {
     setMounted(true);
@@ -74,11 +75,7 @@ export function GlobalNavbar() {
             {/* Logo */}
             <Link href={isAuthenticated ? '/marketplace' : '/'}>
               <div className="flex items-center gap-2 cursor-pointer group">
-                <span className="font-display font-bold text-xl tracking-tight text-zinc-900">
-                  Talent
-                  <span className="text-[#1D9E75]">.</span>
-                  Verse
-                </span>
+                <BrandLogo iconClassName="h-8 w-8" textClassName="text-xl text-zinc-900" />
               </div>
             </Link>
 

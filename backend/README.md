@@ -1,4 +1,4 @@
-# TalentVerse Database Management Scripts
+# Barterly Database Management Scripts
 
 This folder contains helper scripts for managing database migrations and inspecting the database.
 

@@ -5,6 +5,7 @@ import AuthLayout from "../components/AuthLayout";
 import Enable2FA from "../components/Enable2FA";
 import { useEffect, useState } from "react";
 import api from "@/lib/axios";
+import { ensureAuthToken } from "@/lib/utils/auth";
 
 export default function Setup2FAPage() {
   const router = useRouter();
@@ -12,7 +13,7 @@ export default function Setup2FAPage() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem("token");
+      const token = await ensureAuthToken();
       if (!token) {
         router.push("/login");
         return;
@@ -82,7 +83,7 @@ export default function Setup2FAPage() {
   return (
     <AuthLayout
       title="Secure Your Account"
-      subtitle="Two-factor authentication adds an extra layer of security to your TalentVerse account."
+      subtitle="Two-factor authentication adds an extra layer of security to your Barterly account."
     >
       <Enable2FA
         onSuccess={handleSuccess}

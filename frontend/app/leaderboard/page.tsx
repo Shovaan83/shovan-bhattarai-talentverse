@@ -65,7 +65,7 @@ export default function LeaderboardPage() {
             </h1>
           </div>
           <p className="text-zinc-500">
-            Top earners in the TalentVerse community
+            Top earners in the Barterly community
           </p>
         </header>
 

@@ -204,7 +204,7 @@ export default function CreditsPage() {
                   <ArrowUpRight className="w-4 h-4 text-zinc-600 ml-auto group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </div>
                 <p className="text-sm text-zinc-600">
-                  See how your credit balance ranks against the TalentVerse community.
+                  See how your credit balance ranks against the Barterly community.
                 </p>
               </div>
             </Link>

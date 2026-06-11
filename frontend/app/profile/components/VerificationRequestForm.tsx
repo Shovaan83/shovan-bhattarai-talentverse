@@ -234,7 +234,7 @@ export default function VerificationRequestForm() {
       </div>
 
       <div className="text-xs text-gray-500 space-y-1">
-        <p>• Your document will be reviewed by TalentVerse admins</p>
+        <p>• Your document will be reviewed by Barterly admins</p>
         <p>• Verification typically takes 1-3 business days</p>
         <p>• Verified users receive a special badge and 25 credits</p>
         <p>• Documents are securely stored and only used for verification purposes</p>

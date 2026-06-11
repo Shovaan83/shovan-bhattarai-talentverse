@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRightLeft, X } from "lucide-react";
 import type { AddSkillPayload } from "@/lib/types/skills";
@@ -13,7 +15,15 @@ export const SkillType = {
 
 export type SkillType = (typeof SkillType)[keyof typeof SkillType];
 
-type SkillFormValues = AddSkillPayload;
+const skillSchema = z.object({
+  skillName: z.string().trim().min(2, "Skill name must be at least 2 characters").max(100, "Skill name must be 100 characters or less"),
+  category: z.string().trim().min(2, "Category must be at least 2 characters").max(50, "Category must be 50 characters or less"),
+  type: z.union([z.literal(0), z.literal(1)]),
+  proficiencyLevel: z.number().min(1, "Proficiency level must be between 1 and 5").max(5, "Proficiency level must be between 1 and 5"),
+  description: z.string().max(500, "Description cannot exceed 500 characters").optional(),
+});
+
+type SkillFormValues = z.infer<typeof skillSchema>;
 
 interface SkillModalProps {
   isOpen: boolean;
@@ -38,10 +48,12 @@ export default function SkillModal({
     reset,
     formState: { errors },
   } = useForm<SkillFormValues>({
+    resolver: zodResolver(skillSchema),
     defaultValues: {
       type: defaultType,
       category: "General",
       skillName: "",
+      proficiencyLevel: 3,
       description: "",
     },
   });
@@ -67,6 +79,20 @@ export default function SkillModal({
     ? "bg-emerald-600 hover:bg-emerald-700"
     : "bg-orange-600 hover:bg-orange-700";
   const ringColor = isOffer ? "focus:ring-emerald-500" : "focus:ring-orange-500";
+  const selectedLevelColor = isOffer
+    ? "bg-emerald-600 text-white border-emerald-600"
+    : "bg-orange-600 text-white border-orange-600";
+  const proficiencyLevel = watch("proficiencyLevel");
+  const proficiencyLabels = ["Beginner", "Novice", "Intermediate", "Advanced", "Expert"];
+
+  const submitForm = (data: SkillFormValues) => {
+    onSubmit({
+      ...data,
+      skillName: data.skillName.trim(),
+      category: data.category.trim(),
+      description: data.description?.trim() || "",
+    });
+  };
 
   return (
     <AnimatePresence>
@@ -102,7 +128,7 @@ export default function SkillModal({
               </button>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
+            <form onSubmit={handleSubmit(submitForm)} className="p-6 space-y-6">
               <div className="flex justify-center mb-6">
                 <button
                   type="button"
@@ -171,6 +197,48 @@ export default function SkillModal({
                 {errors.description && (
                   <span className="text-xs text-red-500">
                     {errors.description.message}
+                  </span>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <label className="text-sm font-medium text-gray-700">
+                    {isOffer ? "Proficiency Level" : "Desired Level"}
+                  </label>
+                  <span className="text-xs font-medium text-gray-500">
+                    {proficiencyLabels[(Number(proficiencyLevel) || 3) - 1]}
+                  </span>
+                </div>
+                <input
+                  type="hidden"
+                  {...register("proficiencyLevel", { valueAsNumber: true })}
+                />
+                <div className="grid grid-cols-5 gap-2">
+                  {proficiencyLabels.map((label, index) => {
+                    const level = index + 1;
+                    const selected = Number(proficiencyLevel) === level;
+
+                    return (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => setValue("proficiencyLevel", level, { shouldValidate: true })}
+                        className={`h-10 rounded-lg border text-sm font-semibold transition-colors ${
+                          selected
+                            ? selectedLevelColor
+                            : "border-gray-200 bg-gray-50 text-gray-600 hover:bg-white"
+                        }`}
+                        aria-label={`${label} level ${level}`}
+                      >
+                        {level}
+                      </button>
+                    );
+                  })}
+                </div>
+                {errors.proficiencyLevel && (
+                  <span className="text-xs text-red-500">
+                    {errors.proficiencyLevel.message}
                   </span>
                 )}
               </div>

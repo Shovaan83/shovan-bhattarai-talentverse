@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
-import { Upload, MapPin, Link as LinkIcon, Check } from "lucide-react";
+import { Upload, MapPin, Link as LinkIcon, Check, Loader2 } from "lucide-react";
 import api from "@/lib/axios";
+import { ensureAuthToken, setAuthToken } from "@/lib/utils/auth";
 import type { CompleteOnboardingPayload, ImageUploadResult, SocialLinks } from "@/lib/types/account";
 
 export default function OnboardingPage() {
@@ -15,6 +16,37 @@ export default function OnboardingPage() {
   const [location, setLocation] = useState("");
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({});
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const initializeSession = async () => {
+      const tokenFromQuery = new URLSearchParams(window.location.search).get("token");
+      if (tokenFromQuery) {
+        setAuthToken(tokenFromQuery);
+        window.history.replaceState(null, "", "/onboarding");
+      }
+
+      const token = await ensureAuthToken();
+      if (!isMounted) {
+        return;
+      }
+
+      if (!token) {
+        router.replace("/login");
+        return;
+      }
+
+      setIsCheckingSession(false);
+    };
+
+    initializeSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [router]);
 
   // Image upload mutation
   const uploadImageMutation = useMutation({
@@ -41,9 +73,7 @@ export default function OnboardingPage() {
     onSuccess: (data) => {
       // Update token with new claims (IsProfileComplete = true)
       if (data?.data?.token) {
-        localStorage.setItem("token", data.data.token);
-        // Trigger auth state update
-        window.dispatchEvent(new Event('auth-change'));
+        setAuthToken(data.data.token);
       }
       router.push("/dashboard");
     },
@@ -77,9 +107,16 @@ export default function OnboardingPage() {
     });
   };
 
-  const handleSkip = () => {
-    router.push("/dashboard");
-  };
+  if (isCheckingSession) {
+    return (
+      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-3 text-zinc-600">
+          <Loader2 className="w-10 h-10 animate-spin text-[#1D9E75]" />
+          <p className="font-medium">Preparing onboarding...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center p-4">
@@ -176,15 +213,9 @@ export default function OnboardingPage() {
 
             <div className="flex gap-3">
               <button
-                onClick={handleSkip}
-                className="flex-1 px-6 py-3 bg-zinc-100 rounded-lg text-zinc-700 hover:bg-zinc-200 transition"
-              >
-                Skip for now
-              </button>
-              <button
                 onClick={() => setStep(2)}
                 disabled={!profilePictureUrl}
-                className="flex-1 px-6 py-3 bg-[#1D9E75] text-white rounded-lg hover:bg-[#178a65] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-6 py-3 bg-[#1D9E75] text-white rounded-lg hover:bg-[#178a65] transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
               </button>

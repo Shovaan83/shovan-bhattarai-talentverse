@@ -5,6 +5,7 @@ export interface UserSkill {
   skillName: string;
   category: string;
   type: SkillType;
+  proficiencyLevel: number;
   description: string;
 }
 
@@ -12,6 +13,7 @@ export interface AddSkillPayload {
   skillName: string;
   category: string;
   type: 0 | 1; // 0 = Offer, 1 = Want
+  proficiencyLevel: number;
   description: string;
 }
 

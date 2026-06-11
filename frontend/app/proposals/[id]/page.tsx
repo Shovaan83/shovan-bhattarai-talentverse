@@ -1,78 +1,149 @@
 "use client";
 
+import { useEffect, useState, type ElementType, type FormEvent } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
   ArrowRightLeft,
-  Check,
-  X,
-  Clock,
-  CheckCircle2,
-  XCircle,
-  User,
   Calendar,
-  MessageSquare,
+  Check,
+  CheckCircle2,
+  Clock,
+  Coins,
   Loader2,
+  MessageSquare,
+  RefreshCw,
   Send,
+  X,
+  XCircle,
 } from "lucide-react";
-import { useEffect, useState } from "react";
 import {
-  useProposal,
   useAcceptProposal,
-  useDeclineProposal,
   useCancelProposal,
   useConfirmCompletion,
   useCounterofferProposal,
+  useDeclineProposal,
+  useProposal,
 } from "@/lib/hooks/useProposals";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { useGoogleCalendarStatus } from "@/lib/hooks/useAppointments";
+import { Avatar } from "@/app/components/ui/Avatar";
 import ChatPanel from "@/app/proposals/[id]/components/ChatPanel";
 import ConnectGoogleCalendar from "@/app/proposals/[id]/components/ConnectGoogleCalendar";
 import ScheduleMeetingModal from "@/app/proposals/[id]/components/ScheduleMeetingModal";
 import AppointmentsList from "@/app/proposals/[id]/components/AppointmentsList";
-import { useGoogleCalendarStatus } from "@/lib/hooks/useAppointments";
 import type { ProposalStatus } from "@/lib/types/proposals";
 
-const statusConfig: Record<
-  ProposalStatus,
-  { label: string; color: string; bgColor: string; borderColor: string; icon: React.ElementType }
-> = {
+type StatusConfig = {
+  label: string;
+  badge: string;
+  icon: ElementType;
+};
+
+const statusConfig: Record<ProposalStatus, StatusConfig> = {
   Pending: {
-    label: "Pending Review",
-    color: "text-amber-700",
-    bgColor: "bg-amber-50",
-    borderColor: "border-amber-200",
+    label: "Pending",
+    badge: "bg-amber-100 text-amber-700",
     icon: Clock,
   },
   Accepted: {
-    label: "In Progress",
-    color: "text-blue-700",
-    bgColor: "bg-blue-50",
-    borderColor: "border-blue-200",
+    label: "Accepted",
+    badge: "bg-emerald-100 text-emerald-700",
     icon: CheckCircle2,
   },
   Rejected: {
     label: "Declined",
-    color: "text-red-700",
-    bgColor: "bg-red-50",
-    borderColor: "border-red-200",
+    badge: "bg-red-100 text-red-700",
     icon: XCircle,
   },
   Completed: {
     label: "Completed",
-    color: "text-emerald-700",
-    bgColor: "bg-emerald-50",
-    borderColor: "border-emerald-200",
+    badge: "bg-violet-100 text-violet-700",
     icon: CheckCircle2,
   },
   Cancelled: {
     label: "Cancelled",
-    color: "text-gray-600",
-    bgColor: "bg-gray-50",
-    borderColor: "border-gray-200",
+    badge: "bg-zinc-100 text-zinc-600",
     icon: XCircle,
   },
 };
+
+const formatDate = (value: string) =>
+  new Date(value).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+const formatDateTime = (value: string) =>
+  new Date(value).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
+function getCreditTerms(terms: {
+  creditAmount?: number;
+  proposerCreditAmount?: number;
+  recipientCreditAmount?: number;
+  netCreditAmount?: number;
+}) {
+  const proposerCreditAmount = terms.proposerCreditAmount ?? 0;
+  const recipientCreditAmount = terms.recipientCreditAmount ?? terms.creditAmount ?? 0;
+  const netCreditAmount =
+    terms.netCreditAmount ?? Math.abs(recipientCreditAmount - proposerCreditAmount);
+
+  return { proposerCreditAmount, recipientCreditAmount, netCreditAmount };
+}
+
+function SkillRow({
+  avatar,
+  username,
+  role,
+  skillName,
+  category,
+  description,
+  tone,
+}: {
+  avatar?: string;
+  username: string;
+  role: string;
+  skillName: string;
+  category: string;
+  description?: string;
+  tone: "offer" | "request";
+}) {
+  const toneClass =
+    tone === "offer"
+      ? "bg-emerald-50 text-[#1D9E75]"
+      : "bg-violet-50 text-[#3C2A8A]";
+
+  return (
+    <div className="flex items-center gap-4 px-5 py-4">
+      <Avatar src={avatar} name={username} size={44} />
+
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-semibold text-zinc-900 truncate">{username}</span>
+          <span className="text-sm text-zinc-400">· {role}</span>
+        </div>
+        <div className="mt-1 flex flex-wrap items-center gap-2 text-sm">
+          <span className={`rounded-full px-2.5 py-1 font-medium ${toneClass}`}>
+            {skillName}
+          </span>
+          <span className="text-zinc-500">{category}</span>
+        </div>
+        {description && (
+          <p className="mt-2 max-w-2xl text-sm text-zinc-500 line-clamp-2">
+            {description}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function ProposalDetailPage() {
   const params = useParams();
@@ -81,11 +152,13 @@ export default function ProposalDetailPage() {
   const [isActioning, setIsActioning] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
-  const [counterofferAmount, setCounterofferAmount] = useState("");
+  const [showCounterofferForm, setShowCounterofferForm] = useState(false);
+  const [counterofferProposerAmount, setCounterofferProposerAmount] = useState("");
+  const [counterofferRecipientAmount, setCounterofferRecipientAmount] = useState("");
   const [counterofferMessage, setCounterofferMessage] = useState("");
 
   const { user: currentUser } = useAuth();
-  const { data: proposal, isLoading, isError } = useProposal(proposalId);
+  const { data: proposal, isLoading, isError, refetch, isFetching } = useProposal(proposalId);
   const { data: calendarStatus } = useGoogleCalendarStatus();
 
   const acceptMutation = useAcceptProposal();
@@ -96,7 +169,9 @@ export default function ProposalDetailPage() {
 
   useEffect(() => {
     if (proposal) {
-      setCounterofferAmount(proposal.creditAmount.toString());
+      const creditTerms = getCreditTerms(proposal);
+      setCounterofferProposerAmount(creditTerms.proposerCreditAmount.toString());
+      setCounterofferRecipientAmount(creditTerms.recipientCreditAmount.toString());
     }
   }, [proposal]);
 
@@ -105,43 +180,43 @@ export default function ProposalDetailPage() {
   ) => {
     setIsActioning(true);
     try {
-      switch (action) {
-        case "accept":
-          await acceptMutation.mutateAsync(proposalId);
-          break;
-        case "decline":
-          await declineMutation.mutateAsync(proposalId);
-          break;
-        case "cancel":
-          await cancelMutation.mutateAsync(proposalId);
-          break;
-        case "confirm":
-          await confirmMutation.mutateAsync(proposalId);
-          break;
-      }
+      if (action === "accept") await acceptMutation.mutateAsync(proposalId);
+      if (action === "decline") await declineMutation.mutateAsync(proposalId);
+      if (action === "cancel") await cancelMutation.mutateAsync(proposalId);
+      if (action === "confirm") await confirmMutation.mutateAsync(proposalId);
     } finally {
       setIsActioning(false);
     }
   };
 
-  const handleCounteroffer = async (e: React.FormEvent) => {
+  const handleCounteroffer = async (e: FormEvent) => {
     e.preventDefault();
 
-    const parsedAmount = Number(counterofferAmount);
-    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
-      return;
-    }
+    const parsedProposerAmount = Number(counterofferProposerAmount);
+    const parsedRecipientAmount = Number(counterofferRecipientAmount);
+    if (
+      !Number.isFinite(parsedProposerAmount) ||
+      !Number.isFinite(parsedRecipientAmount) ||
+      parsedProposerAmount < 0 ||
+      parsedRecipientAmount < 0 ||
+      (parsedProposerAmount === 0 && parsedRecipientAmount === 0)
+    ) return;
+
+    const netCreditAmount = Math.abs(parsedRecipientAmount - parsedProposerAmount);
 
     setIsActioning(true);
     try {
       await counterofferMutation.mutateAsync({
         proposalId,
         payload: {
-          creditAmount: parsedAmount,
+          creditAmount: netCreditAmount,
+          proposerCreditAmount: parsedProposerAmount,
+          recipientCreditAmount: parsedRecipientAmount,
           message: counterofferMessage || undefined,
         },
       });
       setCounterofferMessage("");
+      setShowCounterofferForm(false);
     } finally {
       setIsActioning(false);
     }
@@ -149,27 +224,35 @@ export default function ProposalDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-zinc-200 border-t-[#1D9E75] rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#FAFAFA] text-zinc-900">
+        <div className="border-b border-zinc-200 bg-white/95">
+          <div className="mx-auto max-w-7xl px-6 py-4">
+            <div className="h-10 w-72 animate-pulse rounded-lg bg-zinc-100" />
+          </div>
+        </div>
+        <div className="flex items-center justify-center py-24">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-zinc-200 border-t-[#1D9E75]" />
+        </div>
       </div>
     );
   }
 
   if (isError || !proposal) {
     return (
-      <div className="min-h-screen bg-[#FAFAFA] p-8">
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-white border border-zinc-200 rounded-2xl p-8 text-center shadow-sm">
-            <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-zinc-900 mb-2">
+      <div className="min-h-screen bg-[#FAFAFA] text-zinc-900">
+        <div className="mx-auto max-w-2xl px-6 py-16">
+          <div className="rounded-xl border border-zinc-200 bg-white p-8 text-center">
+            <XCircle className="mx-auto mb-4 h-12 w-12 text-red-500" />
+            <h2 className="mb-2 text-xl font-semibold text-zinc-900">
               Proposal not found
             </h2>
-            <p className="text-zinc-600 mb-4">
-              This proposal doesn't exist or you don't have access to it.
+            <p className="mb-5 text-sm text-zinc-500">
+              This proposal does not exist or you do not have access to it.
             </p>
             <button
               onClick={() => router.push("/proposals")}
-              className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl font-medium transition-colors"
+              className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800"
+              type="button"
             >
               Back to Proposals
             </button>
@@ -179,528 +262,559 @@ export default function ProposalDetailPage() {
     );
   }
 
-  const status = statusConfig[proposal.status as ProposalStatus];
+  const status = statusConfig[proposal.status];
   const StatusIcon = status.icon;
-
-  // Determine current user role
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  // Note: In a real app, you'd decode the JWT to get the user ID
-  // For now, we'll use the action flags from the API
-
+  const canChat = proposal.status === "Accepted" || proposal.status === "Completed";
+  const canSchedule = proposal.status === "Accepted";
+  const creditTerms = getCreditTerms(proposal);
+  const netCreditReceiverUserId =
+    proposal.netCreditReceiverUserId ||
+    (creditTerms.recipientCreditAmount > creditTerms.proposerCreditAmount
+      ? proposal.recipientId
+      : creditTerms.proposerCreditAmount > creditTerms.recipientCreditAmount
+        ? proposal.proposerId
+        : "");
+  const netCreditReceiver =
+    netCreditReceiverUserId === proposal.proposerId
+      ? proposal.proposerUsername
+      : netCreditReceiverUserId === proposal.recipientId
+        ? proposal.recipientUsername
+        : "No one";
+  const completedSteps =
+    (proposal.proposerConfirmed ? 1 : 0) + (proposal.recipientConfirmed ? 1 : 0);
   return (
-    <div className="relative min-h-screen p-4 md:p-8 bg-[#FAFAFA] overflow-hidden">
-      <div className="max-w-4xl mx-auto relative z-10">
-        {/* Header */}
-        <motion.header
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <button
-            onClick={() => router.push("/proposals")}
-            className="flex items-center gap-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-600 px-3 py-2 rounded-lg transition-colors mb-4"
-          >
-            <ArrowLeft size={20} />
-            Back to Proposals
-          </button>
-          <h1 className="text-3xl font-heading font-bold text-zinc-900">
-            Proposal Details
-          </h1>
-        </motion.header>
-
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Main Info */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="lg:col-span-2 space-y-6"
-          >
-            {/* Status Banner */}
-            <div
-              className={`${status.bgColor} ${status.borderColor} border rounded-2xl p-6`}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className={`w-12 h-12 rounded-xl ${status.bgColor} flex items-center justify-center`}
-                >
-                  <StatusIcon className={`w-6 h-6 ${status.color}`} />
-                </div>
-                <div>
-                  <p className={`font-bold text-lg ${status.color}`}>
+    <div className="min-h-screen bg-[#FAFAFA] text-zinc-900">
+      <div className="sticky top-16 z-10 border-b border-zinc-200 bg-white/95 backdrop-blur-sm">
+        <div className="mx-auto max-w-7xl px-6 py-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => router.push("/proposals")}
+                className="rounded-xl bg-zinc-100 p-2 text-zinc-600 transition-colors hover:bg-zinc-200"
+                type="button"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="text-2xl font-display font-bold text-zinc-900">
+                    Proposal #{proposal.proposalId}
+                  </h1>
+                  <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${status.badge}`}>
                     {status.label}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Created on{" "}
-                    {new Date(proposal.createdAt).toLocaleDateString("en-US", {
-                      weekday: "long",
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </p>
+                  </span>
                 </div>
+                <p className="text-sm text-zinc-500">
+                  Created {formatDate(proposal.createdAt)}
+                </p>
               </div>
             </div>
 
-            {/* Swap Details Card */}
-            <div className="bg-white border border-zinc-200 rounded-2xl shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-zinc-200">
-                <h2 className="font-heading font-bold text-xl text-zinc-900">
-                  Swap Exchange
-                </h2>
-                <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-1 text-sm text-zinc-700">
-                  <span className="font-medium">Proposed credits</span>
-                  <span className="font-semibold text-[#1D9E75]">{proposal.creditAmount}</span>
-                </div>
-              </div>
+            <button
+              onClick={() => refetch()}
+              disabled={isFetching}
+              className="rounded-xl bg-zinc-100 p-2 text-zinc-600 transition-colors hover:bg-zinc-200 disabled:opacity-50"
+              type="button"
+            >
+              <RefreshCw className={`h-5 w-5 ${isFetching ? "animate-spin" : ""}`} />
+            </button>
+          </div>
+        </div>
+      </div>
 
-              <div className="p-6">
-                <div className="flex items-stretch gap-4">
-                  {/* Proposer Skill */}
-                  <div className="flex-1 p-5 rounded-2xl bg-[#1D9E75]/10 border border-[#1D9E75]/20">
-                    <div className="flex items-center gap-3 mb-4">
-                      {proposal.proposerProfilePicture ? (
-                        <img
-                          src={proposal.proposerProfilePicture}
-                          alt={proposal.proposerUsername}
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-[#1D9E75] flex items-center justify-center text-white font-bold">
-                          {proposal.proposerUsername.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                      <div>
-                        <p className="font-semibold text-zinc-900">
-                          {proposal.proposerUsername}
-                        </p>
-                        <p className="text-xs text-[#1D9E75]">Proposer</p>
-                      </div>
-                    </div>
-                    <p className="text-xs uppercase tracking-wider text-[#1D9E75] font-semibold mb-1">
-                      Offering
-                    </p>
-                    <p className="font-bold text-lg text-[#1D9E75]">
-                      {proposal.proposerSkillName}
-                    </p>
-                    <span className="inline-block mt-2 text-xs bg-[#1D9E75]/10 text-[#1D9E75] px-2 py-1 rounded-full">
-                      {proposal.proposerSkillCategory}
-                    </span>
-                    {proposal.proposerSkillDescription && (
-                      <p className="mt-3 text-sm text-zinc-600">
-                        {proposal.proposerSkillDescription}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Arrow */}
-                  <div className="flex items-center">
-                    <div className="w-12 h-12 rounded-full bg-zinc-100 flex items-center justify-center">
-                      <ArrowRightLeft className="w-5 h-5 text-zinc-500" />
-                    </div>
-                  </div>
-
-                  {/* Recipient Skill */}
-                  <div className="flex-1 p-5 rounded-2xl bg-[#3C2A8A]/10 border border-[#3C2A8A]/20">
-                    <div className="flex items-center gap-3 mb-4">
-                      {proposal.recipientProfilePicture ? (
-                        <img
-                          src={proposal.recipientProfilePicture}
-                          alt={proposal.recipientUsername}
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-[#3C2A8A] flex items-center justify-center text-white font-bold">
-                          {proposal.recipientUsername.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                      <div>
-                        <p className="font-semibold text-zinc-900">
-                          {proposal.recipientUsername}
-                        </p>
-                        <p className="text-xs text-[#3C2A8A]">Recipient</p>
-                      </div>
-                    </div>
-                    <p className="text-xs uppercase tracking-wider text-[#3C2A8A] font-semibold mb-1">
-                      Offering
-                    </p>
-                    <p className="font-bold text-lg text-[#3C2A8A]">
-                      {proposal.recipientSkillName}
-                    </p>
-                    <span className="inline-block mt-2 text-xs bg-[#3C2A8A]/10 text-[#3C2A8A] px-2 py-1 rounded-full">
-                      {proposal.recipientSkillCategory}
-                    </span>
-                    {proposal.recipientSkillDescription && (
-                      <p className="mt-3 text-sm text-zinc-600">
-                        {proposal.recipientSkillDescription}
-                      </p>
-                    )}
-                  </div>
-                </div>
+      <div className="mx-auto max-w-7xl px-6 py-8">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8 rounded-xl border border-zinc-200 bg-white px-5 py-4"
+        >
+          <div className="grid gap-5 md:grid-cols-4">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-zinc-500">Status</p>
+              <div className="mt-1 flex items-center gap-2">
+                <StatusIcon className="h-5 w-5 text-zinc-500" />
+                <span className="font-semibold text-zinc-900">{status.label}</span>
               </div>
             </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-zinc-500">Proposer</p>
+              <p className="mt-1 truncate font-semibold text-zinc-900">
+                {proposal.proposerUsername}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-zinc-500">Recipient</p>
+              <p className="mt-1 truncate font-semibold text-zinc-900">
+                {proposal.recipientUsername}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-zinc-500">Net Credits</p>
+              <p className="mt-1 flex items-center gap-2 font-semibold text-zinc-900">
+                <Coins className="h-4 w-4 text-amber-600" />
+                {creditTerms.netCreditAmount}
+              </p>
+              <p className="mt-1 text-xs text-zinc-500">
+                Receiver: {netCreditReceiver}
+              </p>
+            </div>
+          </div>
+        </motion.div>
 
-            {/* Negotiation History */}
-            <div className="bg-white border border-zinc-200 rounded-2xl shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-zinc-200">
-                <h3 className="font-heading font-bold text-lg text-zinc-900">
-                  Negotiation History
-                </h3>
-              </div>
-              <div className="p-6 space-y-4">
-                {proposal.counteroffers.length === 0 ? (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+          <main className="space-y-6 lg:col-span-8">
+            <motion.section
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 }}
+              className="overflow-hidden rounded-xl border border-zinc-200 bg-white"
+            >
+              <div className="flex items-center justify-between gap-3 border-b border-zinc-100 px-5 py-4">
+                <div>
+                  <h2 className="font-semibold text-zinc-900">Skill Exchange</h2>
                   <p className="text-sm text-zinc-500">
-                    No counteroffers yet. The current amount is the original proposal amount.
+                    What each member is bringing to the swap
                   </p>
-                ) : (
-                  proposal.counteroffers.map((counteroffer) => (
+                </div>
+                <div className="rounded-full bg-zinc-100 p-2 text-zinc-500">
+                  <ArrowRightLeft className="h-4 w-4" />
+                </div>
+              </div>
+
+              <div className="divide-y divide-zinc-100">
+                <SkillRow
+                  avatar={proposal.proposerProfilePicture}
+                  username={proposal.proposerUsername}
+                  role="Proposer"
+                  skillName={proposal.proposerSkillName}
+                  category={proposal.proposerSkillCategory}
+                  description={proposal.proposerSkillDescription}
+                  tone="offer"
+                />
+                <SkillRow
+                  avatar={proposal.recipientProfilePicture}
+                  username={proposal.recipientUsername}
+                  role="Recipient"
+                  skillName={proposal.recipientSkillName}
+                  category={proposal.recipientSkillCategory}
+                  description={proposal.recipientSkillDescription}
+                  tone="request"
+                />
+              </div>
+            </motion.section>
+
+            <motion.section
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.08 }}
+              className="rounded-xl border border-zinc-200 bg-white px-5 py-4"
+            >
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="font-semibold text-zinc-900">Credit Terms</h2>
+                  <p className="text-sm text-zinc-500">
+                    Gross values for each skill and the net settlement after completion
+                  </p>
+                </div>
+                <Coins className="h-5 w-5 text-amber-600" />
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-3">
+                <div className="rounded-xl bg-emerald-50 px-4 py-3">
+                  <p className="text-xs font-medium uppercase tracking-wide text-emerald-700">
+                    {proposal.proposerUsername} earns
+                  </p>
+                  <p className="mt-1 text-xl font-semibold text-zinc-900">
+                    {creditTerms.proposerCreditAmount} credits
+                  </p>
+                </div>
+                <div className="rounded-xl bg-orange-50 px-4 py-3">
+                  <p className="text-xs font-medium uppercase tracking-wide text-orange-700">
+                    {proposal.recipientUsername} earns
+                  </p>
+                  <p className="mt-1 text-xl font-semibold text-zinc-900">
+                    {creditTerms.recipientCreditAmount} credits
+                  </p>
+                </div>
+                <div className="rounded-xl bg-blue-50 px-4 py-3">
+                  <p className="text-xs font-medium uppercase tracking-wide text-blue-700">
+                    Net settlement
+                  </p>
+                  <p className="mt-1 text-xl font-semibold text-zinc-900">
+                    {creditTerms.netCreditAmount} credits
+                  </p>
+                  <p className="mt-1 text-xs text-zinc-500">
+                    Paid to {netCreditReceiver}
+                  </p>
+                </div>
+              </div>
+            </motion.section>
+
+            {(proposal.status === "Accepted" || proposal.status === "Completed") && (
+              <motion.section
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="rounded-xl border border-zinc-200 bg-white px-5 py-4"
+              >
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <div>
+                    <h2 className="font-semibold text-zinc-900">Completion</h2>
+                    <p className="text-sm text-zinc-500">
+                      Both members confirm after the swap is done
+                    </p>
+                  </div>
+                  <span className="text-sm font-medium text-zinc-500">
+                    {completedSteps}/2 confirmed
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate text-sm font-medium text-zinc-900">
+                        {proposal.proposerUsername}
+                      </span>
+                      {proposal.proposerConfirmed && (
+                        <Check className="h-4 w-4 text-[#1D9E75]" />
+                      )}
+                    </div>
+                    <p className="text-xs text-zinc-500">
+                      {proposal.proposerConfirmed ? "Confirmed" : "Waiting"}
+                    </p>
+                  </div>
+                  <div className="h-2 flex-[2] rounded-full bg-zinc-100">
                     <div
-                      key={counteroffer.proposalCounterofferId}
-                      className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <p className="font-semibold text-zinc-900">
+                      className="h-full rounded-full bg-[#1D9E75] transition-all"
+                      style={{ width: `${completedSteps * 50}%` }}
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      {proposal.recipientConfirmed && (
+                        <Check className="h-4 w-4 text-[#1D9E75]" />
+                      )}
+                      <span className="truncate text-sm font-medium text-zinc-900">
+                        {proposal.recipientUsername}
+                      </span>
+                    </div>
+                    <p className="text-xs text-zinc-500">
+                      {proposal.recipientConfirmed ? "Confirmed" : "Waiting"}
+                    </p>
+                  </div>
+                </div>
+              </motion.section>
+            )}
+
+            <motion.section
+              id="negotiation-history"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="scroll-mt-28 overflow-hidden rounded-xl border border-amber-200 bg-white shadow-sm"
+            >
+              <div className="border-b border-amber-100 bg-amber-50/60 px-5 py-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <h2 className="font-semibold text-zinc-900">Negotiation History</h2>
+                    <p className="text-sm text-zinc-500">
+                      Original and counteroffer activity
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+                    Credits
+                  </span>
+                </div>
+                {!proposal.canCounteroffer && proposal.status !== "Pending" && (
+                  <p className="mt-3 rounded-lg bg-white px-3 py-2 text-xs text-amber-800">
+                    Negotiation is locked after a proposal is accepted.
+                  </p>
+                )}
+              </div>
+
+              <div className="divide-y divide-zinc-100">
+                {proposal.counteroffers.length === 0 ? (
+                  <div className="px-5 py-6 text-sm text-zinc-500">
+                    No counteroffers yet. The current amount is the original proposal amount.
+                  </div>
+                ) : (
+                  proposal.counteroffers.map((counteroffer) => {
+                    const counterofferTerms = getCreditTerms(counteroffer);
+
+                    return (
+                      <div
+                        key={counteroffer.proposalCounterofferId}
+                        className="flex items-start justify-between gap-4 px-5 py-4"
+                      >
+                        <div className="min-w-0">
+                          <p className="font-medium text-zinc-900">
                             {counteroffer.offeredByUsername}
                           </p>
                           <p className="text-xs text-zinc-500">
-                            {new Date(counteroffer.createdAt).toLocaleString()}
+                            {formatDateTime(counteroffer.createdAt)}
+                          </p>
+                          {counteroffer.message && (
+                            <p className="mt-2 whitespace-pre-wrap text-sm text-zinc-600">
+                              {counteroffer.message}
+                            </p>
+                          )}
+                        </div>
+                        <div className="shrink-0 text-right text-sm">
+                          <p className="font-semibold text-zinc-900">
+                            Net {counterofferTerms.netCreditAmount} credits
+                          </p>
+                          <p className="text-xs text-zinc-500">
+                            {proposal.proposerUsername}: {counterofferTerms.proposerCreditAmount}
+                          </p>
+                          <p className="text-xs text-zinc-500">
+                            {proposal.recipientUsername}: {counterofferTerms.recipientCreditAmount}
                           </p>
                         </div>
-                        <div className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-[#1D9E75] border border-[#1D9E75]/20">
-                          {counteroffer.creditAmount} credits
-                        </div>
                       </div>
-                      {counteroffer.message && (
-                        <p className="mt-3 text-sm text-zinc-600 whitespace-pre-wrap">
-                          {counteroffer.message}
-                        </p>
-                      )}
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
-            </div>
+            </motion.section>
 
-            {/* Completion Progress (for Accepted proposals) */}
-            {proposal.status === "Accepted" && (
-              <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
-                <h3 className="font-heading font-bold text-lg text-zinc-900 mb-4">
-                  Completion Progress
-                </h3>
-                <div className="flex items-center gap-8">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        proposal.proposerConfirmed
-                          ? "bg-[#1D9E75] text-white"
-                          : "bg-zinc-200 text-zinc-400"
-                      }`}
-                    >
-                      <Check size={20} />
-                    </div>
-                    <div>
-                      <p className="font-medium text-zinc-900">
-                        {proposal.proposerUsername}
-                      </p>
-                      <p className="text-xs text-zinc-500">
-                        {proposal.proposerConfirmed
-                          ? "Confirmed"
-                          : "Not confirmed"}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex-1 h-1 bg-zinc-200 rounded-full">
-                    <div
-                      className="h-full bg-[#1D9E75] rounded-full transition-all"
-                      style={{
-                        width: `${
-                          ((proposal.proposerConfirmed ? 1 : 0) +
-                            (proposal.recipientConfirmed ? 1 : 0)) *
-                          50
-                        }%`,
-                      }}
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        proposal.recipientConfirmed
-                          ? "bg-[#1D9E75] text-white"
-                          : "bg-zinc-200 text-zinc-400"
-                      }`}
-                    >
-                      <Check size={20} />
-                    </div>
-                    <div>
-                      <p className="font-medium text-zinc-900">
-                        {proposal.recipientUsername}
-                      </p>
-                      <p className="text-xs text-zinc-500">
-                        {proposal.recipientConfirmed
-                          ? "Confirmed"
-                          : "Not confirmed"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <p className="mt-4 text-sm text-zinc-500 text-center">
-                  Both parties must confirm completion to finalize the swap.
-                </p>
-              </div>
-            )}
-
-            {/* Scheduled Meetings */}
             {(proposal.status === "Accepted" || proposal.status === "Completed") && (
-              <div className="bg-white border border-zinc-200 rounded-2xl shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b border-zinc-200">
-                  <h3 className="font-heading font-bold text-lg text-zinc-900">Scheduled Meetings</h3>
+              <motion.section
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="overflow-hidden rounded-xl border border-zinc-200 bg-white"
+              >
+                <div className="border-b border-zinc-100 px-5 py-4">
+                  <h2 className="font-semibold text-zinc-900">Meetings</h2>
+                  <p className="text-sm text-zinc-500">
+                    Scheduled sessions for this proposal
+                  </p>
                 </div>
-                <div className="p-6">
+                <div className="px-5 py-4">
                   <AppointmentsList proposalId={proposalId} />
                 </div>
-              </div>
+              </motion.section>
             )}
-          </motion.div>
+          </main>
 
-          {/* Right Column - Actions */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-            className="space-y-6"
-          >
-            {/* Actions Card */}
-            <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
-              <h3 className="font-heading font-bold text-lg text-zinc-900 mb-4">
-                Actions
-              </h3>
+          <aside className="space-y-6 lg:col-span-4">
+            <motion.section
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+              className="rounded-xl border border-zinc-200 bg-white p-5"
+            >
+              <h2 className="mb-4 font-semibold text-zinc-900">Actions</h2>
 
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {proposal.canAccept && (
                   <button
                     onClick={() => handleAction("accept")}
                     disabled={isActioning}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#1D9E75] hover:bg-[#178a65] text-white font-semibold rounded-xl transition-colors disabled:opacity-50"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#1D9E75] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#0F6E56] disabled:opacity-50"
+                    type="button"
                   >
-                    {isActioning ? (
-                      <Loader2 size={20} className="animate-spin" />
-                    ) : (
-                      <Check size={20} />
-                    )}
-                    Accept Proposal
+                    {isActioning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                    Accept
                   </button>
                 )}
-
                 {proposal.canDecline && (
                   <button
                     onClick={() => handleAction("decline")}
                     disabled={isActioning}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-xl transition-colors disabled:opacity-50"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700 transition-colors hover:bg-red-100 disabled:opacity-50"
+                    type="button"
                   >
-                    {isActioning ? (
-                      <Loader2 size={20} className="animate-spin" />
-                    ) : (
-                      <X size={20} />
-                    )}
-                    Decline Proposal
+                    {isActioning ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
+                    Decline
                   </button>
                 )}
-
                 {proposal.canCancel && (
                   <button
                     onClick={() => handleAction("cancel")}
                     disabled={isActioning}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-zinc-500 hover:bg-zinc-600 text-white font-semibold rounded-xl transition-colors disabled:opacity-50"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-100 px-4 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-200 disabled:opacity-50"
+                    type="button"
                   >
-                    {isActioning ? (
-                      <Loader2 size={20} className="animate-spin" />
-                    ) : (
-                      <X size={20} />
-                    )}
-                    Cancel Proposal
+                    {isActioning ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
+                    Cancel
                   </button>
                 )}
-
                 {proposal.canConfirmCompletion && (
                   <button
                     onClick={() => handleAction("confirm")}
                     disabled={isActioning}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl transition-colors disabled:opacity-50"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#1D9E75] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#0F6E56] disabled:opacity-50"
+                    type="button"
                   >
-                    {isActioning ? (
-                      <Loader2 size={20} className="animate-spin" />
-                    ) : (
-                      <CheckCircle2 size={20} />
-                    )}
+                    {isActioning ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
                     Confirm Completion
                   </button>
                 )}
-
-                {!proposal.canAccept &&
-                  !proposal.canDecline &&
-                  !proposal.canCancel &&
-                  !proposal.canConfirmCompletion && (
-                    <p className="text-center text-zinc-500 py-4">
-                      No actions available for this proposal.
-                    </p>
-                  )}
+                {proposal.canCounteroffer && (
+                  <button
+                    onClick={() => setShowCounterofferForm((prev) => !prev)}
+                    disabled={isActioning}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-amber-600 disabled:opacity-50"
+                    type="button"
+                  >
+                    <Coins className="h-4 w-4" />
+                    {showCounterofferForm ? "Hide Negotiation" : "Negotiate Credits"}
+                  </button>
+                )}
+                {!proposal.canCounteroffer && (
+                  <a
+                    href="#negotiation-history"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-800 shadow-sm transition-colors hover:bg-amber-100"
+                  >
+                    <Coins className="h-4 w-4" />
+                    View Negotiations
+                  </a>
+                )}
               </div>
-            </div>
+            </motion.section>
 
-            {proposal.canCounteroffer && (
-              <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
-                <h3 className="font-heading font-bold text-lg text-zinc-900 mb-4">
-                  Counteroffer
-                </h3>
+            {proposal.canCounteroffer && showCounterofferForm && (
+              <motion.section
+                initial={{ opacity: 0, x: 12 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.15 }}
+                className="rounded-xl border border-zinc-200 bg-white p-5"
+              >
+                <h2 className="mb-4 font-semibold text-zinc-900">Counteroffer</h2>
                 <form className="space-y-4" onSubmit={handleCounteroffer}>
                   <div>
-                    <label className="block text-sm font-medium text-zinc-700 mb-2">
-                      Updated credit amount
+                    <label className="mb-1.5 block text-sm font-medium text-zinc-700">
+                      Credits for {proposal.proposerUsername}
                     </label>
                     <input
                       type="number"
-                      min="0.01"
+                      min="0"
                       step="0.01"
-                      value={counterofferAmount}
-                      onChange={(e) => setCounterofferAmount(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl bg-white border border-zinc-200 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-[#1D9E75] focus:ring-1 focus:ring-[#1D9E75]"
+                      value={counterofferProposerAmount}
+                      onChange={(e) => setCounterofferProposerAmount(e.target.value)}
+                      className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-900 outline-none transition-colors focus:border-[#1D9E75] focus:ring-2 focus:ring-emerald-100"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-zinc-700 mb-2">
-                      Message (optional)
+                    <label className="mb-1.5 block text-sm font-medium text-zinc-700">
+                      Credits for {proposal.recipientUsername}
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={counterofferRecipientAmount}
+                      onChange={(e) => setCounterofferRecipientAmount(e.target.value)}
+                      className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-900 outline-none transition-colors focus:border-[#1D9E75] focus:ring-2 focus:ring-emerald-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-zinc-700">
+                      Message
                     </label>
                     <textarea
                       rows={3}
                       value={counterofferMessage}
                       onChange={(e) => setCounterofferMessage(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl bg-white border border-zinc-200 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-[#1D9E75] focus:ring-1 focus:ring-[#1D9E75] resize-none"
-                      placeholder="Explain why you're changing the amount..."
+                      className="w-full resize-none rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-900 outline-none transition-colors focus:border-[#1D9E75] focus:ring-2 focus:ring-emerald-100"
+                      placeholder="Optional note"
                     />
                   </div>
                   <button
                     type="submit"
                     disabled={isActioning}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#3C2A8A] hover:bg-[#32226d] text-white font-semibold rounded-xl transition-colors disabled:opacity-50"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50"
                   >
-                    {isActioning ? (
-                      <Loader2 size={20} className="animate-spin" />
-                    ) : (
-                      <Send size={20} />
-                    )}
+                    {isActioning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                     Send Counteroffer
                   </button>
                 </form>
-              </div>
+              </motion.section>
             )}
 
-            {/* Timeline */}
-            <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
-              <h3 className="font-heading font-bold text-lg text-zinc-900 mb-4">
-                Timeline
-              </h3>
+            <motion.section
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="rounded-xl border border-zinc-200 bg-white p-5"
+            >
+              <h2 className="mb-4 font-semibold text-zinc-900">Chat & Schedule</h2>
+              <div className="space-y-2">
+                <button
+                  onClick={() => setIsChatOpen((prev) => !prev)}
+                  disabled={!canChat}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#1D9E75] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#0F6E56] disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                  type="button"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  {canChat ? (isChatOpen ? "Close Chat" : "Open Chat") : "Chat after acceptance"}
+                </button>
+                <button
+                  onClick={() => setIsScheduleOpen(true)}
+                  disabled={!canSchedule || !calendarStatus?.isConnected || calendarStatus?.isRevoked}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                  type="button"
+                >
+                  <Calendar className="h-4 w-4" />
+                  Schedule Meeting
+                </button>
+              </div>
+              {proposal.status === "Accepted" && (
+                <div className="mt-4 border-t border-zinc-100 pt-4">
+                  <ConnectGoogleCalendar />
+                </div>
+              )}
+            </motion.section>
+
+            <motion.section
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.25 }}
+              className="rounded-xl border border-zinc-200 bg-white p-5"
+            >
+              <h2 className="mb-4 font-semibold text-zinc-900">Timeline</h2>
               <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[#1D9E75]/10 flex items-center justify-center flex-shrink-0">
-                    <Calendar size={16} className="text-[#1D9E75]" />
+                <div className="flex gap-3">
+                  <div className="mt-0.5 rounded-full bg-emerald-50 p-2 text-[#1D9E75]">
+                    <Calendar className="h-4 w-4" />
                   </div>
                   <div>
-                    <p className="font-medium text-zinc-900">Created</p>
+                    <p className="text-sm font-medium text-zinc-900">Created</p>
                     <p className="text-sm text-zinc-500">
-                      {new Date(proposal.createdAt).toLocaleString()}
+                      {formatDateTime(proposal.createdAt)}
                     </p>
                   </div>
                 </div>
                 {proposal.updatedAt !== proposal.createdAt && (
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                      <Clock size={16} className="text-blue-600" />
+                  <div className="flex gap-3">
+                    <div className="mt-0.5 rounded-full bg-blue-50 p-2 text-blue-600">
+                      <Clock className="h-4 w-4" />
                     </div>
                     <div>
-                      <p className="font-medium text-zinc-900">Last Updated</p>
+                      <p className="text-sm font-medium text-zinc-900">Updated</p>
                       <p className="text-sm text-zinc-500">
-                        {new Date(proposal.updatedAt).toLocaleString()}
+                        {formatDateTime(proposal.updatedAt)}
                       </p>
                     </div>
                   </div>
                 )}
               </div>
-            </div>
-
-            {/* Chat Panel */}
-            {isChatOpen && currentUser && (
-              <ChatPanel
-                proposalId={proposalId}
-                currentUserId={currentUser.id}
-                onClose={() => setIsChatOpen(false)}
-              />
-            )}
-
-            {/* Google Calendar - only show for accepted proposals */}
-            {proposal.status === "Accepted" && (
-              <div className="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm">
-                <h3 className="font-heading font-bold text-sm text-zinc-900 mb-3">
-                  Google Calendar
-                </h3>
-                <ConnectGoogleCalendar />
-              </div>
-            )}
-
-            {/* Quick Actions */}
-            <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
-              <h3 className="font-heading font-bold text-lg text-zinc-900 mb-4">
-                Chat & Schedule
-              </h3>
-              <div className="space-y-3">
-                {(proposal.status === "Accepted" || proposal.status === "Completed") ? (
-                  <button
-                    onClick={() => setIsChatOpen((prev) => !prev)}
-                    className="w-full flex items-center gap-3 px-4 py-3 bg-[#1D9E75] hover:bg-[#178a65] text-white rounded-xl transition-colors font-medium"
-                  >
-                    <MessageSquare size={20} />
-                    {isChatOpen ? "Close Chat" : "Open Chat"}
-                  </button>
-                ) : (
-                  <button
-                    disabled
-                    className="w-full flex items-center gap-3 px-4 py-3 bg-zinc-100 text-zinc-400 rounded-xl cursor-not-allowed"
-                    title="Chat is available once the proposal is accepted"
-                  >
-                    <MessageSquare size={20} />
-                    Chat (Accept first)
-                  </button>
-                )}
-                {proposal.status === "Accepted" ? (
-                  <button
-                    onClick={() => setIsScheduleOpen(true)}
-                    disabled={!calendarStatus?.isConnected || calendarStatus?.isRevoked}
-                    title={!calendarStatus?.isConnected ? "Connect Google Calendar first" : undefined}
-                    className="w-full flex items-center gap-3 px-4 py-3 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Calendar size={20} />
-                    Schedule Meeting
-                  </button>
-                ) : (
-                  <button
-                    disabled
-                    className="w-full flex items-center gap-3 px-4 py-3 bg-zinc-100 text-zinc-400 rounded-xl cursor-not-allowed"
-                    title="Schedule a meeting once the proposal is accepted"
-                  >
-                    <Calendar size={20} />
-                    Schedule Meeting
-                  </button>
-                )}
-              </div>
-            </div>
-          </motion.div>
+            </motion.section>
+          </aside>
         </div>
+
+        {isChatOpen && currentUser && (
+          <div className="mt-6 rounded-xl border border-zinc-200 bg-white">
+            <ChatPanel
+              proposalId={proposalId}
+              currentUserId={currentUser.id}
+              onClose={() => setIsChatOpen(false)}
+            />
+          </div>
+        )}
       </div>
 
-      {/* Schedule Meeting Modal */}
       {isScheduleOpen && (
         <ScheduleMeetingModal
           proposalId={proposalId}

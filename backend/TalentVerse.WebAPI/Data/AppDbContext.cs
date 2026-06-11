@@ -39,6 +39,16 @@ public class AppDbContext : IdentityDbContext<AppUser>
             .WithMany(s => s.UserSkills)
             .HasForeignKey(us => us.SkillId);
 
+        builder.Entity<UserSkill>()
+            .Property(us => us.ProficiencyLevel)
+            .IsRequired()
+            .HasDefaultValue(3);
+
+        builder.Entity<UserSkill>()
+            .ToTable(t => t.HasCheckConstraint(
+                "CK_UserSkills_ProficiencyLevel",
+                "\"ProficiencyLevel\" BETWEEN 1 AND 5"));
+
         builder.Entity<Proposal>()
             .HasOne(p => p.ProposerUserSkill)
             .WithMany()
@@ -67,6 +77,14 @@ public class AppDbContext : IdentityDbContext<AppUser>
             .Property(p => p.CreditAmount)
             .HasColumnType("decimal(18, 2)");
 
+        builder.Entity<Proposal>()
+            .Property(p => p.ProposerCreditAmount)
+            .HasColumnType("decimal(18, 2)");
+
+        builder.Entity<Proposal>()
+            .Property(p => p.RecipientCreditAmount)
+            .HasColumnType("decimal(18, 2)");
+
         builder.Entity<ProposalCounteroffer>()
             .HasOne(c => c.Proposal)
             .WithMany(p => p.Counteroffers)
@@ -81,6 +99,14 @@ public class AppDbContext : IdentityDbContext<AppUser>
 
         builder.Entity<ProposalCounteroffer>()
             .Property(c => c.CreditAmount)
+            .HasColumnType("decimal(18, 2)");
+
+        builder.Entity<ProposalCounteroffer>()
+            .Property(c => c.ProposerCreditAmount)
+            .HasColumnType("decimal(18, 2)");
+
+        builder.Entity<ProposalCounteroffer>()
+            .Property(c => c.RecipientCreditAmount)
             .HasColumnType("decimal(18, 2)");
 
 

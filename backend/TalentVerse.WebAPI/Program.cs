@@ -35,7 +35,7 @@ var cookieSecurePolicy = isDevelopment ? CookieSecurePolicy.SameAsRequest : Cook
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo { Title = "TalentVerse API", Version = "v1" });
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Barterly API", Version = "v1" });
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {

@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import Link from "next/link";
+import { BrandLogo } from "@/app/components/BrandLogo";
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -28,11 +29,7 @@ export default function AuthLayout({ children, title, subtitle }: AuthLayoutProp
           {/* Content */}
           <div className="relative z-10">
             <Link href="/" className="flex items-center gap-2 w-fit group">
-              <div className="bg-brand-teal-500/20 p-2 rounded-lg backdrop-blur-sm border border-brand-teal-500/40 group-hover:bg-brand-teal-500/30 transition-colors">
-              </div>
-              <span className="font-display font-bold text-2xl tracking-tight text-white">
-                TalentVerse
-              </span>
+              <BrandLogo iconClassName="h-9 w-9" textClassName="text-2xl text-white" />
             </Link>
           </div>
 

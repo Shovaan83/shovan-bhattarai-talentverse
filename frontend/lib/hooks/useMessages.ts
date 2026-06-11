@@ -27,10 +27,11 @@ export function useConversations() {
   });
 }
 
-export function useUnreadCount() {
+export function useUnreadCount(enabled = true) {
   return useQuery({
     queryKey: MESSAGE_QUERY_KEYS.unreadCount(),
     queryFn: messagesApi.getUnreadCount,
+    enabled,
     refetchInterval: 15_000,
     staleTime: 10_000,
   });

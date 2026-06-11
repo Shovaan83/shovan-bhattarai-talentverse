@@ -1,7 +1,7 @@
-# TalentVerse Authentication Pages
+# Barterly Authentication Pages
 
 ## Overview
-This directory contains the authentication pages (Login and Register) for TalentVerse, built with Next.js 14 App Router, TypeScript, and Tailwind CSS.
+This directory contains the authentication pages (Login and Register) for Barterly, built with Next.js 14 App Router, TypeScript, and Tailwind CSS.
 
 ## Structure
 ```

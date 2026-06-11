@@ -41,7 +41,8 @@ interface CreateProposalModalProps {
 function CreateProposalModal({ isOpen, onClose, targetUser, currentUserSkills }: CreateProposalModalProps) {
   const [selectedMySkill, setSelectedMySkill] = useState<number | null>(null);
   const [selectedTheirSkill, setSelectedTheirSkill] = useState<number | null>(null);
-  const [creditAmount, setCreditAmount] = useState('10');
+  const [proposerCreditAmount, setProposerCreditAmount] = useState('20');
+  const [recipientCreditAmount, setRecipientCreditAmount] = useState('70');
   const [message, setMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const createProposal = useCreateProposal();
@@ -54,17 +55,28 @@ function CreateProposalModal({ isOpen, onClose, targetUser, currentUserSkills }:
 
     setErrorMessage(null); // Clear previous errors
 
-    const parsedCreditAmount = Number(creditAmount);
-    if (!Number.isFinite(parsedCreditAmount) || parsedCreditAmount <= 0) {
-      setErrorMessage('Credit amount must be greater than 0.');
+    const parsedProposerCreditAmount = Number(proposerCreditAmount);
+    const parsedRecipientCreditAmount = Number(recipientCreditAmount);
+    if (
+      !Number.isFinite(parsedProposerCreditAmount) ||
+      !Number.isFinite(parsedRecipientCreditAmount) ||
+      parsedProposerCreditAmount < 0 ||
+      parsedRecipientCreditAmount < 0 ||
+      (parsedProposerCreditAmount === 0 && parsedRecipientCreditAmount === 0)
+    ) {
+      setErrorMessage('Credit amounts cannot be negative, and at least one amount must be greater than 0.');
       return;
     }
+
+    const netCreditAmount = Math.abs(parsedRecipientCreditAmount - parsedProposerCreditAmount);
 
     try {
       await createProposal.mutateAsync({
         proposerUserSkillId: selectedMySkill,
         recipientUserSkillId: selectedTheirSkill,
-        creditAmount: parsedCreditAmount,
+        creditAmount: netCreditAmount,
+        proposerCreditAmount: parsedProposerCreditAmount,
+        recipientCreditAmount: parsedRecipientCreditAmount,
         message: message || undefined,
       });
       toast.success('Proposal sent successfully! Check your proposals page to track the status.');
@@ -161,21 +173,38 @@ function CreateProposalModal({ isOpen, onClose, targetUser, currentUserSkills }:
             </div>
           </div>
 
-          {/* Message */}
+          {/* Credit negotiation */}
           <div>
             <label className="block text-sm font-medium text-zinc-700 mb-2">
-              Proposed credits
+              Credits for my skill
             </label>
             <input
               type="number"
-              min="0.01"
+              min="0"
               step="0.01"
-              value={creditAmount}
-              onChange={(e) => setCreditAmount(e.target.value)}
+              value={proposerCreditAmount}
+              onChange={(e) => setProposerCreditAmount(e.target.value)}
               className="w-full px-4 py-3 rounded-xl bg-white border border-zinc-200 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-[#1D9E75] focus:ring-1 focus:ring-[#1D9E75]"
             />
             <p className="mt-2 text-xs text-zinc-500">
-              Set the credit amount you want attached to this swap proposal.
+              The credits they would pay for what you teach.
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 mb-2">
+              Credits for their skill
+            </label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={recipientCreditAmount}
+              onChange={(e) => setRecipientCreditAmount(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl bg-white border border-zinc-200 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-[#1D9E75] focus:ring-1 focus:ring-[#1D9E75]"
+            />
+            <p className="mt-2 text-xs text-zinc-500">
+              The credits you would pay for what they teach. Only the net difference settles after completion.
             </p>
           </div>
 

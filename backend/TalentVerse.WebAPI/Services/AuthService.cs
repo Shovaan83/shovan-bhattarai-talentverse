@@ -42,6 +42,57 @@ public class AuthService : IAuthService
         }
     }
 
+    private static string BuildUsernameSeed(string? preferredName, string email)
+    {
+        var seed = !string.IsNullOrWhiteSpace(preferredName)
+            ? preferredName.Trim()
+            : email.Split('@')[0];
+
+        seed = Regex.Replace(seed.ToLowerInvariant(), @"[^a-z0-9_]+", "_");
+        seed = Regex.Replace(seed, "_+", "_").Trim('_');
+
+        if (seed.Length < UsernameMinLength)
+            seed = $"user_{seed}".TrimEnd('_');
+
+        if (seed.Length < UsernameMinLength)
+            seed = "user";
+
+        return seed.Length > UsernameMaxLength
+            ? seed[..UsernameMaxLength]
+            : seed;
+    }
+
+    private async Task<string> GenerateUniqueUsernameAsync(
+        string? preferredName,
+        string email,
+        string? excludedUserId = null)
+    {
+        var baseUsername = BuildUsernameSeed(preferredName, email);
+        var candidate = baseUsername;
+        var suffix = 1;
+
+        while (await _userManager.Users.AnyAsync(u =>
+            u.NormalizedUserName == _userManager.NormalizeName(candidate) &&
+            (excludedUserId == null || u.Id != excludedUserId)))
+        {
+            var suffixText = suffix.ToString();
+            var maxBaseLength = Math.Max(UsernameMinLength, UsernameMaxLength - suffixText.Length);
+            var truncatedBase = baseUsername.Length > maxBaseLength
+                ? baseUsername[..maxBaseLength]
+                : baseUsername;
+
+            candidate = $"{truncatedBase}{suffixText}";
+            suffix++;
+        }
+
+        return candidate;
+    }
+
+    private static bool IsEmailUsername(AppUser user) =>
+        !string.IsNullOrWhiteSpace(user.UserName) &&
+        !string.IsNullOrWhiteSpace(user.Email) &&
+        string.Equals(user.UserName, user.Email, StringComparison.OrdinalIgnoreCase);
+
     public AuthService(
         UserManager<AppUser> userManager,
         SignInManager<AppUser> signInManager,
@@ -62,7 +113,7 @@ public class AuthService : IAuthService
         _logger = logger;
     }
 
-    public async Task<ServiceResponse<UserDto>> RegisterAsync(RegisterDto registerDto)
+    public async Task<ServiceResponse<UserDto>> RegisterAsync(RegisterDto registerDto, string ipAddress = "Unknown")
     {
         try
         {
@@ -136,13 +187,15 @@ public class AuthService : IAuthService
             await _creditService.AwardSignupBonusAsync(appUser.Id);
             await _badgeService.EvaluateOnSignupAsync(appUser.Id);
 
+            var tokenPair = await _tokenService.GenerateTokenPairAsync(appUser, ipAddress);
+
             return ServiceResponse<UserDto>.SuccessResponse(
                 new UserDto
                 {
                     Username = appUser.UserName,
                     Email = appUser.Email,
                     Bio = appUser.Bio,
-                    Token = await _tokenService.CreateToken(appUser),
+                    Token = tokenPair.AccessToken,
                     IsProfileComplete = appUser.IsProfileComplete,
                     IsTwoFactorSetupComplete = appUser.IsTwoFactorSetupComplete,
                     HasPassword = true, // Email/password registration always has password
@@ -519,7 +572,7 @@ TalentVerse Team";
         }
     }
 
-    public async Task<ServiceResponse<UserDto>> LoginWith2faAsync(VerifyTwoFactorDto verifyDto)
+    public async Task<ServiceResponse<UserDto>> LoginWith2faAsync(VerifyTwoFactorDto verifyDto, string ipAddress = "Unknown")
     {
         try
         {
@@ -558,13 +611,18 @@ TalentVerse Team";
             if (!isValid)
                 return ServiceResponse<UserDto>.FailureResponse(AppConstant.ErrorMessages.InvalidOtp);
 
+            var tokenPair = await _tokenService.GenerateTokenPairAsync(user, ipAddress);
+
             return ServiceResponse<UserDto>.SuccessResponse(new UserDto
             {
                 Username = user.UserName,
                 Email = user.Email,
                 Bio = user.Bio,
                 ProfilePictureUrl = user.ProfilePictureURL,
-                Token = await _tokenService.CreateToken(user)
+                Token = tokenPair.AccessToken,
+                IsProfileComplete = user.IsProfileComplete,
+                IsTwoFactorSetupComplete = user.IsTwoFactorSetupComplete,
+                HasPassword = await _userManager.HasPasswordAsync(user)
             }, "Login Successful via 2FA");
         }
         catch (Exception ex)
@@ -818,6 +876,21 @@ TalentVerse Team";
 
             if (user != null)
             {
+                if (IsEmailUsername(user))
+                {
+                    var providerName = externalLoginInfo.Principal.FindFirstValue(ClaimTypes.Name);
+                    var repairedUsername = await GenerateUniqueUsernameAsync(providerName, user.Email ?? email, user.Id);
+                    var usernameResult = await _userManager.SetUserNameAsync(user, repairedUsername);
+                    if (!usernameResult.Succeeded)
+                    {
+                        var errors = string.Join(", ", usernameResult.Errors.Select(e => e.Description));
+                        _logger.LogWarning("Failed to repair OAuth username for user {UserId}: {Errors}", user.Id, errors);
+                    }
+                }
+
+                await _creditService.AwardSignupBonusAsync(user.Id);
+                await _badgeService.EvaluateOnSignupAsync(user.Id);
+
                 // User exists and has this external login - sign them in
                 // Generate token pair
                 var tokenPair = await _tokenService.GenerateTokenPairAsync(user, ipAddress);
@@ -851,10 +924,11 @@ TalentVerse Team";
             // New user - create account
             var name = externalLoginInfo.Principal.FindFirstValue(ClaimTypes.Name) ?? email.Split('@')[0];
             var picture = externalLoginInfo.Principal.FindFirstValue("picture");
+            var generatedUsername = await GenerateUniqueUsernameAsync(name, email);
 
             var newUser = new AppUser
             {
-                UserName = email,
+                UserName = generatedUsername,
                 Email = email,
                 ProfilePictureURL = picture,
                 EmailConfirmed = true, // Trust external provider's email verification
@@ -873,6 +947,15 @@ TalentVerse Team";
                 return ServiceResponse<ExternalLoginResultDto>.FailureResponse($"Failed to create account: {errors}");
             }
 
+            var addRoleResult = await _userManager.AddToRoleAsync(newUser, AppConstant.Roles.Member);
+            if (!addRoleResult.Succeeded)
+            {
+                await _userManager.DeleteAsync(newUser);
+                var errors = string.Join(", ", addRoleResult.Errors.Select(e => e.Description));
+                _logger.LogError("Failed to assign role to OAuth user: {Errors}", errors);
+                return ServiceResponse<ExternalLoginResultDto>.FailureResponse($"Failed to assign account role: {errors}");
+            }
+
             // Link external login to new user
             var addLoginResult = await _userManager.AddLoginAsync(newUser, externalLoginInfo);
 
@@ -884,6 +967,9 @@ TalentVerse Team";
                 _logger.LogError("Failed to link external login: {Errors}", errors);
                 return ServiceResponse<ExternalLoginResultDto>.FailureResponse($"Failed to link account: {errors}");
             }
+
+            await _creditService.AwardSignupBonusAsync(newUser.Id);
+            await _badgeService.EvaluateOnSignupAsync(newUser.Id);
 
             // Generate token pair for new user
             // ⭐ Generate token pair

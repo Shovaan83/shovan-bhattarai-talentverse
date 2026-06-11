@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { proposalsApi } from '@/lib/api/proposals';
 import { PROPOSALS_QUERY_KEY } from '@/lib/hooks/useProposals';
+import { ensureAuthToken } from '@/lib/utils/auth';
 import type { ProposalListItem, ProposalListResponse } from '@/lib/types/proposals';
 
 const HUB_URL =
@@ -109,7 +110,7 @@ export function useProposalNotifications(currentUserId?: string): { count: numbe
 
     const connection = new HubConnectionBuilder()
       .withUrl(HUB_URL, {
-        accessTokenFactory: () => (typeof window !== 'undefined' ? localStorage.getItem('token') ?? '' : ''),
+        accessTokenFactory: async () => (await ensureAuthToken()) ?? '',
       })
       .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
       .configureLogging(LogLevel.Warning)

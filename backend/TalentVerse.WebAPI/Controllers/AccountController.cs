@@ -61,10 +61,21 @@ public class AccountController : ControllerBase
                 "Validation failed",
                 ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
 
-        var result = await _authService.RegisterAsync(registerDto);
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+
+        var result = await _authService.RegisterAsync(registerDto, ipAddress);
 
         if (!result.Success)
             return BadRequest(result);
+
+        if (!string.IsNullOrWhiteSpace(result.Data?.Token))
+        {
+            var user = await _userManager.FindByEmailAsync(registerDto.Email);
+            if (user?.RefreshToken != null && user.RefreshTokenExpiresAt != null)
+            {
+                SetRefreshTokenCookie(user.RefreshToken, user.RefreshTokenExpiresAt.Value);
+            }
+        }
 
         return Ok(result);
     }
@@ -121,8 +132,18 @@ public class AccountController : ControllerBase
             return BadRequest(result);
         }
 
-        // Set refresh token as httpOnly cookie
-        if (result.Data != null)
+        // Set refresh token as httpOnly cookie only after full authentication.
+        if (result.Data?.IsTwoFactorRequired == true)
+        {
+            var existingRefreshToken = Request.Cookies["refreshToken"];
+            if (!string.IsNullOrWhiteSpace(existingRefreshToken))
+            {
+                await _tokenService.RevokeRefreshTokenAsync(existingRefreshToken, ipAddress);
+            }
+
+            Response.Cookies.Delete("refreshToken");
+        }
+        else if (!string.IsNullOrWhiteSpace(result.Data?.Token))
         {
             var user = await _userManager.FindByEmailAsync(loginDto.Email);
             if (user?.RefreshToken != null && user.RefreshTokenExpiresAt != null)
@@ -262,10 +283,21 @@ public class AccountController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ServiceResponse<UserDto>.FailureResponse("Validation failed"));
 
-        var result = await _authService.LoginWith2faAsync(verifyDto);
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+
+        var result = await _authService.LoginWith2faAsync(verifyDto, ipAddress);
 
         if (!result.Success)
             return Unauthorized(result);
+
+        if (!string.IsNullOrWhiteSpace(result.Data?.Token))
+        {
+            var user = await _userManager.FindByEmailAsync(verifyDto.Email);
+            if (user?.RefreshToken != null && user.RefreshTokenExpiresAt != null)
+            {
+                SetRefreshTokenCookie(user.RefreshToken, user.RefreshTokenExpiresAt.Value);
+            }
+        }
 
         return Ok(result);
     }
@@ -491,10 +523,9 @@ public class AccountController : ControllerBase
             SetRefreshTokenCookie(user.RefreshToken, user.RefreshTokenExpiresAt.Value);
         }
 
-        // Redirect to frontend with token (not in URL anymore, but for backward compatibility)
-        var callbackUrl = data.RequiresOnboarding
-            ? $"{frontendUrl}/onboarding?token={Uri.EscapeDataString(data.Token)}"
-            : $"{frontendUrl}/oauth-callback?token={Uri.EscapeDataString(data.Token)}&isNewUser={data.IsNewUser}&requiresOnboarding={data.RequiresOnboarding}";
+        // Route all OAuth completions through the frontend callback so it can persist the access token
+        // before sending incomplete users to onboarding.
+        var callbackUrl = $"{frontendUrl}/oauth-callback?token={Uri.EscapeDataString(data.Token)}&isNewUser={data.IsNewUser}&requiresOnboarding={data.RequiresOnboarding}";
 
         _logger.LogInformation("External login successful, redirecting to frontend");
 

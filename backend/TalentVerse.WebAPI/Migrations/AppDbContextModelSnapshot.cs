@@ -563,6 +563,12 @@ namespace TalentVerse.WebAPI.Migrations
                     b.Property<decimal>("CreditAmount")
                         .HasColumnType("decimal(18, 2)");
 
+                    b.Property<decimal>("ProposerCreditAmount")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<decimal>("RecipientCreditAmount")
+                        .HasColumnType("decimal(18, 2)");
+
                     b.Property<bool>("ProposerConfirmed")
                         .HasColumnType("boolean");
 
@@ -614,6 +620,12 @@ namespace TalentVerse.WebAPI.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("CreditAmount")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<decimal>("ProposerCreditAmount")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<decimal>("RecipientCreditAmount")
                         .HasColumnType("decimal(18, 2)");
 
                     b.Property<string>("Message")
@@ -745,6 +757,11 @@ namespace TalentVerse.WebAPI.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
+                    b.Property<int>("ProficiencyLevel")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(3);
+
                     b.Property<int>("SkillId")
                         .HasColumnType("integer");
 
@@ -761,7 +778,10 @@ namespace TalentVerse.WebAPI.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserSkills");
+                    b.ToTable("UserSkills", t =>
+                        {
+                            t.HasCheckConstraint("CK_UserSkills_ProficiencyLevel", "\"ProficiencyLevel\" BETWEEN 1 AND 5");
+                        });
                 });
 
             modelBuilder.Entity("TalentVerse.WebAPI.Data.Entities.VerificationRequest", b =>

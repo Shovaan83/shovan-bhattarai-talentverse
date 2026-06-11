@@ -53,6 +53,9 @@ public class SkillService : ISkillService
             if (skillDto.Type < 0 || skillDto.Type > 1)
                 return ServiceResponse<bool>.FailureResponse("Skill type must be 0 (Offered) or 1 (Wanted).");
 
+            if (skillDto.ProficiencyLevel < 1 || skillDto.ProficiencyLevel > 5)
+                return ServiceResponse<bool>.FailureResponse("Proficiency level must be between 1 and 5.");
+
             if (!string.IsNullOrEmpty(trimmedDescription) && trimmedDescription.Length > 500)
                 return ServiceResponse<bool>.FailureResponse("Description cannot exceed 500 characters.");
 

@@ -29,6 +29,7 @@ namespace TalentVerse.Tests.Services
             string skillName = "Python",
             string category = "Programming",
             int type = 0,
+            int proficiencyLevel = 3,
             string? description = "I can help with Python")
         {
             return new AddSkillDto
@@ -36,6 +37,7 @@ namespace TalentVerse.Tests.Services
                 SkillName = skillName,
                 Category = category,
                 Type = type,
+                ProficiencyLevel = proficiencyLevel,
                 Description = description
             };
         }
@@ -45,6 +47,7 @@ namespace TalentVerse.Tests.Services
             string skillName = "Python",
             string category = "Programming",
             string type = "Offer",
+            int proficiencyLevel = 3,
             string? description = "I can help with Python")
         {
             return new SkillDto
@@ -53,6 +56,7 @@ namespace TalentVerse.Tests.Services
                 SkillName = skillName,
                 Category = category,
                 Type = type,
+                ProficiencyLevel = proficiencyLevel,
                 Description = description
             };
         }
@@ -505,6 +509,36 @@ namespace TalentVerse.Tests.Services
             // Assert
             result.Success.Should().BeFalse();
             result.Message.Should().Be("Skill type must be 0 (Offered) or 1 (Wanted).");
+        }
+
+        [Fact]
+        public async Task AddSkillAsync_ProficiencyLevelTooLow_ReturnsFailure()
+        {
+            // Arrange
+            var userId = "user-123";
+            var dto = CreateValidAddSkillDto(proficiencyLevel: 0);
+
+            // Act
+            var result = await _sut.AddSkillAsync(userId, dto);
+
+            // Assert
+            result.Success.Should().BeFalse();
+            result.Message.Should().Be("Proficiency level must be between 1 and 5.");
+        }
+
+        [Fact]
+        public async Task AddSkillAsync_ProficiencyLevelTooHigh_ReturnsFailure()
+        {
+            // Arrange
+            var userId = "user-123";
+            var dto = CreateValidAddSkillDto(proficiencyLevel: 6);
+
+            // Act
+            var result = await _sut.AddSkillAsync(userId, dto);
+
+            // Assert
+            result.Success.Should().BeFalse();
+            result.Message.Should().Be("Proficiency level must be between 1 and 5.");
         }
 
         [Fact]

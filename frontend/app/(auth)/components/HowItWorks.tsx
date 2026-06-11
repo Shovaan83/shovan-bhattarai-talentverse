@@ -31,7 +31,7 @@ export const HowItWorks: React.FC = () => {
       <div className="container mx-auto px-6 relative z-10">
         <div className="text-center mb-16">
           <span className="text-orange-600 font-semibold tracking-wider uppercase text-sm">Simple Process</span>
-          <h2 className="font-heading text-3xl md:text-5xl font-bold text-gray-900 mt-2">How TalentVerse Works</h2>
+          <h2 className="font-heading text-3xl md:text-5xl font-bold text-gray-900 mt-2">How Barterly Works</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">

@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { ensureAuthenticatedUser } from '@/lib/utils/auth';
 
 export default function MarketplaceLayout({
   children,
@@ -12,12 +13,32 @@ export default function MarketplaceLayout({
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-    } else {
+    let isMounted = true;
+
+    const verifySession = async () => {
+      const user = await ensureAuthenticatedUser();
+      if (!isMounted) {
+        return;
+      }
+
+      if (!user) {
+        router.push('/login');
+        return;
+      }
+
+      if (!user.isProfileComplete) {
+        router.push('/onboarding');
+        return;
+      }
+
       setIsAuthenticated(true);
-    }
+    };
+
+    verifySession();
+
+    return () => {
+      isMounted = false;
+    };
   }, [router]);
 
   if (isAuthenticated === null) {

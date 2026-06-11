@@ -26,9 +26,21 @@ namespace TalentVerse.WebAPI.DTO.Proposals
         public string? Message { get; set; }
 
         /// <summary>
-        /// Credits proposed for the swap
+        /// Legacy net credits proposed for the swap. Used as recipient credits when directional amounts are omitted.
         /// </summary>
-        [Range(typeof(decimal), "0.01", "999999.99", ErrorMessage = "Credit amount must be greater than 0.")]
+        [Range(typeof(decimal), "0", "999999.99", ErrorMessage = "Credit amount cannot be negative.")]
         public decimal CreditAmount { get; set; }
+
+        /// <summary>
+        /// Credits the recipient should pay to the proposer for the proposer's offered skill.
+        /// </summary>
+        [Range(typeof(decimal), "0", "999999.99", ErrorMessage = "Proposer credit amount cannot be negative.")]
+        public decimal ProposerCreditAmount { get; set; }
+
+        /// <summary>
+        /// Credits the proposer should pay to the recipient for the requested skill.
+        /// </summary>
+        [Range(typeof(decimal), "0", "999999.99", ErrorMessage = "Recipient credit amount cannot be negative.")]
+        public decimal RecipientCreditAmount { get; set; }
     }
 }

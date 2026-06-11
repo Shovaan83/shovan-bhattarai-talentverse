@@ -42,14 +42,15 @@ public class SkillRepository : ISkillRepository
             }
 
             var inserUserSkillSql = @"
-                    INSERT INTO ""UserSkills"" (""UserId"", ""SkillId"", ""Type"", ""Description"", ""CreatedAt"")
-                    VALUES (@UserId, @SkillId, @Type, @Description, @CreatedAt)";
+                    INSERT INTO ""UserSkills"" (""UserId"", ""SkillId"", ""Type"", ""ProficiencyLevel"", ""Description"", ""CreatedAt"")
+                    VALUES (@UserId, @SkillId, @Type, @ProficiencyLevel, @Description, @CreatedAt)";
 
             await connection.ExecuteAsync(inserUserSkillSql, new
             {
                 UserId = userId,
                 SkillId = skillId,
                 Type = skillDto.Type, // 0 or 1 
+                skillDto.ProficiencyLevel,
                 Description = skillDto.Description,
                 CreatedAt = DateTime.UtcNow
             }, transaction);
@@ -70,7 +71,7 @@ public class SkillRepository : ISkillRepository
         using var connection = _context.CreateConnection();
 
         var sql = @"
-                SELECT us.""UserSkillId"", s.""SkillName"", s.""Category"", us.""Type"", us.""Description""
+                SELECT us.""UserSkillId"", s.""SkillName"", s.""Category"", us.""Type"", us.""ProficiencyLevel"", us.""Description""
                 FROM ""UserSkills"" us
                 JOIN ""Skills"" s ON us.""SkillId"" = s.""SkillId""
                 WHERE us.""UserId"" = @UserId";
@@ -84,6 +85,7 @@ public class SkillRepository : ISkillRepository
             SkillName = row.SkillName,
             Category = row.Category,
             Type = row.Type == 0 ? "Offer" : "Want",
+            ProficiencyLevel = row.ProficiencyLevel,
             Description = row.Description
         });
     }

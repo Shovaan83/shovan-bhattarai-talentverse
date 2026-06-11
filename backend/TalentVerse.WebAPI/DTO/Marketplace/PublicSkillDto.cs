@@ -15,6 +15,7 @@ public class SkillQueryResult
     public int Id { get; set; }
     public string UserId { get; set; } = string.Empty;
     public string SkillName { get; set; } = string.Empty;
+    public int ProficiencyLevel { get; set; }
     public string? Description { get; set; }
     public string SkillType { get; set; } = string.Empty;
 }

@@ -54,6 +54,19 @@ public class CreditService : ICreditService
                 return ServiceResponse<WalletDto>.FailureResponse(AppConstant.ErrorMessages.UserNotFound);
 
             var balance = await _creditRepository.GetBalanceAsync(userId);
+            var latestTransactionBalance = await _creditRepository.GetLatestTransactionBalanceAsync(userId);
+            if (latestTransactionBalance.HasValue && latestTransactionBalance.Value != balance)
+            {
+                _logger.LogWarning(
+                    "Credit balance drift detected for user {UserId}. Stored balance {StoredBalance}, latest transaction balance {LatestBalance}. Syncing stored balance.",
+                    userId,
+                    balance,
+                    latestTransactionBalance.Value);
+
+                await _creditRepository.UpdateBalanceAsync(userId, latestTransactionBalance.Value);
+                balance = latestTransactionBalance.Value;
+            }
+
             var swaps = await _creditRepository.GetCompletedSwapCountAsync(userId);
 
             // Compute totalEarned and totalSpent from balance history
@@ -295,8 +308,24 @@ public class CreditService : ICreditService
     {
         try
         {
+            var existingBonus = await _creditRepository.GetTransactionsAsync(
+                userId,
+                new TransactionFilterDto
+                {
+                    Type = ((int)TransactionType.SignupBonus).ToString(),
+                    Page = 1,
+                    PageSize = 1
+                });
+
+            if (existingBonus.TotalCount > 0)
+            {
+                _logger.LogInformation("Signup bonus already awarded to user {UserId}", userId);
+                return;
+            }
+
             var amount = _appConfig.Value.InitialCreditBalance;
-            var newBalance = (decimal)amount;
+            var currentBalance = await _creditRepository.GetBalanceAsync(userId);
+            var newBalance = currentBalance + amount;
 
             await _creditRepository.UpdateBalanceAsync(userId, newBalance);
             await _creditRepository.AddTransactionAsync(new Data.Entities.CreditTransaction
@@ -318,48 +347,70 @@ public class CreditService : ICreditService
         }
     }
 
-    public async Task AwardSwapRewardAsync(string proposerId, string recipientId, long proposalId, decimal creditAmount)
+    public Task AwardSwapRewardAsync(string proposerId, string recipientId, long proposalId, decimal creditAmount)
+        => AwardSwapRewardAsync(proposerId, recipientId, proposalId, 0m, creditAmount);
+
+    public async Task AwardSwapRewardAsync(
+        string proposerId,
+        string recipientId,
+        long proposalId,
+        decimal proposerCreditAmount,
+        decimal recipientCreditAmount)
     {
         try
         {
-            if (creditAmount <= 0)
+            if (proposerCreditAmount < 0 || recipientCreditAmount < 0)
                 return;
 
-            // Award proposer
-            var proposerBalance = await _creditRepository.GetBalanceAsync(proposerId);
-            var newProposerBalance = proposerBalance + creditAmount;
-            await _creditRepository.UpdateBalanceAsync(proposerId, newProposerBalance);
+            var netAmount = Math.Abs(recipientCreditAmount - proposerCreditAmount);
+            if (netAmount <= 0)
+                return;
+
+            var payerId = recipientCreditAmount > proposerCreditAmount ? proposerId : recipientId;
+            var receiverId = recipientCreditAmount > proposerCreditAmount ? recipientId : proposerId;
+
+            var payerBalance = await _creditRepository.GetBalanceAsync(payerId);
+            if (payerBalance < netAmount)
+            {
+                _logger.LogWarning(
+                    "Insufficient credits while settling proposal {ProposalId}. Payer {PayerId} balance {Balance}, required {Amount}",
+                    proposalId,
+                    payerId,
+                    payerBalance,
+                    netAmount);
+                return;
+            }
+
+            var newPayerBalance = payerBalance - netAmount;
             await _creditRepository.AddTransactionAsync(new Data.Entities.CreditTransaction
             {
-                UserId = proposerId,
-                Type = TransactionType.SwapReward,
-                Amount = creditAmount,
-                BalanceAfter = newProposerBalance,
-                Description = "Earned credits for completing a skill swap",
+                UserId = payerId,
+                Type = TransactionType.Debit,
+                Amount = -netAmount,
+                BalanceAfter = newPayerBalance,
+                Description = "Paid net credits for an unequal skill swap",
                 TransactionDate = DateTime.UtcNow,
                 ReferenceId = proposalId,
                 ReferenceType = "Proposal"
             });
 
-            // Award recipient
-            var recipientBalance = await _creditRepository.GetBalanceAsync(recipientId);
-            var newRecipientBalance = recipientBalance + creditAmount;
-            await _creditRepository.UpdateBalanceAsync(recipientId, newRecipientBalance);
+            var receiverBalance = await _creditRepository.GetBalanceAsync(receiverId);
+            var newReceiverBalance = receiverBalance + netAmount;
             await _creditRepository.AddTransactionAsync(new Data.Entities.CreditTransaction
             {
-                UserId = recipientId,
-                Type = TransactionType.SwapReward,
-                Amount = creditAmount,
-                BalanceAfter = newRecipientBalance,
-                Description = "Earned credits for completing a skill swap",
+                UserId = receiverId,
+                Type = TransactionType.Credit,
+                Amount = netAmount,
+                BalanceAfter = newReceiverBalance,
+                Description = "Received net credits for an unequal skill swap",
                 TransactionDate = DateTime.UtcNow,
                 ReferenceId = proposalId,
                 ReferenceType = "Proposal"
             });
 
             _logger.LogInformation(
-                "Awarded swap reward of {Amount} credits to proposer {ProposerId} and recipient {RecipientId} for proposal {ProposalId}",
-                creditAmount, proposerId, recipientId, proposalId);
+                "Settled proposal {ProposalId}. Payer {PayerId} paid {Amount} credits to receiver {ReceiverId}",
+                proposalId, payerId, netAmount, receiverId);
         }
         catch (Exception ex)
         {

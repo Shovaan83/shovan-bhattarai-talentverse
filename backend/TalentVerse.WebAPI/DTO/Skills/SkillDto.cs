@@ -10,6 +10,8 @@
 
         public string Type { get; set; } // offer or want for the frontend
 
+        public int ProficiencyLevel { get; set; }
+
         public string? Description { get; set; }
     }
 }

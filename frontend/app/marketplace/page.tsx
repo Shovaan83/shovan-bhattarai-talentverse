@@ -5,7 +5,10 @@ import { motion } from 'framer-motion';
 import { Search, Users, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchUsers, useFeaturedUsers, useBrowseSkills } from '@/lib/hooks/useMarketplace';
-import { UserCard as NewUserCard, UserCardSkeleton } from '@/app/components/marketplace/UserCard';
+import {
+  MarketplaceHoverCard,
+  MarketplaceHoverCardSkeleton,
+} from '@/app/components/marketplace/MarketplaceHoverCard';
 import { SearchFilters } from './components';
 import type { UserSearchParams } from '@/lib/types/marketplace';
 
@@ -140,9 +143,9 @@ export default function MarketplacePage() {
 
         {/* Users Grid */}
         {isLoading ? (
-          <div className="bg-white border border-zinc-200 rounded-xl divide-y divide-zinc-100">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {[...Array(6)].map((_, i) => (
-              <UserCardSkeleton key={i} />
+              <MarketplaceHoverCardSkeleton key={i} />
             ))}
           </div>
         ) : users && users.length > 0 ? (
@@ -150,10 +153,10 @@ export default function MarketplacePage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="bg-white border border-zinc-200 rounded-xl divide-y divide-zinc-100"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
           >
             {users.map((user) => (
-              <NewUserCard key={user.id} user={user} />
+              <MarketplaceHoverCard key={user.id} user={user} />
             ))}
           </motion.div>
         ) : (

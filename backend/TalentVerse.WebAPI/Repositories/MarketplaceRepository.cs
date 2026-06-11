@@ -67,7 +67,25 @@ public class MarketplaceRepository : IMarketplaceRepository
             parameters.Add("Category", searchDto.Category);
         }
 
-        // Note: ProficiencyLevel filter removed - column doesn't exist in schema
+        if (searchDto.MinProficiency.HasValue)
+        {
+            whereConditions.Add(@"EXISTS (
+                SELECT 1 FROM ""UserSkills"" us
+                WHERE us.""UserId"" = u.""Id""
+                AND us.""ProficiencyLevel"" >= @MinProficiency
+            )");
+            parameters.Add("MinProficiency", searchDto.MinProficiency.Value);
+        }
+
+        if (searchDto.MaxProficiency.HasValue)
+        {
+            whereConditions.Add(@"EXISTS (
+                SELECT 1 FROM ""UserSkills"" us
+                WHERE us.""UserId"" = u.""Id""
+                AND us.""ProficiencyLevel"" <= @MaxProficiency
+            )");
+            parameters.Add("MaxProficiency", searchDto.MaxProficiency.Value);
+        }
 
         var whereClause = string.Join(" AND ", whereConditions);
 
@@ -155,7 +173,7 @@ public class MarketplaceRepository : IMarketplaceRepository
             SELECT 
                 s.""SkillName"" AS SkillName,
                 COUNT(DISTINCT us.""UserId"") AS UserCount,
-                0::float AS AverageProficiency
+                AVG(us.""ProficiencyLevel"")::float AS AverageProficiency
             FROM ""UserSkills"" us
             INNER JOIN ""Skills"" s ON us.""SkillId"" = s.""SkillId""
             WHERE 1=1 {skillTypeFilter}
@@ -234,6 +252,7 @@ public class MarketplaceRepository : IMarketplaceRepository
                 us.""UserSkillId"" AS Id,
                 us.""UserId"",
                 s.""SkillName"",
+                us.""ProficiencyLevel"",
                 us.""Description"",
                 CASE WHEN us.""Type"" = 0 THEN 'Offered' ELSE 'Wanted' END AS SkillType
             FROM ""UserSkills"" us
@@ -289,7 +308,7 @@ public class MarketplaceRepository : IMarketplaceRepository
                 {
                     Id = s.Id,
                     SkillName = s.SkillName,
-                    ProficiencyLevel = 0, // Column doesn't exist, default to 0
+                    ProficiencyLevel = s.ProficiencyLevel,
                     Description = s.Description,
                     SkillType = "Offered"
                 })
@@ -301,7 +320,7 @@ public class MarketplaceRepository : IMarketplaceRepository
                 {
                     Id = s.Id,
                     SkillName = s.SkillName,
-                    ProficiencyLevel = 0, // Column doesn't exist, default to 0
+                    ProficiencyLevel = s.ProficiencyLevel,
                     Description = s.Description,
                     SkillType = "Wanted"
                 })

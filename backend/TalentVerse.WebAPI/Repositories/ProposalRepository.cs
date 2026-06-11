@@ -31,6 +31,8 @@ namespace TalentVerse.WebAPI.Repositories
                         ""ProposerUserSkillId"", 
                         ""RecipientUserSkillId"", 
                         ""CreditAmount"",
+                        ""ProposerCreditAmount"",
+                        ""RecipientCreditAmount"",
                         ""Status"", 
                         ""ProposerConfirmed"",
                         ""RecipientConfirmed"",
@@ -43,6 +45,8 @@ namespace TalentVerse.WebAPI.Repositories
                         @ProposerUserSkillId, 
                         @RecipientUserSkillId, 
                         @CreditAmount,
+                        @ProposerCreditAmount,
+                        @RecipientCreditAmount,
                         @Status,
                         @ProposerConfirmed,
                         @RecipientConfirmed,
@@ -58,6 +62,8 @@ namespace TalentVerse.WebAPI.Repositories
                     proposal.ProposerUserSkillId,
                     proposal.RecipientUserSkillId,
                     proposal.CreditAmount,
+                    proposal.ProposerCreditAmount,
+                    proposal.RecipientCreditAmount,
                     Status = (int)proposal.Status,
                     proposal.ProposerConfirmed,
                     proposal.RecipientConfirmed,
@@ -89,6 +95,8 @@ namespace TalentVerse.WebAPI.Repositories
                         ""ProposalId"",
                         ""OfferedByUserId"",
                         ""CreditAmount"",
+                        ""ProposerCreditAmount"",
+                        ""RecipientCreditAmount"",
                         ""Message"",
                         ""CreatedAt""
                     )
@@ -96,6 +104,8 @@ namespace TalentVerse.WebAPI.Repositories
                         @ProposalId,
                         @OfferedByUserId,
                         @CreditAmount,
+                        @ProposerCreditAmount,
+                        @RecipientCreditAmount,
                         @Message,
                         @CreatedAt
                     )
@@ -106,6 +116,8 @@ namespace TalentVerse.WebAPI.Repositories
                     counteroffer.ProposalId,
                     counteroffer.OfferedByUserId,
                     counteroffer.CreditAmount,
+                    counteroffer.ProposerCreditAmount,
+                    counteroffer.RecipientCreditAmount,
                     counteroffer.Message,
                     counteroffer.CreatedAt
                 }, transaction);
@@ -115,6 +127,8 @@ namespace TalentVerse.WebAPI.Repositories
                 var updateSql = @"
                     UPDATE ""Proposals""
                     SET ""CreditAmount"" = @CreditAmount,
+                        ""ProposerCreditAmount"" = @ProposerCreditAmount,
+                        ""RecipientCreditAmount"" = @RecipientCreditAmount,
                         ""UpdatedAt"" = @UpdatedAt
                     WHERE ""ProposalId"" = @ProposalId";
 
@@ -122,6 +136,8 @@ namespace TalentVerse.WebAPI.Repositories
                 {
                     counteroffer.ProposalId,
                     counteroffer.CreditAmount,
+                    counteroffer.ProposerCreditAmount,
+                    counteroffer.RecipientCreditAmount,
                     UpdatedAt = DateTime.UtcNow
                 }, transaction);
 
@@ -157,6 +173,8 @@ namespace TalentVerse.WebAPI.Repositories
                     recipientSkill.""Category"" AS ""RecipientSkillCategory"",
                     recipientUserSkill.""Description"" AS ""RecipientSkillDescription"",
                     p.""CreditAmount"",
+                    p.""ProposerCreditAmount"",
+                    p.""RecipientCreditAmount"",
                     p.""Status"",
                     p.""ProposerConfirmed"",
                     p.""RecipientConfirmed"",
@@ -195,6 +213,14 @@ namespace TalentVerse.WebAPI.Repositories
                 RecipientSkillCategory = result.RecipientSkillCategory,
                 RecipientSkillDescription = result.RecipientSkillDescription,
                 CreditAmount = result.CreditAmount,
+                ProposerCreditAmount = result.ProposerCreditAmount,
+                RecipientCreditAmount = result.RecipientCreditAmount,
+                NetCreditAmount = Math.Abs(result.RecipientCreditAmount - result.ProposerCreditAmount),
+                NetCreditReceiverUserId = result.RecipientCreditAmount > result.ProposerCreditAmount
+                    ? result.RecipientId
+                    : result.ProposerCreditAmount > result.RecipientCreditAmount
+                        ? result.ProposerId
+                        : string.Empty,
                 Status = status.ToString(),
                 ProposerConfirmed = result.ProposerConfirmed,
                 RecipientConfirmed = result.RecipientConfirmed,
@@ -216,6 +242,8 @@ namespace TalentVerse.WebAPI.Repositories
                     ""ProposerUserSkillId"",
                     ""RecipientUserSkillId"",
                     ""CreditAmount"",
+                    ""ProposerCreditAmount"",
+                    ""RecipientCreditAmount"",
                     ""Status"",
                     ""ProposerConfirmed"",
                     ""RecipientConfirmed"",
@@ -339,6 +367,8 @@ namespace TalentVerse.WebAPI.Repositories
                     proposerSkill.""SkillName"" AS ""ProposerSkillName"",
                     recipientSkill.""SkillName"" AS ""RecipientSkillName"",
                     p.""CreditAmount"",
+                    p.""ProposerCreditAmount"",
+                    p.""RecipientCreditAmount"",
                     p.""Status"",
                     p.""ProposerConfirmed"",
                     p.""RecipientConfirmed"",
@@ -389,13 +419,18 @@ namespace TalentVerse.WebAPI.Repositories
                 SELECT
                     pc.""ProposalCounterofferId"",
                     pc.""ProposalId"",
+                    p.""ProposerId"",
+                    p.""RecipientId"",
                     pc.""OfferedByUserId"",
                     u.""UserName"" AS ""OfferedByUsername"",
                     pc.""CreditAmount"",
+                    pc.""ProposerCreditAmount"",
+                    pc.""RecipientCreditAmount"",
                     pc.""Message"",
                     pc.""CreatedAt""
                 FROM ""ProposalCounteroffers"" pc
                 INNER JOIN ""AspNetUsers"" u ON pc.""OfferedByUserId"" = u.""Id""
+                INNER JOIN ""Proposals"" p ON pc.""ProposalId"" = p.""ProposalId""
                 WHERE pc.""ProposalId"" = @ProposalId
                 ORDER BY pc.""CreatedAt"" ASC";
 
@@ -408,6 +443,14 @@ namespace TalentVerse.WebAPI.Repositories
                 OfferedByUserId = row.OfferedByUserId,
                 OfferedByUsername = row.OfferedByUsername,
                 CreditAmount = row.CreditAmount,
+                ProposerCreditAmount = row.ProposerCreditAmount,
+                RecipientCreditAmount = row.RecipientCreditAmount,
+                NetCreditAmount = Math.Abs(row.RecipientCreditAmount - row.ProposerCreditAmount),
+                NetCreditReceiverUserId = row.RecipientCreditAmount > row.ProposerCreditAmount
+                    ? row.RecipientId
+                    : row.ProposerCreditAmount > row.RecipientCreditAmount
+                        ? row.ProposerId
+                        : string.Empty,
                 Message = row.Message,
                 CreatedAt = row.CreatedAt
             }).ToList();
@@ -599,6 +642,8 @@ namespace TalentVerse.WebAPI.Repositories
         public string RecipientSkillCategory { get; set; } = string.Empty;
         public string? RecipientSkillDescription { get; set; }
         public decimal CreditAmount { get; set; }
+        public decimal ProposerCreditAmount { get; set; }
+        public decimal RecipientCreditAmount { get; set; }
         public int Status { get; set; }
         public bool ProposerConfirmed { get; set; }
         public bool RecipientConfirmed { get; set; }
@@ -619,6 +664,8 @@ namespace TalentVerse.WebAPI.Repositories
         public string ProposerSkillName { get; set; } = string.Empty;
         public string RecipientSkillName { get; set; } = string.Empty;
         public decimal CreditAmount { get; set; }
+        public decimal ProposerCreditAmount { get; set; }
+        public decimal RecipientCreditAmount { get; set; }
         public int Status { get; set; }
         public bool ProposerConfirmed { get; set; }
         public bool RecipientConfirmed { get; set; }
@@ -630,9 +677,13 @@ namespace TalentVerse.WebAPI.Repositories
     {
         public long ProposalCounterofferId { get; set; }
         public int ProposalId { get; set; }
+        public string ProposerId { get; set; } = string.Empty;
+        public string RecipientId { get; set; } = string.Empty;
         public string OfferedByUserId { get; set; } = string.Empty;
         public string OfferedByUsername { get; set; } = string.Empty;
         public decimal CreditAmount { get; set; }
+        public decimal ProposerCreditAmount { get; set; }
+        public decimal RecipientCreditAmount { get; set; }
         public string? Message { get; set; }
         public DateTime CreatedAt { get; set; }
     }

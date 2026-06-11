@@ -23,6 +23,19 @@ public class CreditRepository : ICreditRepository
         return await connection.ExecuteScalarAsync<decimal>(sql, new { UserId = userId });
     }
 
+    public async Task<decimal?> GetLatestTransactionBalanceAsync(string userId)
+    {
+        using var connection = _dapperContext.CreateConnection();
+        var sql = @"
+            SELECT ""BalanceAfter""
+            FROM ""CreditTransactions""
+            WHERE ""UserId"" = @UserId
+            ORDER BY ""TransactionDate"" DESC, ""TransactionId"" DESC
+            LIMIT 1";
+
+        return await connection.ExecuteScalarAsync<decimal?>(sql, new { UserId = userId });
+    }
+
     public async Task<CreditTransaction> AddTransactionAsync(CreditTransaction transaction)
     {
         using var connection = _dapperContext.CreateConnection();
@@ -38,6 +51,16 @@ public class CreditRepository : ICreditRepository
                 RETURNING *";
 
             var result = await connection.QuerySingleAsync<CreditTransaction>(sql, transaction, transaction: tx);
+
+            var balanceSql = @"UPDATE ""AspNetUsers"" SET ""CreditBalance"" = @Balance WHERE ""Id"" = @UserId";
+            var updatedRows = await connection.ExecuteAsync(
+                balanceSql,
+                new { Balance = transaction.BalanceAfter, transaction.UserId },
+                transaction: tx);
+
+            if (updatedRows == 0)
+                throw new InvalidOperationException($"User {transaction.UserId} was not found while syncing credit balance.");
+
             tx.Commit();
             return result;
         }

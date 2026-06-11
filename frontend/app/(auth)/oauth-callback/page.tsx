@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, AlertCircle } from 'lucide-react';
+import { setAuthToken } from '@/lib/utils/auth';
 
 // Loading fallback component
 function LoadingFallback() {
@@ -40,10 +41,7 @@ function OAuthCallbackContent() {
 
       // Store access token in localStorage (hybrid approach)
       // Refresh token is already in httpOnly cookie from backend
-      localStorage.setItem('token', token);
-      
-      // Trigger auth state update
-      window.dispatchEvent(new Event('auth-change'));
+      setAuthToken(token);
 
       // Redirect based on user state
       if (requiresOnboarding) {

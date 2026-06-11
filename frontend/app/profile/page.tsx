@@ -10,6 +10,7 @@ import {
   Link as LinkIcon,
   Twitter,
   Github,
+  Linkedin,
   Edit2,
   Zap,
   Target,
@@ -33,6 +34,7 @@ import ReputationBadge from "@/app/components/reviews/ReputationBadge";
 import ReviewList from "@/app/components/reviews/ReviewList";
 import { useAllBadges } from "@/lib/hooks/useBadges";
 import BadgeGrid from "@/app/components/badges/BadgeGrid";
+import { ProficiencyDots } from "@/app/components/ui/ProficiencyDots";
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -52,6 +54,15 @@ const itemVariants: Variants = {
     transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] as const },
   },
 };
+
+function getProfileUrlLabel(url: string) {
+  try {
+    const parsed = new URL(url);
+    return parsed.hostname.replace(/^www\./, "");
+  } catch {
+    return url.replace(/^https?:\/\//, "").replace(/^www\./, "");
+  }
+}
 
 export default function ProfilePage() {
   const queryClient = useQueryClient();
@@ -171,8 +182,12 @@ export default function ProfilePage() {
     );
   }
 
-  const displayName = user.username;
-  const handle = user.username ? `@${user.username}` : "@user";
+  const usernameLooksLikeEmail =
+    user.username?.includes("@") ||
+    user.username?.toLowerCase() === user.email?.toLowerCase();
+  const emailLocalPart = user.email.split("@")[0] || "user";
+  const displayName = usernameLooksLikeEmail ? emailLocalPart : user.username;
+  const handle = displayName ? `@${displayName}` : "@user";
   const bio = user.bio ?? "";
   const avatarUrl = user.profilePictureUrl ?? "";
 
@@ -289,23 +304,64 @@ export default function ProfilePage() {
                       <p className="text-zinc-600 text-sm mt-2 max-w-2xl">{bio}</p>
                     )}
                     
-                    {/* Meta info */}
-                    <div className="flex flex-wrap gap-4 mt-3 text-sm text-zinc-500">
-                      <div className="flex items-center gap-1.5">
-                        <MapPin size={14} />
-                        <span>Itahari, Sunsari</span>
+                    {(user.location ||
+                      user.websiteUrl ||
+                      user.twitterUrl ||
+                      user.gitHubUrl ||
+                      user.linkedInUrl) && (
+                      <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-zinc-500">
+                        {user.location && (
+                          <div className="flex items-center gap-1.5">
+                            <MapPin size={14} />
+                            <span>{user.location}</span>
+                          </div>
+                        )}
+                        {user.websiteUrl && (
+                          <a
+                            href={user.websiteUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center gap-1.5 hover:text-[#1D9E75] transition-colors"
+                          >
+                            <LinkIcon size={14} />
+                            <span>{getProfileUrlLabel(user.websiteUrl)}</span>
+                          </a>
+                        )}
+                        {user.twitterUrl && (
+                          <a
+                            href={user.twitterUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            aria-label="Twitter profile"
+                            className="p-1.5 rounded-md hover:bg-zinc-100 text-zinc-500 hover:text-zinc-700 transition-colors"
+                          >
+                            <Twitter size={14} />
+                          </a>
+                        )}
+                        {user.gitHubUrl && (
+                          <a
+                            href={user.gitHubUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            aria-label="GitHub profile"
+                            className="p-1.5 rounded-md hover:bg-zinc-100 text-zinc-500 hover:text-zinc-700 transition-colors"
+                          >
+                            <Github size={14} />
+                          </a>
+                        )}
+                        {user.linkedInUrl && (
+                          <a
+                            href={user.linkedInUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            aria-label="LinkedIn profile"
+                            className="p-1.5 rounded-md hover:bg-zinc-100 text-zinc-500 hover:text-zinc-700 transition-colors"
+                          >
+                            <Linkedin size={14} />
+                          </a>
+                        )}
                       </div>
-                      <a href="#" className="flex items-center gap-1.5 hover:text-[#1D9E75] transition-colors">
-                        <LinkIcon size={14} />
-                        <span>shovan.com.np</span>
-                      </a>
-                      <button className="p-1.5 rounded-md hover:bg-zinc-100 text-zinc-500 hover:text-zinc-700 transition-colors" type="button">
-                        <Twitter size={14} />
-                      </button>
-                      <button className="p-1.5 rounded-md hover:bg-zinc-100 text-zinc-500 hover:text-zinc-700 transition-colors" type="button">
-                        <Github size={14} />
-                      </button>
-                    </div>
+                    )}
                   </div>
                 </div>
                 
@@ -407,6 +463,10 @@ export default function ProfilePage() {
                               {skill.description}
                             </p>
                           )}
+                          <div className="mt-2 flex items-center gap-2 text-xs text-zinc-500">
+                            <span>Level {skill.proficiencyLevel}</span>
+                            <ProficiencyDots level={skill.proficiencyLevel} color="teal" />
+                          </div>
                         </div>
                         <button
                           onClick={() => deleteSkillMutation.mutate(skill.userSkillId)}
@@ -468,6 +528,10 @@ export default function ProfilePage() {
                             <span className="text-xs font-medium text-[#3C2A8A] bg-violet-50 px-2 py-0.5 rounded">
                               {skill.category}
                             </span>
+                          </div>
+                          <div className="mt-2 flex items-center gap-2 text-xs text-zinc-500">
+                            <span>Target {skill.proficiencyLevel}</span>
+                            <ProficiencyDots level={skill.proficiencyLevel} color="violet" />
                           </div>
                         </div>
                         <button

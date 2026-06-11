@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🌟 TalentVerse
+# 🌟 Barterly
 
 ### *The Skill-Swapping Platform That Connects Talent*
 
@@ -16,13 +16,13 @@
 
 </div>
 
-## 🎯 About TalentVerse
+## 🎯 About Barterly
 
-**TalentVerse** is a revolutionary skill-swapping platform where individuals exchange their expertise without money changing hands. Whether you're a designer seeking coding lessons or a developer wanting to learn photography, TalentVerse connects you with the perfect skill partner.
+**Barterly** is a revolutionary skill-swapping platform where individuals exchange their expertise without money changing hands. Whether you're a designer seeking coding lessons or a developer wanting to learn photography, Barterly connects you with the perfect skill partner.
 
 ### 💡 The Concept
 
-In a world where knowledge is abundant but often gatekept by price tags, TalentVerse creates a **barter economy of skills**. Users offer what they know and request what they want to learn, forming mutually beneficial partnerships that foster growth, collaboration, and community.
+In a world where knowledge is abundant but often gatekept by price tags, Barterly creates a **barter economy of skills**. Users offer what they know and request what they want to learn, forming mutually beneficial partnerships that foster growth, collaboration, and community.
 
 ---
 
@@ -212,10 +212,10 @@ Comprehensive guides for deployment and development:
 
 ---
 
-## 🌟 What Makes TalentVerse Special?
+## 🌟 What Makes Barterly Special?
 
 ### **1. No Money, Just Skills**
-Traditional freelance platforms charge fees and require payment. TalentVerse eliminates financial barriers entirely, making skill exchange accessible to everyone.
+Traditional freelance platforms charge fees and require payment. Barterly eliminates financial barriers entirely, making skill exchange accessible to everyone.
 
 ### **2. Mutual Growth**
 Both parties benefit equally. There's no client-contractor dynamic—just two people helping each other grow.
@@ -281,7 +281,7 @@ Built with cutting-edge technologies for performance, scalability, and developer
 
 ## 🤝 Contributing
 
-TalentVerse is a learning project and open to contributions! Whether you're fixing bugs, adding features, or improving documentation, your help is welcome.
+Barterly is a learning project and open to contributions! Whether you're fixing bugs, adding features, or improving documentation, your help is welcome.
 
 ### **Ways to Contribute**
 - 🐛 Report bugs and issues
@@ -320,7 +320,7 @@ This project is licensed under the **MIT License** - see the LICENSE file for de
 
 ### ⭐ Star this repo if you find it interesting!
 
-**TalentVerse** - *Where Skills Meet, and Everyone Grows*
+**Barterly** - *Where Skills Meet, and Everyone Grows*
 
 Made with ❤️ and lots of ☕
 

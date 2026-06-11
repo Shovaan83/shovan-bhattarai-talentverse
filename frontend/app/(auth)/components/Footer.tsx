@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Sparkles, Twitter, Instagram, Linkedin, Github } from 'lucide-react';
+import { Twitter, Instagram, Linkedin, Github } from 'lucide-react';
+import { BrandLogo } from '@/app/components/BrandLogo';
 
 export const Footer: React.FC = () => {
   return (
@@ -12,10 +13,7 @@ export const Footer: React.FC = () => {
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-white">
-              <div className="bg-emerald-600 p-1.5 rounded-lg">
-                {/* <Sparkles size={20} /> */}
-              </div>
-              <span className="font-heading font-bold text-xl">TalentVerse</span>
+              <BrandLogo iconClassName="h-8 w-8" textClassName="text-xl text-white" />
             </div>
             <p className="text-gray-400 text-sm leading-relaxed">
               Empowering the world to trade talent, not currency. Built for creators, learners, and dreamers.
@@ -69,7 +67,7 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500">
-          <p>© {new Date().getFullYear()} TalentVerse Inc. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Barterly Inc. All rights reserved.</p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <a href="#" className="hover:text-white">Privacy Policy</a>
             <a href="#" className="hover:text-white">Terms of Service</a>

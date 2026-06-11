@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import api from '@/lib/axios';
+import { ensureAuthToken } from '@/lib/utils/auth';
 
 /**
  * Middleware to enforce 2FA setup for email/password users
@@ -24,7 +25,7 @@ export function use2FAEnforcement() {
         return;
       }
       
-      const token = localStorage.getItem('token');
+      const token = await ensureAuthToken();
       if (!token) {
         // Not authenticated, skip enforcement
         return;

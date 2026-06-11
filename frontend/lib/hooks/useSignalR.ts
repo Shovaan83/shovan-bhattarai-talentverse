@@ -9,6 +9,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MESSAGE_QUERY_KEYS } from "@/lib/hooks/useMessages";
+import { ensureAuthToken } from "@/lib/utils/auth";
 import type { Message } from "@/lib/types/messages";
 
 const HUB_URL =
@@ -27,12 +28,12 @@ export function useSignalR(proposalId?: number, currentUserId?: string) {
 
   // Build and start the hub connection once
   useEffect(() => {
-    const token =
-      typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    if (!token) return;
+    if (typeof window === "undefined") return;
 
     const connection = new HubConnectionBuilder()
-      .withUrl(HUB_URL, { accessTokenFactory: () => token })
+      .withUrl(HUB_URL, {
+        accessTokenFactory: async () => (await ensureAuthToken()) ?? "",
+      })
       .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
       .configureLogging(LogLevel.Warning)
       .build();

@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
-import { Sparkles, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import Link from 'next/link';
+import { BrandLogo } from '@/app/components/BrandLogo';
 
 export const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -28,12 +29,10 @@ export const Navbar: React.FC = () => {
       <div className="container mx-auto px-6 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center gap-2 cursor-pointer group">
-          <div className="bg-[#1D9E75] p-1.5 rounded-lg text-white group-hover:rotate-12 transition-transform duration-300">
-            {/* <Sparkles size={20} /> */}
-          </div>
-          <span className={`font-heading font-bold text-xl tracking-tight ${isScrolled || mobileMenuOpen ? 'text-zinc-900' : 'text-white'}`}>
-            TalentVerse
-          </span>
+          <BrandLogo
+            iconClassName="h-8 w-8 group-hover:rotate-6 transition-transform duration-300"
+            textClassName={`text-xl ${isScrolled || mobileMenuOpen ? 'text-zinc-900' : 'text-white'}`}
+          />
         </div>
 
         {/* Desktop Links */}

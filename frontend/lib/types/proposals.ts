@@ -5,6 +5,10 @@ export type ProposalStatus = "Pending" | "Accepted" | "Rejected" | "Completed" |
 export interface Proposal {
   proposalId: number;
   creditAmount: number;
+  proposerCreditAmount: number;
+  recipientCreditAmount: number;
+  netCreditAmount: number;
+  netCreditReceiverUserId: string;
   
   // Proposer info
   proposerId: string;
@@ -103,11 +107,15 @@ export interface CreateProposalPayload {
   proposerUserSkillId: number;
   recipientUserSkillId: number;
   creditAmount: number;
+  proposerCreditAmount?: number;
+  recipientCreditAmount?: number;
   message?: string;
 }
 
 export interface CreateCounterofferPayload {
   creditAmount: number;
+  proposerCreditAmount?: number;
+  recipientCreditAmount?: number;
   message?: string;
 }
 
@@ -117,6 +125,10 @@ export interface ProposalCounteroffer {
   offeredByUserId: string;
   offeredByUsername: string;
   creditAmount: number;
+  proposerCreditAmount: number;
+  recipientCreditAmount: number;
+  netCreditAmount: number;
+  netCreditReceiverUserId: string;
   message?: string;
   createdAt: string;
 }

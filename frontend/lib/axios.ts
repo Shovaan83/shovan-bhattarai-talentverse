@@ -1,4 +1,5 @@
 import axios from "axios";
+import { clearAuthSession, refreshAccessToken } from "@/lib/utils/auth";
 
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5249/api",
@@ -88,31 +89,16 @@ axiosInstance.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // ⭐ Attempt to refresh token
-        const response = await axios.post<{ success: boolean; data: string }>(
-          '/account/refresh',
-          undefined,
-          {
-            baseURL: axiosInstance.defaults.baseURL,
-            withCredentials: true,
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          }
-        );
+        const newToken = await refreshAccessToken();
 
-        if (response.data.success) {
-          const newToken = response.data.data;
-          localStorage.setItem('token', newToken);
+        if (newToken) {
           originalRequest.headers.Authorization = `Bearer ${newToken}`;
           processQueue(null, newToken);
           return axiosInstance(originalRequest);
         } else {
           // Refresh failed, redirect to login
           processQueue(new Error('Token refresh failed'), null);
-          localStorage.removeItem("token");
-          localStorage.removeItem("rememberMe");
-          localStorage.removeItem("userEmail");
+          clearAuthSession();
           if (typeof window !== "undefined") {
             window.location.href = "/login";
           }
@@ -121,9 +107,7 @@ axiosInstance.interceptors.response.use(
       } catch (refreshError) {
         // Refresh failed, redirect to login
         processQueue(refreshError, null);
-        localStorage.removeItem("token");
-        localStorage.removeItem("rememberMe");
-        localStorage.removeItem("userEmail");
+        clearAuthSession();
         if (typeof window !== "undefined") {
           window.location.href = "/login";
         }

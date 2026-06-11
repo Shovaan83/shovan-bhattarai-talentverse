@@ -7,6 +7,10 @@ namespace TalentVerse.WebAPI.DTO.Proposals
     {
         public int ProposalId { get; set; }
         public decimal CreditAmount { get; set; }
+        public decimal ProposerCreditAmount { get; set; }
+        public decimal RecipientCreditAmount { get; set; }
+        public decimal NetCreditAmount { get; set; }
+        public string NetCreditReceiverUserId { get; set; } = string.Empty;
 
         // Proposer info
         public string ProposerId { get; set; } = string.Empty;

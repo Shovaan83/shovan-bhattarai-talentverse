@@ -52,7 +52,15 @@ namespace TalentVerse.WebAPI.Services
                 if (dto == null)
                     return ServiceResponse<ProposalDto>.FailureResponse("Proposal data is required.");
 
-                if (dto.CreditAmount <= 0)
+                var creditTerms = NormalizeCreditTerms(
+                    dto.CreditAmount,
+                    dto.ProposerCreditAmount,
+                    dto.RecipientCreditAmount);
+
+                if (creditTerms.ProposerCreditAmount < 0 || creditTerms.RecipientCreditAmount < 0)
+                    return ServiceResponse<ProposalDto>.FailureResponse(AppConstant.ErrorMessages.InvalidCreditAmount);
+
+                if (creditTerms.ProposerCreditAmount == 0 && creditTerms.RecipientCreditAmount == 0)
                     return ServiceResponse<ProposalDto>.FailureResponse(AppConstant.ErrorMessages.InvalidCreditAmount);
 
                 // 2. Check profile completeness (soft-lock)
@@ -108,7 +116,9 @@ namespace TalentVerse.WebAPI.Services
                     RecipientId = recipientId,
                     ProposerUserSkillId = dto.ProposerUserSkillId,
                     RecipientUserSkillId = dto.RecipientUserSkillId,
-                    CreditAmount = dto.CreditAmount,
+                    CreditAmount = creditTerms.NetCreditAmount,
+                    ProposerCreditAmount = creditTerms.ProposerCreditAmount,
+                    RecipientCreditAmount = creditTerms.RecipientCreditAmount,
                     Status = ProposalStatus.Pending,
                     ProposerConfirmed = false,
                     RecipientConfirmed = false,
@@ -138,7 +148,7 @@ namespace TalentVerse.WebAPI.Services
 
                 _logger.LogInformation(
                     "Proposal {ProposalId} created by {ProposerId} for {RecipientId} with credit amount {CreditAmount}",
-                    created.ProposalId, userId, recipientId, dto.CreditAmount);
+                    created.ProposalId, userId, recipientId, creditTerms.NetCreditAmount);
 
                 // Queue email notification to recipient (fire-and-forget)
                 var recipient = await _userManager.FindByIdAsync(recipientId);
@@ -152,7 +162,8 @@ namespace TalentVerse.WebAPI.Services
                             proposalDto.ProposerUsername,
                             proposalDto.ProposerSkillName,
                             proposalDto.RecipientSkillName,
-                            proposalDto.CreditAmount,
+                            proposalDto.ProposerCreditAmount,
+                            proposalDto.RecipientCreditAmount,
                             dto.Message));
                 }
 
@@ -161,7 +172,7 @@ namespace TalentVerse.WebAPI.Services
                     userId,
                     "Created",
                     $"New proposal from {proposalDto.ProposerUsername}",
-                    $"{proposalDto.ProposerUsername} offered {proposalDto.CreditAmount:0.##} credits for {proposalDto.RecipientSkillName}.");
+                    $"{proposalDto.ProposerUsername} proposed a net {proposalDto.NetCreditAmount:0.##} credit settlement for {proposalDto.RecipientSkillName}.");
 
                 return ServiceResponse<ProposalDto>.SuccessResponse(
                     proposalDto,
@@ -184,7 +195,15 @@ namespace TalentVerse.WebAPI.Services
                 if (dto == null)
                     return ServiceResponse<ProposalDto>.FailureResponse("Counteroffer data is required.");
 
-                if (dto.CreditAmount <= 0)
+                var creditTerms = NormalizeCreditTerms(
+                    dto.CreditAmount,
+                    dto.ProposerCreditAmount,
+                    dto.RecipientCreditAmount);
+
+                if (creditTerms.ProposerCreditAmount < 0 || creditTerms.RecipientCreditAmount < 0)
+                    return ServiceResponse<ProposalDto>.FailureResponse(AppConstant.ErrorMessages.InvalidCreditAmount);
+
+                if (creditTerms.ProposerCreditAmount == 0 && creditTerms.RecipientCreditAmount == 0)
                     return ServiceResponse<ProposalDto>.FailureResponse(AppConstant.ErrorMessages.InvalidCreditAmount);
 
                 var proposal = await _proposalRepo.GetEntityByIdAsync(proposalId);
@@ -202,7 +221,9 @@ namespace TalentVerse.WebAPI.Services
                 {
                     ProposalId = proposalId,
                     OfferedByUserId = userId,
-                    CreditAmount = dto.CreditAmount,
+                    CreditAmount = creditTerms.NetCreditAmount,
+                    ProposerCreditAmount = creditTerms.ProposerCreditAmount,
+                    RecipientCreditAmount = creditTerms.RecipientCreditAmount,
                     Message = dto.Message?.Trim(),
                     CreatedAt = DateTime.UtcNow
                 };
@@ -228,7 +249,9 @@ namespace TalentVerse.WebAPI.Services
                             otherUser.UserName ?? "User",
                             updatedProposal.ProposerUsername,
                             updatedProposal.RecipientUsername,
-                            updatedProposal.CreditAmount,
+                            GetActorName(updatedProposal, userId),
+                            updatedProposal.ProposerCreditAmount,
+                            updatedProposal.RecipientCreditAmount,
                             dto.Message));
                 }
 
@@ -237,7 +260,7 @@ namespace TalentVerse.WebAPI.Services
                     userId,
                     "Counteroffered",
                     $"Counteroffer on proposal #{proposalId}",
-                    $"{GetActorName(updatedProposal, userId)} offered {dto.CreditAmount:0.##} credits.");
+                    $"{GetActorName(updatedProposal, userId)} proposed a net {creditTerms.NetCreditAmount:0.##} credit settlement.");
 
                 return ServiceResponse<ProposalDto>.SuccessResponse(updatedProposal, AppConstant.SuccessMessages.CounterofferSent);
             }
@@ -563,6 +586,24 @@ namespace TalentVerse.WebAPI.Services
                 if (isRecipient && proposal.RecipientConfirmed)
                     return ServiceResponse<ProposalDto>.FailureResponse("You have already confirmed completion.");
 
+                var willComplete = (isProposer && proposal.RecipientConfirmed) || (isRecipient && proposal.ProposerConfirmed);
+                if (willComplete)
+                {
+                    var netCreditAmount = proposal.RecipientCreditAmount - proposal.ProposerCreditAmount;
+                    if (netCreditAmount > 0)
+                    {
+                        var proposerBalance = await _creditService.GetBalanceAsync(proposal.ProposerId);
+                        if (proposerBalance < netCreditAmount)
+                            return ServiceResponse<ProposalDto>.FailureResponse(AppConstant.ErrorMessages.InsufficientCredits);
+                    }
+                    else if (netCreditAmount < 0)
+                    {
+                        var recipientBalance = await _creditService.GetBalanceAsync(proposal.RecipientId);
+                        if (recipientBalance < Math.Abs(netCreditAmount))
+                            return ServiceResponse<ProposalDto>.FailureResponse(AppConstant.ErrorMessages.InsufficientCredits);
+                    }
+                }
+
                 // 6. Update confirmation (this will also update status to Completed if both confirmed)
                 var success = await _proposalRepo.UpdateCompletionConfirmationAsync(proposalId, userId, isProposer);
 
@@ -631,7 +672,11 @@ namespace TalentVerse.WebAPI.Services
                 if (updatedProposal?.Status == "Completed")
                 {
                     await _creditService.AwardSwapRewardAsync(
-                        proposal.ProposerId, proposal.RecipientId, proposalId, proposal.CreditAmount);
+                        proposal.ProposerId,
+                        proposal.RecipientId,
+                        proposalId,
+                        proposal.ProposerCreditAmount,
+                        proposal.RecipientCreditAmount);
 
                     await _badgeService.EvaluateOnSwapCompletedAsync(proposal.ProposerId);
                     await _badgeService.EvaluateOnSwapCompletedAsync(proposal.RecipientId);
@@ -698,9 +743,12 @@ namespace TalentVerse.WebAPI.Services
             string proposerName,
             string offeredSkill,
             string requestedSkill,
-            decimal creditAmount,
+            decimal proposerCreditAmount,
+            decimal recipientCreditAmount,
             string? message)
         {
+            var netCreditAmount = Math.Abs(recipientCreditAmount - proposerCreditAmount);
+
             return $@"Hello {recipientName},
 
 You have received a new skill swap proposal from {proposerName}!
@@ -708,7 +756,9 @@ You have received a new skill swap proposal from {proposerName}!
 Proposal Details:
 • {proposerName} offers to teach: {offeredSkill}
 • {proposerName} wants to learn: {requestedSkill}
-• Proposed credits: {creditAmount:0.##}
+• Credits for {proposerName}'s skill: {proposerCreditAmount:0.##}
+• Credits for your skill: {recipientCreditAmount:0.##}
+• Net settlement: {netCreditAmount:0.##}
 
 {(string.IsNullOrWhiteSpace(message) ? "" : $@"Message from {proposerName}:
 ""{message}""
@@ -719,21 +769,27 @@ Best regards,
 TalentVerse Team";
         }
 
-    private static string BuildProposalCounterofferedEmailBody(
+        private static string BuildProposalCounterofferedEmailBody(
         string recipientName,
         string proposerName,
-        string otherPartyName,
-        decimal creditAmount,
+        string recipientSkillOwnerName,
+        string actorName,
+        decimal proposerCreditAmount,
+        decimal recipientCreditAmount,
         string? message)
     {
+        var netCreditAmount = Math.Abs(recipientCreditAmount - proposerCreditAmount);
+
         return $@"Hello {recipientName},
 
-{otherPartyName} has submitted a counteroffer on your skill swap proposal.
+{actorName} has submitted a counteroffer on your skill swap proposal.
 
 Counteroffer Details:
-• Current proposed credits: {creditAmount:0.##}
+• Credits for {proposerName}'s skill: {proposerCreditAmount:0.##}
+• Credits for {recipientSkillOwnerName}'s skill: {recipientCreditAmount:0.##}
+• Net settlement: {netCreditAmount:0.##}
 
-{(string.IsNullOrWhiteSpace(message) ? "" : $@"Message from {otherPartyName}:
+{(string.IsNullOrWhiteSpace(message) ? "" : $@"Message from {actorName}:
 ""{message}""
 ")}
 Please review the updated proposal in your dashboard.
@@ -827,6 +883,20 @@ TalentVerse Team";
         }
 
         #endregion
+
+        private static (decimal ProposerCreditAmount, decimal RecipientCreditAmount, decimal NetCreditAmount) NormalizeCreditTerms(
+            decimal creditAmount,
+            decimal proposerCreditAmount,
+            decimal recipientCreditAmount)
+        {
+            if (proposerCreditAmount == 0 && recipientCreditAmount == 0 && creditAmount > 0)
+                recipientCreditAmount = creditAmount;
+
+            return (
+                proposerCreditAmount,
+                recipientCreditAmount,
+                Math.Abs(recipientCreditAmount - proposerCreditAmount));
+        }
 
         /// <summary>
         /// Sets the action flags on a ProposalDto based on user role and proposal status
